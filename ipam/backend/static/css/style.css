@@ -1,0 +1,19 @@
+.table-responsive {
+    margin-bottom: 1rem;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #e7f1ff;
+}
+
+.btn-group-sm > .btn, .btn-sm {
+    margin: 0 2px;
+}
+
+.modal-dialog {
+    max-width: 600px;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}

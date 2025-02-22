@@ -1,0 +1,133 @@
+# IP Address Management (IPAM) System
+
+A comprehensive IP address management solution built with FastAPI, PostgreSQL, and React.
+
+## Features
+
+- Region and Site Management
+- VRF Support
+- IP Address and Prefix Management
+- Role-based Access Control
+- Modern React Frontend
+- RESTful API
+
+## Prerequisites
+
+- Python 3.10 or higher
+- Node.js 16 or higher
+- PostgreSQL 13 or higher with ip4r extension
+- uv package manager (recommended)
+
+## Directory Structure
+
+```
+ipam/
+├── backend/         # FastAPI backend
+├── frontend/        # React frontend
+└── README.md       # This file
+```
+
+## Backend Setup
+
+1. Create and activate a virtual environment:
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+```
+
+2. Install dependencies using uv:
+```bash
+pip install uv
+uv pip install -r requirements.txt
+```
+
+3. Set up PostgreSQL:
+```bash
+# Create database
+psql -U postgres -c "CREATE DATABASE ipam;"
+
+# Enable ip4r extension
+psql -U postgres -d ipam -c "CREATE EXTENSION ip4r;"
+```
+
+4. Run database migrations:
+```bash
+PYTHONPATH=/path/to/backend alembic upgrade head
+```
+
+5. Start the backend server:
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+The API will be available at:
+- API Documentation: http://localhost:8000/docs
+- Alternative API Documentation: http://localhost:8000/redoc
+- API Base URL: http://localhost:8000/api/v1
+
+## Frontend Setup
+
+1. Install dependencies:
+```bash
+cd frontend
+npm install
+```
+
+2. Start the development server:
+```bash
+npm run dev
+```
+
+The frontend will be available at http://localhost:5173
+
+## Environment Variables
+
+### Backend
+Create a `.env` file in the backend directory:
+```env
+DATABASE_URL=postgresql://postgres:your_password@localhost:5432/ipam
+```
+
+## API Documentation
+
+The API documentation is available at:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## Development
+
+### Backend Development
+- The backend uses FastAPI with SQLModel for the ORM
+- Database migrations are handled by Alembic
+- API endpoints are versioned (v1)
+- Authentication is handled via JWT tokens
+
+### Frontend Development
+- Built with React and Vite
+- Uses Mantine for UI components
+- React Query for data fetching
+- React Router for navigation
+
+## Database Schema
+
+Key tables (all prefixed with `ipam_`):
+- `region`: Geographic regions
+- `sitegroup`: Groups of sites
+- `site`: Physical locations
+- `vrf`: Virtual Routing and Forwarding instances
+- `prefix`: IP prefixes/subnets
+- `ip_range`: IP address ranges
+- `ip_address`: Individual IP addresses
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License.

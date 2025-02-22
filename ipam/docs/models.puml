@@ -1,0 +1,160 @@
+@startuml IPAM Data Model
+
+' Styling
+skinparam class {
+    BackgroundColor White
+    ArrowColor #2688d4
+    BorderColor #2688d4
+}
+
+' Region
+class Region {
+    +id: Integer [PK]
+    +name: String
+    +slug: String [unique]
+    +parent_id: Integer [FK]
+    +description: String
+    +created_at: DateTime
+}
+
+' SiteGroup
+class SiteGroup {
+    +id: Integer [PK]
+    +name: String
+    +slug: String [unique]
+    +parent_id: Integer [FK]
+    +description: String
+    +created_at: DateTime
+}
+
+' Site
+class Site {
+    +id: Integer [PK]
+    +name: String
+    +slug: String [unique]
+    +status: String
+    +region_id: Integer [FK]
+    +site_group_id: Integer [FK]
+    +facility: String
+    +physical_address: String
+    +shipping_address: String
+    +latitude: Float
+    +longitude: Float
+    +contact_name: String
+    +contact_phone: String
+    +contact_email: String
+    +comments: String
+    +created_at: DateTime
+}
+
+' Location
+class Location {
+    +id: Integer [PK]
+    +name: String
+    +slug: String [unique]
+    +site_id: Integer [FK]
+    +parent_id: Integer [FK]
+    +status: String
+    +tenant_id: Integer
+    +description: String
+    +created_at: DateTime
+}
+
+' VRF
+class VRF {
+    +id: Integer [PK]
+    +name: String
+    +rd: String [unique]
+    +enforce_unique: Boolean
+    +description: String
+    +created_at: DateTime
+}
+
+' RIR
+class RIR {
+    +id: Integer [PK]
+    +name: String
+    +slug: String [unique]
+    +description: String
+    +created_at: DateTime
+}
+
+' Aggregate
+class Aggregate {
+    +id: Integer [PK]
+    +prefix: String
+    +rir_id: Integer [FK]
+    +date_added: DateTime
+    +description: String
+}
+
+' Role
+class Role {
+    +id: Integer [PK]
+    +name: String
+    +slug: String [unique]
+    +description: String
+}
+
+' Prefix
+class Prefix {
+    +id: Integer [PK]
+    +prefix: String
+    +vrf_id: Integer [FK]
+    +aggregate_id: Integer [FK]
+    +role_id: Integer [FK]
+    +site_id: Integer [FK]
+    +status: String
+    +description: String
+    +created_at: DateTime
+}
+
+' IPRange
+class IPRange {
+    +id: Integer [PK]
+    +start_address: String
+    +end_address: String
+    +prefix_id: Integer [FK]
+    +vrf_id: Integer [FK]
+    +status: String
+    +description: String
+    +created_at: DateTime
+}
+
+' IPAddress
+class IPAddress {
+    +id: Integer [PK]
+    +address: String
+    +vrf_id: Integer [FK]
+    +prefix_id: Integer [FK]
+    +status: String
+    +description: String
+    +created_at: DateTime
+}
+
+' Relationships
+Region "1" *-- "0..*" Region : parent
+Region "1" *-- "0..*" Site : contains
+
+SiteGroup "1" *-- "0..*" SiteGroup : parent
+SiteGroup "1" *-- "0..*" Site : contains
+
+Site "1" *-- "0..*" Location : contains
+Site "1" *-- "0..*" Prefix : contains
+
+Location "1" *-- "0..*" Location : parent
+
+VRF "1" *-- "0..*" Prefix : contains
+VRF "1" *-- "0..*" IPAddress : contains
+VRF "1" *-- "0..*" IPRange : contains
+
+RIR "1" *-- "0..*" Aggregate : contains
+
+Aggregate "1" *-- "0..*" Prefix : contains
+
+Role "1" *-- "0..*" Prefix : categorizes
+
+Prefix "1" *-- "0..*" IPAddress : contains
+Prefix "1" *-- "0..*" IPRange : contains
+
+@enduml
