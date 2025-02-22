@@ -3,21 +3,41 @@
   height: 100vh;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
 }
 
 .wrapper {
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
+  background-color: #fff;
 }
 
 .content-wrapper {
   min-height: 100vh;
-  padding: 20px;
+  padding: 0;
   margin-left: 250px;
-  background-color: #f4f6f9;
+  background-color: #fff;
   transition: margin-left .3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  padding: 0;
+  margin: 0;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.container-fluid {
+  flex: 1;
+  padding: 0;
+  margin: 0;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
 }
 
 .main-sidebar {
@@ -54,18 +74,66 @@
   margin-right: 10px;
 }
 
-.accordion-item {
-  margin-bottom: 10px;
-  box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
-  border-radius: 4px;
+.table-responsive {
+  margin: 0;
   background-color: #fff;
+  padding: 0;
+  border-radius: 0;
+  flex: 1;
 }
 
-.table-responsive {
-  margin-bottom: 1rem;
+.table {
+  margin: 0;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+  padding: 12px 8px;
+}
+
+/* Content header adjustments */
+.content-header {
+  padding: 15px 0 5px 0;
+  margin: 0;
+  background: #fff;
+}
+
+.content-header .container-fluid {
+  padding: 0;
+}
+
+.content-header .row {
+  margin: 0;
+  padding: 0 15px;
+}
+
+/* Card adjustments */
+.card {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
   background-color: #fff;
-  padding: 15px;
-  border-radius: 4px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-body {
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Button adjustments */
+.float-right {
+  margin-right: 15px;
 }
 
 @media (max-width: 768px) {
@@ -82,45 +150,9 @@
   }
 }
 
-.App {
-  width: 100%;
-  height: 100%;
+/* Remove any floating margins */
+* {
   margin: 0;
   padding: 0;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+  box-sizing: border-box;
 }

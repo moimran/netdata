@@ -139,7 +139,7 @@ function IPAMTable() {
         {expandedTable && (
           <div className="content-header">
             <div className="container-fluid">
-              <div className="row mb-2">
+              <div className="row">
                 <div className="col-sm-6">
                   <h1 className="m-0">{formatTableName(expandedTable)}</h1>
                 </div>
@@ -162,59 +162,61 @@ function IPAMTable() {
           <div className="container-fluid">
             {expandedTable && (
               <div className="card">
-                <div className="card-body table-responsive p-0">
-                  <table className="table table-hover text-nowrap">
-                    <thead>
-                      <tr>
-                        {tables[expandedTable]?.[0] && getColumns(tables[expandedTable][0]).map(column => (
-                          <th key={column}>{formatTableName(column)}</th>
-                        ))}
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {tables[expandedTable]?.map(item => (
-                        <tr key={item.id}>
-                          {getColumns(item).map(column => (
-                            <td key={column}>
-                              {column === 'status' ? (
-                                <span className={getStatusBadgeClass(item[column])}>
-                                  {formatTableName(item[column])}
-                                </span>
-                              ) : (
-                                item[column]?.toString()
-                              )}
-                            </td>
-                          ))}
-                          <td>
-                            <div className="btn-group">
-                              <button
-                                type="button"
-                                className="btn btn-default btn-sm"
-                                onClick={() => handleEdit(expandedTable, item)}
-                              >
-                                <i className="fas fa-edit"></i>
-                              </button>
-                              <button
-                                type="button"
-                                className="btn btn-danger btn-sm"
-                                onClick={() => handleDelete(expandedTable, item.id)}
-                              >
-                                <i className="fas fa-trash"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {(!tables[expandedTable] || tables[expandedTable].length === 0) && (
+                <div className="card-body p-0">
+                  <div className="table-responsive">
+                    <table className="table table-hover text-nowrap">
+                      <thead>
                         <tr>
-                          <td colSpan={getColumns(tables[expandedTable]?.[0]).length + 1} className="text-center">
-                            No data available
-                          </td>
+                          {tables[expandedTable]?.[0] && getColumns(tables[expandedTable][0]).map(column => (
+                            <th key={column}>{formatTableName(column)}</th>
+                          ))}
+                          <th>Actions</th>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {tables[expandedTable]?.map(item => (
+                          <tr key={item.id}>
+                            {getColumns(item).map(column => (
+                              <td key={column}>
+                                {column === 'status' ? (
+                                  <span className={getStatusBadgeClass(item[column])}>
+                                    {formatTableName(item[column])}
+                                  </span>
+                                ) : (
+                                  item[column]?.toString()
+                                )}
+                              </td>
+                            ))}
+                            <td>
+                              <div className="btn-group">
+                                <button
+                                  type="button"
+                                  className="btn btn-default btn-sm"
+                                  onClick={() => handleEdit(expandedTable, item)}
+                                >
+                                  <i className="fas fa-edit"></i>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-danger btn-sm"
+                                  onClick={() => handleDelete(expandedTable, item.id)}
+                                >
+                                  <i className="fas fa-trash"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {(!tables[expandedTable] || tables[expandedTable].length === 0) && (
+                          <tr>
+                            <td colSpan={getColumns(tables[expandedTable]?.[0]).length + 1} className="text-center">
+                              No data available
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
