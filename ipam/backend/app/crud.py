@@ -18,10 +18,14 @@ class CRUDBase(Generic[ModelType]):
         return session.get(self.model, id)
 
     def create(self, session: Session, obj_in: ModelType) -> ModelType:
-        session.add(obj_in)
+        # Convert to dict and exclude id field since it's auto-generated
+        obj_data = obj_in.dict(exclude={'id'})
+        # Create a new instance of the model with the data
+        db_obj = self.model(**obj_data)
+        session.add(db_obj)
         session.commit()
-        session.refresh(obj_in)
-        return obj_in
+        session.refresh(db_obj)
+        return db_obj
 
     def update(self, session: Session, db_obj: ModelType, obj_in: ModelType) -> ModelType:
         update_data = obj_in.dict(exclude_unset=True)
