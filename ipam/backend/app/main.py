@@ -99,36 +99,126 @@ async def get_table_schema(table_name: str) -> Dict[str, Any]:
         
         # Get column information
         columns = []
+        relationships = []
+        
+        # Get foreign key information first
+        fk_info = {}
+        for fk in inspector.get_foreign_keys(model.__tablename__):
+            fk_info[fk['constrained_columns'][0]] = {
+                'referenced_table': fk['referred_table'],
+                'referenced_column': fk['referred_columns'][0]
+            }
+        
+        # Get column information
         for column in inspector.get_columns(model.__tablename__):
             # Convert column type to string representation
             column_type = str(column['type'])
             if hasattr(column['type'], 'python_type'):
                 column_type = column['type'].python_type.__name__
-                
+            
+            # Check if this column is a foreign key
+            is_foreign_key = column['name'] in fk_info
+            referenced_table = fk_info[column['name']]['referenced_table'] if is_foreign_key else None
+            
             column_info = {
                 'name': column['name'],
                 'type': column_type,
                 'nullable': column['nullable'],
                 'primary_key': column.get('primary_key', False),
-                'default': str(column['default']) if column['default'] is not None else None
+                'default': str(column['default']) if column['default'] is not None else None,
+                'is_foreign_key': is_foreign_key,
+                'referenced_table': referenced_table,
+                'input_type': 'reference' if is_foreign_key else (
+                    'datetime-local' if column_type == 'datetime' else
+                    'number' if column_type in ('int', 'float') else
+                    'text'
+                )
             }
             columns.append(column_info)
-            
-        # Get foreign key information
-        foreign_keys = []
-        for fk in inspector.get_foreign_keys(model.__tablename__):
-            foreign_keys.append({
-                'column': fk['constrained_columns'][0],
-                'references_table': fk['referred_table'],
-                'references_column': fk['referred_columns'][0]
-            })
             
         return {
             'table_name': model.__tablename__,
             'columns': columns,
-            'foreign_keys': foreign_keys
+            'foreign_keys': [
+                {
+                    'column': col,
+                    'references_table': info['referenced_table'],
+                    'references_column': info['referenced_column']
+                }
+                for col, info in fk_info.items()
+            ]
         }
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error in get_table_schema: {error_details}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/reference-options/{table_name}/{field_name}")
+async def get_reference_options(table_name: str, field_name: str, session: Session = Depends(get_session)) -> List[Dict[str, Any]]:
+    """Get options for a foreign key reference field."""
+    try:
+        # Get the model class for the table
+        model_mapping = {
+            'regions': Region,
+            'site_groups': SiteGroup,
+            'sites': Site,
+            'locations': Location,
+            'vrfs': VRF,
+            'rirs': RIR,
+            'aggregates': Aggregate,
+            'roles': Role,
+            'prefixes': Prefix,
+            'ip_ranges': IPRange,
+            'ip_addresses': IPAddress
+        }
+        
+        if table_name not in model_mapping:
+            raise HTTPException(status_code=404, detail=f"Table {table_name} not found")
+            
+        model = model_mapping[table_name]
+        
+        # Get foreign key information
+        inspector = inspect(engine)
+        foreign_keys = inspector.get_foreign_keys(model.__tablename__)
+        
+        # Find the referenced table for this field
+        referenced_table = None
+        for fk in foreign_keys:
+            if field_name in fk['constrained_columns']:
+                referenced_table = fk['referred_table']
+                break
+                
+        if not referenced_table:
+            raise HTTPException(status_code=404, detail=f"Foreign key {field_name} not found in table {table_name}")
+            
+        # Get the model for the referenced table
+        referenced_model = None
+        for model_class in model_mapping.values():
+            if model_class.__tablename__ == referenced_table:
+                referenced_model = model_class
+                break
+                
+        if not referenced_model:
+            raise HTTPException(status_code=404, detail=f"Referenced table {referenced_table} not found")
+            
+        # Query the referenced table
+        items = session.query(referenced_model).all()
+        
+        # Convert to list of dicts with id and display fields
+        return [
+            {
+                "id": item.id,
+                "name": getattr(item, "name", None),
+                "slug": getattr(item, "slug", None)
+            }
+            for item in items
+        ]
+        
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error in get_reference_options: {error_details}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/tables")

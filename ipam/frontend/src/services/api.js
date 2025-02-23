@@ -16,6 +16,14 @@ export const fetchTableSchema = async (tableName) => {
   return response.json();
 };
 
+export const fetchReferenceOptions = async (tableName, fieldName) => {
+  const response = await fetch(`${API_BASE_URL}/reference-options/${tableName}/${fieldName}`);
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+};
+
 export const createItem = async (tableName, item) => {
   const response = await fetch(`${API_BASE_URL}/v1/${tableName}`, {
     method: 'POST',

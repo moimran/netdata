@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import { createItem, updateItem } from '../services/api'
+import { createItem, updateItem, fetchReferenceOptions } from '../services/api'
 
 function IPAMModal({ show, onHide, item, tableName, schema }) {
   const [formData, setFormData] = useState({})
   const [error, setError] = useState(null)
+  const [referenceOptions, setReferenceOptions] = useState({})
 
   useEffect(() => {
     if (item) {
@@ -21,6 +22,28 @@ function IPAMModal({ show, onHide, item, tableName, schema }) {
       setFormData(defaultValues)
     }
   }, [item, schema])
+
+  useEffect(() => {
+    // Load reference options for foreign key fields
+    const loadReferenceOptions = async () => {
+      const options = {}
+      for (const column of schema?.columns || []) {
+        if (column.is_foreign_key) {
+          try {
+            const data = await fetchReferenceOptions(tableName, column.name)
+            options[column.name] = data
+          } catch (error) {
+            console.error(`Error loading reference options for ${column.name}:`, error)
+          }
+        }
+      }
+      setReferenceOptions(options)
+    }
+
+    if (schema) {
+      loadReferenceOptions()
+    }
+  }, [schema, tableName])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -47,14 +70,11 @@ function IPAMModal({ show, onHide, item, tableName, schema }) {
   }
 
   const getFieldType = (column) => {
-    const type = column.type.toLowerCase()
-    if (type.includes('int')) return 'number'
-    if (type.includes('bool')) return 'checkbox'
-    if (type.includes('timestamp')) return 'datetime-local'
-    if (column.name.includes('email')) return 'email'
-    if (column.name.includes('password')) return 'password'
+    if (column.is_foreign_key) return 'reference'
+    if (column.input_type === 'datetime-local') return 'datetime-local'
+    if (column.input_type === 'number') return 'number'
     if (column.name === 'status') return 'select'
-    return 'text'
+    return column.input_type || 'text'
   }
 
   const getStatusOptions = () => {
@@ -84,7 +104,21 @@ function IPAMModal({ show, onHide, item, tableName, schema }) {
             return (
               <Form.Group key={column.name} className="mb-3">
                 <Form.Label>{formatFieldName(column.name)}</Form.Label>
-                {fieldType === 'select' ? (
+                {fieldType === 'reference' ? (
+                  <Form.Select
+                    name={column.name}
+                    value={formData[column.name] || ''}
+                    onChange={handleInputChange}
+                    required={!column.nullable}
+                  >
+                    <option value="">Select {formatFieldName(column.name.replace('_id', ''))}</option>
+                    {referenceOptions[column.name]?.map(option => (
+                      <option key={option.id} value={option.id}>
+                        {option.name || option.slug || option.id}
+                      </option>
+                    ))}
+                  </Form.Select>
+                ) : fieldType === 'select' ? (
                   <Form.Select
                     name={column.name}
                     value={formData[column.name] || ''}
