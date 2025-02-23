@@ -2,10 +2,12 @@ from typing import Optional, List, Any
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer
+import ipaddress
 
 class Region(SQLModel, table=True):
     __tablename__ = "ipam_region"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(index=True)
     slug: str = Field(index=True, unique=True)
     parent_id: Optional[int] = Field(default=None, foreign_key="ipam_region.id")
@@ -22,7 +24,7 @@ class Region(SQLModel, table=True):
 
 class SiteGroup(SQLModel, table=True):
     __tablename__ = "ipam_sitegroup"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(index=True)
     slug: str = Field(index=True, unique=True)
     parent_id: Optional[int] = Field(default=None, foreign_key="ipam_sitegroup.id")
@@ -39,7 +41,7 @@ class SiteGroup(SQLModel, table=True):
 
 class Site(SQLModel, table=True):
     __tablename__ = "ipam_site"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(index=True)
     slug: str = Field(index=True, unique=True)
     status: str = Field(index=True)  # active, planned, staging, decommissioning, retired
@@ -64,7 +66,7 @@ class Site(SQLModel, table=True):
 
 class Location(SQLModel, table=True):
     __tablename__ = "ipam_location"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(index=True)
     slug: str = Field(index=True, unique=True)
     site_id: int = Field(foreign_key="ipam_site.id")
@@ -83,22 +85,49 @@ class Location(SQLModel, table=True):
     )
 
 class VRF(SQLModel, table=True):
-    __tablename__ = "ipam_vrf"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    __tablename__ = "vrfs"
+    
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(index=True)
-    rd: str = Field(unique=True)  # Route Distinguisher
-    enforce_unique: bool = Field(default=True)
+    rd: str = Field(unique=True, description="Route Distinguisher")
     description: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
-    # Relationships
     prefixes: List["Prefix"] = Relationship(back_populates="vrf")
-    ip_addresses: List["IPAddress"] = Relationship(back_populates="vrf")
+    subnets: List["Subnet"] = Relationship(back_populates="vrf")
     ip_ranges: List["IPRange"] = Relationship(back_populates="vrf")
+
+class VLAN(SQLModel, table=True):
+    __tablename__ = "vlans"
+    
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
+    vid: int = Field(index=True, description="VLAN ID (1-4094)")
+    name: str
+    status: str = Field(default="active")
+    description: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    subnets: List["Subnet"] = Relationship(back_populates="vlan")
+
+class Subnet(SQLModel, table=True):
+    __tablename__ = "subnets"
+    
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
+    network: str = Field(index=True)
+    prefix_length: int = Field(index=True)
+    description: Optional[str] = None
+    vlan_id: Optional[int] = Field(default=None, foreign_key="vlans.id")
+    vrf_id: Optional[int] = Field(default=None, foreign_key="vrfs.id")
+    status: str = Field(default="active")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    vrf: Optional[VRF] = Relationship(back_populates="subnets")
+    vlan: Optional[VLAN] = Relationship(back_populates="subnets")
+    ip_addresses: List["IPAddress"] = Relationship(back_populates="subnet")
 
 class RIR(SQLModel, table=True):
     __tablename__ = "ipam_rir"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(index=True)
     slug: str = Field(index=True)
     description: Optional[str] = None
@@ -109,7 +138,7 @@ class RIR(SQLModel, table=True):
 
 class Aggregate(SQLModel, table=True):
     __tablename__ = "ipam_aggregate"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     prefix: str = Field(index=True)  # CIDR notation
     rir_id: int = Field(foreign_key="ipam_rir.id")
     date_added: datetime = Field(default_factory=datetime.utcnow)
@@ -121,7 +150,7 @@ class Aggregate(SQLModel, table=True):
 
 class Role(SQLModel, table=True):
     __tablename__ = "ipam_role"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(index=True)
     slug: str = Field(index=True)
     description: Optional[str] = None
@@ -131,9 +160,9 @@ class Role(SQLModel, table=True):
 
 class Prefix(SQLModel, table=True):
     __tablename__ = "ipam_prefix"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     prefix: str = Field(index=True)  # CIDR notation
-    vrf_id: Optional[int] = Field(default=None, foreign_key="ipam_vrf.id")
+    vrf_id: Optional[int] = Field(default=None, foreign_key="vrfs.id")
     aggregate_id: Optional[int] = Field(default=None, foreign_key="ipam_aggregate.id")
     role_id: Optional[int] = Field(default=None, foreign_key="ipam_role.id")
     site_id: Optional[int] = Field(default=None, foreign_key="ipam_site.id")
@@ -149,31 +178,42 @@ class Prefix(SQLModel, table=True):
     ip_addresses: List["IPAddress"] = Relationship(back_populates="prefix")
     ip_ranges: List["IPRange"] = Relationship(back_populates="prefix")
 
+class IPAddress(SQLModel, table=True):
+    __tablename__ = "ip_addresses"
+    
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
+    address: str = Field(index=True)
+    subnet_id: int = Field(foreign_key="subnets.id")
+    prefix_id: Optional[int] = Field(default=None, foreign_key="ipam_prefix.id")
+    status: str = Field(default="active")
+    description: Optional[str] = None
+    dns_name: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    subnet: Subnet = Relationship(back_populates="ip_addresses")
+    prefix: Optional[Prefix] = Relationship(back_populates="ip_addresses")
+
 class IPRange(SQLModel, table=True):
     __tablename__ = "ipam_ip_range"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     start_address: str = Field(index=True)
     end_address: str = Field(index=True)
     prefix_id: int = Field(foreign_key="ipam_prefix.id")
-    vrf_id: Optional[int] = Field(default=None, foreign_key="ipam_vrf.id")
+    vrf_id: Optional[int] = Field(default=None, foreign_key="vrfs.id")
     status: str = Field(index=True)
     description: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
-    # Relationships
     prefix: Prefix = Relationship(back_populates="ip_ranges")
     vrf: Optional[VRF] = Relationship(back_populates="ip_ranges")
 
-class IPAddress(SQLModel, table=True):
-    __tablename__ = "ipam_ip_address"
-    id: Optional[int] = Field(default=None, primary_key=True)
-    address: str = Field(index=True)  # IP with CIDR notation
-    vrf_id: Optional[int] = Field(default=None, foreign_key="ipam_vrf.id")
-    prefix_id: Optional[int] = Field(default=None, foreign_key="ipam_prefix.id")
-    status: str = Field(index=True)
-    description: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+class AuditLog(SQLModel, table=True):
+    __tablename__ = "audit_logs"
     
-    # Relationships
-    vrf: Optional[VRF] = Relationship(back_populates="ip_addresses")
-    prefix: Optional[Prefix] = Relationship(back_populates="ip_addresses")
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
+    action: str  # CREATE, UPDATE, DELETE
+    table_name: str
+    record_id: int
+    changes: str  # JSON string of changes
+    user: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)

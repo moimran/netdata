@@ -1,0 +1,6 @@
+1. Always use python uv to install packages.
+2. always use venv environmnet which is already there.
+3. always use database postgres which is already installed.
+4. postgres ip is 127.0.0.1 and port is 5432 and password is moimran@123
+5. run migrations with alembic.
+6. do not run terminal commands I will run the commans instead.

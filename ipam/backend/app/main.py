@@ -3,18 +3,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, SQLModel, create_engine, select, inspect
 from typing import List, Dict, Any
 from . import crud
-from .database import get_session
+from .database import engine, get_session
 from .models import *
+from .config import settings
 
 app = FastAPI(title="IPAM API")
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # React dev server
+    allow_origins=["http://localhost:5173"],  # Frontend development server
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 # Create API router with /api/v1 prefix
@@ -35,6 +36,9 @@ def create_crud_routes(router: FastAPI, path: str, crud_instance, model_type):
 
     @router.post(f"/{path}", response_model=model_type)
     def create(item: model_type, session: Session = Depends(get_session)):
+        # Convert empty string parent_id to None
+        if hasattr(item, 'parent_id') and item.parent_id == '':
+            item.parent_id = None
         return crud_instance.create(session, item)
 
     @router.put(f"/{path}/{{item_id}}", response_model=model_type)
@@ -64,10 +68,6 @@ create_crud_routes(api_router, "roles", crud.role, Role)
 create_crud_routes(api_router, "prefixes", crud.prefix, Prefix)
 create_crud_routes(api_router, "ip_ranges", crud.ip_range, IPRange)
 create_crud_routes(api_router, "ip_addresses", crud.ip_address, IPAddress)
-
-# Database URL configuration
-SQLALCHEMY_DATABASE_URL = "sqlite:///./ipam.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 # Create tables
 SQLModel.metadata.create_all(engine)
