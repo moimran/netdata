@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Title, Card, Text, Button, Group, Stack, TextInput, Modal, Select } from '@mantine/core';
+import { Title, Card, Text, Button, Group, Stack, TextInput, Modal, Select, Table, ActionIcon } from '@mantine/core';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { IconPlus } from '@tabler/icons-react';
+import { IconPlus, IconPencil, IconTrash } from '@tabler/icons-react';
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8000/api/v1';
@@ -49,92 +49,219 @@ export function RegionsView() {
       notifications.show({
         title: 'Success',
         message: 'Region created successfully',
-        color: 'green'
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       notifications.show({
         title: 'Error',
-        message: 'Failed to create region',
-        color: 'red'
+        message: error.message,
       });
-      console.error('Error creating region:', error);
     }
   });
 
-  const handleCreateRegion = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     createRegion.mutate(newRegion);
   };
 
-  if (isLoading) {
-    return <Text>Loading regions...</Text>;
-  }
-
   return (
     <Stack gap="md">
-      <Group justify="space-between">
-        <Title order={2}>Regions</Title>
+      <Group justify="space-between" align="center">
+        <Title order={2} c="white">Regions</Title>
         <Button
           leftSection={<IconPlus size={16} />}
           onClick={() => setCreateModalOpen(true)}
+          variant="filled"
+          color="blue"
         >
           Add Region
         </Button>
       </Group>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
-        {regions.map((region) => (
-          <Card key={region.id} shadow="sm" padding="lg" radius="md" withBorder>
-            <Title order={4}>{region.name}</Title>
-            <Text size="sm" c="dimmed">Slug: {region.slug}</Text>
-            {region.description && (
-              <Text size="sm" mt="xs">{region.description}</Text>
-            )}
-            <Text size="xs" c="dimmed" mt="md">
-              Created: {new Date(region.created_at).toLocaleDateString()}
-            </Text>
-          </Card>
-        ))}
-      </div>
+      <Card withBorder radius="sm">
+        <Table
+          horizontalSpacing="md"
+          verticalSpacing="sm"
+          striped
+          highlightOnHover
+          withTableBorder
+          withColumnBorders
+          styles={(theme) => ({
+            root: {
+              backgroundColor: theme.colors.dark[7],
+              color: theme.white
+            },
+            thead: {
+              backgroundColor: theme.colors.dark[6],
+              th: {
+                color: theme.white,
+                padding: '12px 16px',
+                fontWeight: 700,
+                fontSize: '1rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                borderBottom: `1px solid ${theme.colors.dark[4]}`
+              }
+            },
+            tbody: {
+              tr: {
+                color: theme.white,
+                td: {
+                  padding: '12px 16px',
+                  borderBottom: `1px solid ${theme.colors.dark[4]}`
+                },
+                '&:nth-of-type(odd)': {
+                  backgroundColor: theme.colors.dark[7]
+                },
+                '&:nth-of-type(even)': {
+                  backgroundColor: theme.colors.dark[6]
+                },
+                '&:hover': {
+                  backgroundColor: theme.colors.dark[5]
+                }
+              }
+            }
+          })}
+        >
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Slug</th>
+              <th>Parent ID</th>
+              <th>Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {regions.map((region) => (
+              <tr key={region.id}>
+                <td>{region.id}</td>
+                <td>{region.name}</td>
+                <td>{region.slug}</td>
+                <td>{region.parent_id || '-'}</td>
+                <td>{region.description || '-'}</td>
+                <td>
+                  <Group gap="xs">
+                    <ActionIcon variant="subtle" color="blue" size="sm">
+                      <IconPencil size={16} />
+                    </ActionIcon>
+                    <ActionIcon variant="subtle" color="red" size="sm">
+                      <IconTrash size={16} />
+                    </ActionIcon>
+                  </Group>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </Card>
 
       <Modal
         opened={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        title="Create New Region"
+        title="Create Region"
+        styles={(theme) => ({
+          header: {
+            backgroundColor: theme.colors.dark[7],
+            color: theme.white,
+            padding: '16px 24px',
+            fontWeight: 600
+          },
+          content: {
+            backgroundColor: theme.colors.dark[7]
+          },
+          body: {
+            padding: '24px'
+          }
+        })}
       >
-        <Stack gap="md">
-          <TextInput
-            label="Name"
-            placeholder="Enter region name"
-            value={newRegion.name}
-            onChange={(e) => setNewRegion({ ...newRegion, name: e.target.value })}
-            required
-          />
-          <TextInput
-            label="Slug"
-            placeholder="enter-slug"
-            value={newRegion.slug}
-            onChange={(e) => setNewRegion({ ...newRegion, slug: e.target.value })}
-            required
-          />
-          <Select
-            label="Parent Region"
-            placeholder="Select parent region"
-            value={newRegion.parent_id?.toString()}
-            onChange={(value) => setNewRegion({ ...newRegion, parent_id: value ? parseInt(value) : null })}
-            data={regions.map(r => ({ value: r.id.toString(), label: r.name }))}
-            clearable
-          />
-          <TextInput
-            label="Description"
-            placeholder="Enter description"
-            value={newRegion.description}
-            onChange={(e) => setNewRegion({ ...newRegion, description: e.target.value })}
-          />
-          <Button onClick={handleCreateRegion} loading={createRegion.isPending}>
-            Create Region
-          </Button>
-        </Stack>
+        <form onSubmit={handleSubmit}>
+          <Stack>
+            <TextInput
+              label="Name"
+              value={newRegion.name}
+              onChange={(e) => setNewRegion({ ...newRegion, name: e.target.value })}
+              required
+              styles={(theme) => ({
+                input: {
+                  backgroundColor: theme.colors.dark[6],
+                  color: theme.white,
+                  border: `1px solid ${theme.colors.dark[4]}`
+                },
+                label: {
+                  color: theme.white,
+                  marginBottom: '8px'
+                }
+              })}
+            />
+            <TextInput
+              label="Slug"
+              value={newRegion.slug}
+              onChange={(e) => setNewRegion({ ...newRegion, slug: e.target.value })}
+              required
+              styles={(theme) => ({
+                input: {
+                  backgroundColor: theme.colors.dark[6],
+                  color: theme.white,
+                  border: `1px solid ${theme.colors.dark[4]}`
+                },
+                label: {
+                  color: theme.white,
+                  marginBottom: '8px'
+                }
+              })}
+            />
+            <Select
+              label="Parent Region"
+              value={newRegion.parent_id?.toString() || ''}
+              onChange={(value) => setNewRegion({ ...newRegion, parent_id: value ? parseInt(value) : null })}
+              data={[{ value: '', label: 'None' }, ...regions.map((region) => ({ value: region.id.toString(), label: region.name }))]}
+              styles={(theme) => ({
+                input: {
+                  backgroundColor: theme.colors.dark[6],
+                  color: theme.white,
+                  border: `1px solid ${theme.colors.dark[4]}`
+                },
+                label: {
+                  color: theme.white,
+                  marginBottom: '8px'
+                },
+                dropdown: {
+                  backgroundColor: theme.colors.dark[6],
+                  border: `1px solid ${theme.colors.dark[4]}`
+                },
+                item: {
+                  color: theme.white,
+                  '&[data-selected]': {
+                    backgroundColor: theme.colors.blue[7],
+                    color: theme.white
+                  },
+                  '&[data-hovered]': {
+                    backgroundColor: theme.colors.dark[5]
+                  }
+                }
+              })}
+            />
+            <TextInput
+              label="Description"
+              value={newRegion.description}
+              onChange={(e) => setNewRegion({ ...newRegion, description: e.target.value })}
+              styles={(theme) => ({
+                input: {
+                  backgroundColor: theme.colors.dark[6],
+                  color: theme.white,
+                  border: `1px solid ${theme.colors.dark[4]}`
+                },
+                label: {
+                  color: theme.white,
+                  marginBottom: '8px'
+                }
+              })}
+            />
+            <Button type="submit" mt="md">Create</Button>
+          </Stack>
+        </form>
       </Modal>
     </Stack>
   );

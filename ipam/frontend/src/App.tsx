@@ -3,6 +3,7 @@ import { AppShell, Title, MantineProvider } from '@mantine/core';
 import { MainNavigation } from './components/MainNavigation';
 import { Dashboard } from './components/Dashboard';
 import { IPAMView } from './components/IPAMView';
+import { RegionsView } from './components/RegionsView';
 import type { TableName } from './types';
 
 function AppContent() {
@@ -35,7 +36,7 @@ function AppContent() {
       <AppShell.Main>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/regions" element={<IPAMView tableName="regions" />} />
+          <Route path="/regions" element={<RegionsView />} />
           <Route path="/site-groups" element={<IPAMView tableName="site_groups" />} />
           <Route path="/sites" element={<IPAMView tableName="sites" />} />
           <Route path="/locations" element={<IPAMView tableName="locations" />} />
