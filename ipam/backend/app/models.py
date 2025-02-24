@@ -47,15 +47,6 @@ class Site(SQLModel, table=True):
     status: str = Field(index=True)  # active, planned, staging, decommissioning, retired
     region_id: Optional[int] = Field(default=None, foreign_key="ipam_region.id")
     site_group_id: Optional[int] = Field(default=None, foreign_key="ipam_sitegroup.id")
-    facility: Optional[str] = None  # Local facility name or ID
-    physical_address: Optional[str] = None  # Full physical address
-    shipping_address: Optional[str] = None  # Alternative shipping address
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    contact_name: Optional[str] = None
-    contact_phone: Optional[str] = None
-    contact_email: Optional[str] = None
-    comments: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
     # Relationships
