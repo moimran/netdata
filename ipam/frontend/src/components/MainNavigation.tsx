@@ -1,27 +1,67 @@
+import React from 'react';
 import { Box, NavLink } from '@mantine/core';
-import { IconDashboard, IconMap2, IconBuilding, IconNetwork } from '@tabler/icons-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { 
+  IconWorld,
+  IconLayersIntersect,
+  IconBuilding,
+  IconMapPin,
+  IconNetwork,
+  IconServer,
+  IconDatabase,
+  IconShield,
+  IconBorderAll,
+  IconNetworkOff,
+  IconDeviceDesktopAnalytics,
+  IconRouter,
+  IconBuildingFactory2,
+  IconMap2
+} from '@tabler/icons-react';
 
 export function MainNavigation() {
-  const navigate = useNavigate();
   const location = useLocation();
 
   const navigationItems = [
-    { icon: IconDashboard, label: 'Dashboard', path: '/' },
+    { icon: IconBuildingFactory2, label: 'Sites', path: '/sites' },
     { icon: IconMap2, label: 'Regions', path: '/regions' },
-    { icon: IconBuilding, label: 'Sites', path: '/sites' },
-    { icon: IconNetwork, label: 'IPAM', path: '/ipam' },
+    { icon: IconServer, label: 'Locations', path: '/locations' },
+    { icon: IconNetwork, label: 'Prefixes', path: '/prefixes' },
+    { icon: IconRouter, label: 'Vrfs', path: '/vrfs' },
+    { icon: IconWorld, label: 'Rirs', path: '/rirs' },
+    { icon: IconDatabase, label: 'Aggregates', path: '/aggregates' },
+    { icon: IconShield, label: 'Roles', path: '/roles' },
+    { icon: IconBorderAll, label: 'Ip Ranges', path: '/ip-ranges' },
+    { icon: IconDeviceDesktopAnalytics, label: 'Ip Addresses', path: '/ip-addresses' }
   ];
 
   return (
-    <Box w={250} p="xs">
+    <Box p="md">
       {navigationItems.map((item) => (
         <NavLink
           key={item.path}
+          component={Link}
+          to={item.path}
           label={item.label}
-          leftSection={<item.icon size={20} />}
+          leftSection={<item.icon size="1rem" stroke={1.5} />}
           active={location.pathname === item.path}
-          onClick={() => navigate(item.path)}
+          styles={(theme) => ({
+            root: {
+              marginBottom: '0.5rem',
+              color: theme.white,
+              '&[data-active]': {
+                backgroundColor: theme.colors.blue[8],
+              },
+              '&:hover': {
+                backgroundColor: theme.colors.dark[6],
+              }
+            },
+            label: {
+              color: 'inherit'
+            },
+            section: {
+              color: 'inherit'
+            }
+          })}
         />
       ))}
     </Box>

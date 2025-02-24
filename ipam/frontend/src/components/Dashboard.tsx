@@ -2,19 +2,21 @@ import { Grid, Card, Text, Group, RingProgress, Stack } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
+const API_BASE_URL = 'http://localhost:8000/api/v1';
+
 export function Dashboard() {
   const { data: prefixes = [] } = useQuery({
     queryKey: ['prefixes'],
     queryFn: async () => {
-      const response = await axios.get('http://localhost:8000/api/regions');
+      const response = await axios.get(`${API_BASE_URL}/prefixes`);
       return response.data;
     }
   });
 
   const { data: ipAddresses = [] } = useQuery({
-    queryKey: ['ipAddresses'],
+    queryKey: ['ip_addresses'],
     queryFn: async () => {
-      const response = await axios.get('http://localhost:8000/api/ip-addresses');
+      const response = await axios.get(`${API_BASE_URL}/ip_addresses`);
       return response.data;
     }
   });
@@ -22,7 +24,7 @@ export function Dashboard() {
   const { data: sites = [] } = useQuery({
     queryKey: ['sites'],
     queryFn: async () => {
-      const response = await axios.get('http://localhost:8000/api/sites');
+      const response = await axios.get(`${API_BASE_URL}/sites`);
       return response.data;
     }
   });
@@ -30,7 +32,7 @@ export function Dashboard() {
   const { data: vrfs = [] } = useQuery({
     queryKey: ['vrfs'],
     queryFn: async () => {
-      const response = await axios.get('http://localhost:8000/api/vrfs');
+      const response = await axios.get(`${API_BASE_URL}/vrfs`);
       return response.data;
     }
   });
@@ -49,38 +51,38 @@ export function Dashboard() {
     {
       title: 'Sites',
       value: sites.length,
-      color: 'orange',
+      color: 'grape',
     },
     {
       title: 'VRFs',
       value: vrfs.length,
-      color: 'grape',
+      color: 'orange',
     },
   ];
 
   return (
-    <Grid>
-      {stats.map((stat) => (
-        <Grid.Col key={stat.title} span={3}>
-          <Card shadow="sm" padding="lg" radius="md" withBorder>
-            <Group position="apart">
-              <Stack spacing={0}>
-                <Text size="xs" color="dimmed">
-                  {stat.title}
-                </Text>
-                <Text size="xl" weight={700}>
-                  {stat.value}
-                </Text>
-              </Stack>
-              <RingProgress
-                size={80}
-                thickness={8}
-                sections={[{ value: 100, color: stat.color }]}
-              />
-            </Group>
-          </Card>
-        </Grid.Col>
-      ))}
-    </Grid>
+    <Stack>
+      <Text size="xl" fw={700}>Dashboard</Text>
+      <Grid>
+        {stats.map((stat) => (
+          <Grid.Col span={{ base: 12, md: 6, lg: 3 }} key={stat.title}>
+            <Card withBorder padding="lg">
+              <Group justify="space-between" align="flex-start">
+                <Stack gap={0}>
+                  <Text size="xs" c="dimmed">{stat.title}</Text>
+                  <Text fw={700} size="xl">{stat.value}</Text>
+                </Stack>
+                <RingProgress
+                  size={80}
+                  roundCaps
+                  thickness={8}
+                  sections={[{ value: 100, color: stat.color }]}
+                />
+              </Group>
+            </Card>
+          </Grid.Col>
+        ))}
+      </Grid>
+    </Stack>
   );
 }

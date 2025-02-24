@@ -85,7 +85,6 @@ class VRF(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
     prefixes: List["Prefix"] = Relationship(back_populates="vrf")
-    subnets: List["Subnet"] = Relationship(back_populates="vrf")
     ip_ranges: List["IPRange"] = Relationship(back_populates="vrf")
 
 class VLAN(SQLModel, table=True):
@@ -97,24 +96,6 @@ class VLAN(SQLModel, table=True):
     status: str = Field(default="active")
     description: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    
-    subnets: List["Subnet"] = Relationship(back_populates="vlan")
-
-class Subnet(SQLModel, table=True):
-    __tablename__ = "subnets"
-    
-    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
-    network: str = Field(index=True)
-    prefix_length: int = Field(index=True)
-    description: Optional[str] = None
-    vlan_id: Optional[int] = Field(default=None, foreign_key="vlans.id")
-    vrf_id: Optional[int] = Field(default=None, foreign_key="vrfs.id")
-    status: str = Field(default="active")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    
-    vrf: Optional[VRF] = Relationship(back_populates="subnets")
-    vlan: Optional[VLAN] = Relationship(back_populates="subnets")
-    ip_addresses: List["IPAddress"] = Relationship(back_populates="subnet")
 
 class RIR(SQLModel, table=True):
     __tablename__ = "ipam_rir"
@@ -174,14 +155,12 @@ class IPAddress(SQLModel, table=True):
     
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     address: str = Field(index=True)
-    subnet_id: int = Field(foreign_key="subnets.id")
     prefix_id: Optional[int] = Field(default=None, foreign_key="ipam_prefix.id")
     status: str = Field(default="active")
     description: Optional[str] = None
     dns_name: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
-    subnet: Subnet = Relationship(back_populates="ip_addresses")
     prefix: Optional[Prefix] = Relationship(back_populates="ip_addresses")
 
 class IPRange(SQLModel, table=True):
