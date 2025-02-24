@@ -205,10 +205,14 @@ export function IPAMTable({ tableName }: IPAMTableProps) {
               color: theme.white
             },
             thead: {
-              backgroundColor: theme.colors.dark[8],
+              backgroundColor: theme.colors.dark[2], // Lighter background for better contrast
               th: {
-                color: theme.white,
-                borderBottom: `1px solid ${theme.colors.dark[4]}`
+                color: theme.white, // Back to white but with stronger contrast
+                borderBottom: `1px solid ${theme.colors.dark[4]}`,
+                fontWeight: 700, // Increased font weight
+                fontSize: '1rem', // Slightly larger font size
+                textTransform: 'uppercase', // Make headers more distinct
+                letterSpacing: '0.5px' // Better letter spacing for readability
               }
             },
             tbody: {
