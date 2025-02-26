@@ -8,15 +8,23 @@ import {
   Text,
   Badge,
   ActionIcon,
-  Stack
+  Stack,
+  Tooltip,
+  Pagination,
+  TextInput,
+  Select,
+  Box,
+  Loader,
+  Alert
 } from '@mantine/core';
-import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
+import { IconEdit, IconTrash, IconPlus, IconSearch, IconFilter, IconRefresh } from '@tabler/icons-react';
 import { IPAMModal } from './IPAMModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import type { TableName } from '../types';
+import { API_URL, apiClient } from '../api/client';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = API_URL;
 
 interface Column {
   name: string;
@@ -25,7 +33,7 @@ interface Column {
   reference?: string;
 }
 
-const TABLE_SCHEMAS: Record<TableName, Column[]> = {
+export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   regions: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
@@ -65,8 +73,10 @@ const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   vrfs: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'rd', type: 'string', required: true },
-    { name: 'description', type: 'string' }
+    { name: 'rd', type: 'string' },
+    { name: 'description', type: 'string' },
+    { name: 'enforce_unique', type: 'boolean' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants' }
   ],
   rirs: [
     { name: 'id', type: 'number' },
@@ -88,44 +98,195 @@ const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   ],
   prefixes: [
     { name: 'id', type: 'number' },
+    { name: 'name', type: 'string' },
+    { name: 'slug', type: 'string' },
     { name: 'prefix', type: 'string', required: true },
     { name: 'vrf_id', type: 'number', reference: 'vrfs' },
     { name: 'site_id', type: 'number', reference: 'sites' },
+    { name: 'vlan_id', type: 'number', reference: 'vlans' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants' },
     { name: 'role_id', type: 'number', reference: 'roles' },
     { name: 'status', type: 'string', required: true },
+    { name: 'is_pool', type: 'boolean' },
+    { name: 'mark_utilized', type: 'boolean' },
     { name: 'description', type: 'string' }
   ],
   ip_ranges: [
     { name: 'id', type: 'number' },
+    { name: 'name', type: 'string' },
+    { name: 'slug', type: 'string' },
     { name: 'start_address', type: 'string', required: true },
     { name: 'end_address', type: 'string', required: true },
-    { name: 'description', type: 'string' },
-    { name: 'vrf_id', type: 'number', reference: 'vrfs' }
+    { name: 'vrf_id', type: 'number', reference: 'vrfs' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants' },
+    { name: 'status', type: 'string', required: true },
+    { name: 'description', type: 'string' }
   ],
   ip_addresses: [
     { name: 'id', type: 'number' },
     { name: 'address', type: 'string', required: true },
-    { name: 'prefix_id', type: 'number', reference: 'prefixes', required: true },
     { name: 'status', type: 'string', required: true },
+    { name: 'role', type: 'string' },
     { name: 'dns_name', type: 'string' },
+    { name: 'vrf_id', type: 'number', reference: 'vrfs' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants' },
+    { name: 'nat_inside_id', type: 'number', reference: 'ip_addresses' },
+    { name: 'assigned_object_type', type: 'string' },
+    { name: 'assigned_object_id', type: 'number' },
+    { name: 'description', type: 'string' }
+  ],
+  tenants: [
+    { name: 'id', type: 'number' },
+    { name: 'name', type: 'string', required: true },
+    { name: 'slug', type: 'string', required: true },
     { name: 'description', type: 'string' }
   ]
+};
+
+// Helper function to get status badge color
+const getStatusColor = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'active':
+      return 'green';
+    case 'reserved':
+      return 'blue';
+    case 'deprecated':
+      return 'gray';
+    case 'container':
+      return 'indigo';
+    case 'dhcp':
+      return 'cyan';
+    case 'slaac':
+      return 'teal';
+    default:
+      return 'gray';
+  }
+};
+
+// Helper function to format cell values for display
+const formatCellValue = (column: Column, value: any, referenceData: Record<string, any[]>) => {
+  if (value === null || value === undefined) return '-';
+  
+  if (column.name === 'status') {
+    return (
+      <Badge color={getStatusColor(value)}>
+        {value.charAt(0).toUpperCase() + value.slice(1)}
+      </Badge>
+    );
+  }
+  
+  if (column.type === 'boolean') {
+    return value ? 'Yes' : 'No';
+  }
+  
+  if (column.reference && value) {
+    const referenceTable = column.reference;
+    const referenceItems = referenceData[referenceTable] || [];
+    
+    // Ensure referenceItems is an array before using find
+    if (Array.isArray(referenceItems)) {
+      const referencedItem = referenceItems.find((item: any) => item.id === value);
+      
+      if (referencedItem) {
+        return referencedItem.name || referencedItem.prefix || referencedItem.address || referencedItem.rd || referencedItem.slug || value;
+      }
+    }
+  }
+  
+  return String(value);
 };
 
 interface IPAMTableProps {
   tableName: TableName;
 }
 
+const useReferenceData = (referenceTableNames: string[]) => {
+  const { data: referenceQueryData } = useQuery({
+    queryKey: ['references', referenceTableNames],
+    queryFn: async () => {
+      const results: Record<string, any> = {};
+      
+      // Use Promise.all to fetch all reference data in parallel
+      await Promise.all(referenceTableNames.map(async (refTableName) => {
+        try {
+          const response = await apiClient.get(`${refTableName}`);
+          // Ensure we have a consistent data structure
+          const responseData = response.data;
+          
+          // Store data in a consistent format
+          if (Array.isArray(responseData)) {
+            results[refTableName] = responseData;
+          } else if (responseData?.items && Array.isArray(responseData.items)) {
+            results[refTableName] = responseData.items;
+          } else if (responseData?.data && Array.isArray(responseData.data)) {
+            results[refTableName] = responseData.data;
+          } else {
+            // Default to empty array if we can't determine the structure
+            results[refTableName] = [];
+          }
+        } catch (error) {
+          console.error(`Error fetching ${refTableName}:`, error);
+          results[refTableName] = [];
+        }
+      }));
+      
+      return results;
+    },
+    enabled: referenceTableNames.length > 0
+  });
+  
+  return referenceQueryData || {};
+};
+
 export function IPAMTable({ tableName }: IPAMTableProps) {
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterField, setFilterField] = useState<string>('');
+  const [filterValue, setFilterValue] = useState<string>('');
   const queryClient = useQueryClient();
+  
+  const pageSize = 10;
+
+  // Get table schema
+  const schema = TABLE_SCHEMAS[tableName] || [];
+  
+  // Get filterable fields
+  const filterableFields = schema
+    .filter(col => col.name !== 'id' && col.name !== 'description')
+    .map(col => ({ value: col.name, label: col.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') }));
+
+  // Fetch reference data for all tables
+  const referenceTableNames = [...new Set(schema
+    .filter(col => col.reference)
+    .map(col => col.reference!)
+  )];
+  
+  const referenceData = useReferenceData(referenceTableNames);
 
   // Fetch table data
-  const { data: tableData = [], isLoading } = useQuery({
-    queryKey: ['table', tableName],
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ['table', tableName, page, searchQuery, filterField, filterValue],
     queryFn: async () => {
-      const response = await axios.get(`${API_BASE_URL}/${tableName}`);
+      // Add query parameters
+      const params = new URLSearchParams();
+      
+      if (page > 1) {
+        params.append('skip', ((page - 1) * pageSize).toString());
+      }
+      
+      params.append('limit', pageSize.toString());
+      
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+      
+      if (filterField && filterValue) {
+        params.append(filterField, filterValue);
+      }
+      
+      const response = await apiClient.get(`${tableName}`, { params });
       return response.data;
     }
   });
@@ -133,169 +294,187 @@ export function IPAMTable({ tableName }: IPAMTableProps) {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await axios.delete(`${API_BASE_URL}/${tableName}/${id}`);
+      await apiClient.delete(`${tableName}/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['table', tableName] });
     }
   });
 
-  const formatTableName = (name: string) => {
-    return name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  const handleAddClick = () => {
+    setSelectedItem(null);
+    setShowModal(true);
   };
 
-  const getColumns = () => {
-    const schema = TABLE_SCHEMAS[tableName];
-    if (!schema) return [];
-    return schema.filter(col => !col.name.startsWith('_') && col.name !== 'created_at');
-  };
-
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteMutation.mutateAsync(id);
-    } catch (error) {
-      console.error('Error deleting item:', error);
-    }
-  };
-
-  const handleEdit = (item: any) => {
+  const handleEditClick = (item: any) => {
     setSelectedItem(item);
     setShowModal(true);
   };
 
-  const handleCloseModal = () => {
-    setSelectedItem(null);
+  const handleDeleteClick = (id: number) => {
+    if (window.confirm('Are you sure you want to delete this item?')) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleModalClose = () => {
     setShowModal(false);
-    queryClient.invalidateQueries({ queryKey: ['table', tableName] });
   };
 
-  const getStatusBadge = (value: string) => {
-    const color = value === 'active' ? 'green' : 
-                 value === 'reserved' ? 'yellow' : 
-                 value === 'deprecated' ? 'red' : 'gray';
-    return <Badge color={color}>{value}</Badge>;
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1); // Reset to first page when searching
+    refetch();
   };
 
-  if (isLoading) {
-    return <Text>Loading...</Text>;
-  }
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setFilterField('');
+    setFilterValue('');
+    setPage(1);
+    refetch();
+  };
+
+  const totalPages = data?.total 
+    ? Math.ceil(data.total / pageSize) 
+    : 1;
 
   return (
-    <Stack>
-      <Group justify="space-between" align="center" p="md">
-        <Title order={2}>{formatTableName(tableName)}</Title>
-        <Button
-          leftSection={<IconPlus size={20} />}
-          onClick={() => setShowModal(true)}
-        >
-          Add New
-        </Button>
-      </Group>
+    <Stack spacing="md">
+      <Card shadow="sm" p="lg" radius="md" withBorder>
+        <Group position="apart" mb="md">
+          <Title order={3}>
+            {tableName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+          </Title>
+          <Button 
+            leftSection={<IconPlus size={16} />} 
+            onClick={handleAddClick}
+          >
+            Add
+          </Button>
+        </Group>
 
-      <Card>
-        <Table
-          withBorder
-          borderRadius="sm"
-          withColumnBorders
-          striped
-          highlightOnHover
-          styles={(theme) => ({
-            root: {
-              backgroundColor: theme.colors.dark[7],
-              color: theme.white
-            },
-            thead: {
-              backgroundColor: theme.colors.dark[2], // Lighter background for better contrast
-              th: {
-                color: theme.white, // Back to white but with stronger contrast
-                borderBottom: `1px solid ${theme.colors.dark[4]}`,
-                fontWeight: 700, // Increased font weight
-                fontSize: '1rem', // Slightly larger font size
-                textTransform: 'uppercase', // Make headers more distinct
-                letterSpacing: '0.5px' // Better letter spacing for readability
-              }
-            },
-            tbody: {
-              tr: {
-                color: theme.white,
-                borderBottom: `1px solid ${theme.colors.dark[4]}`,
-                td: {
-                  color: theme.white,
-                  borderBottom: `1px solid ${theme.colors.dark[4]}`
-                },
-                '&:nth-of-type(odd)': {
-                  backgroundColor: theme.colors.dark[7]
-                },
-                '&:nth-of-type(even)': {
-                  backgroundColor: theme.colors.dark[6]
-                },
-                '&:hover': {
-                  backgroundColor: theme.colors.dark[5],
-                  cursor: 'pointer'
-                }
-              }
-            }
-          })}
-        >
-          <Table.Thead>
-            <Table.Tr>
-              {getColumns().map(column => (
-                <Table.Th key={column.name}>{formatTableName(column.name)}</Table.Th>
-              ))}
-              <Table.Th>Actions</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {tableData?.length > 0 ? (
-              tableData.map((item: any) => (
-                <Table.Tr key={item.id}>
-                  {getColumns().map(column => (
-                    <Table.Td key={column.name}>
-                      {column.name === 'status' ? 
-                        getStatusBadge(item[column.name]) : 
-                        String(item[column.name] ?? '')}
-                    </Table.Td>
+        <form onSubmit={handleSearch}>
+          <Group mb="md" align="flex-end">
+            <TextInput
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              icon={<IconSearch size={16} />}
+              style={{ flexGrow: 1 }}
+            />
+            
+            <Select
+              placeholder="Filter by field"
+              value={filterField}
+              onChange={setFilterField}
+              data={filterableFields}
+              clearable
+              icon={<IconFilter size={16} />}
+              style={{ width: '200px' }}
+            />
+            
+            {filterField && (
+              <TextInput
+                placeholder="Filter value"
+                value={filterValue}
+                onChange={(e) => setFilterValue(e.target.value)}
+                style={{ width: '200px' }}
+              />
+            )}
+            
+            <Button type="submit">Apply Filters</Button>
+            <Button variant="outline" onClick={handleClearFilters}>Clear</Button>
+            <Tooltip label="Refresh data">
+              <ActionIcon 
+                color="blue" 
+                variant="light" 
+                onClick={() => refetch()}
+              >
+                <IconRefresh size={20} />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
+        </form>
+
+        {isLoading ? (
+          <Box p="xl" style={{ display: 'flex', justifyContent: 'center' }}>
+            <Loader />
+          </Box>
+        ) : isError ? (
+          <Alert color="red" title="Error">
+            Failed to load data. Please try again.
+          </Alert>
+        ) : data?.items?.length === 0 ? (
+          <Text align="center" color="dimmed" py="xl">
+            No items found. Try adjusting your filters or add a new item.
+          </Text>
+        ) : (
+          <Table striped highlightOnHover>
+            <thead>
+              <tr>
+                {schema.map(column => (
+                  <th key={column.name}>
+                    {column.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                  </th>
+                ))}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data?.items?.map((item: any) => (
+                <tr key={item.id}>
+                  {schema.map(column => (
+                    <td key={column.name}>
+                      {formatCellValue(column, item[column.name], referenceData)}
+                    </td>
                   ))}
-                  <Table.Td>
-                    <Group gap="xs">
-                      <ActionIcon
-                        variant="light"
-                        color="blue"
-                        onClick={() => handleEdit(item)}
+                  <td>
+                    <Group spacing="xs">
+                      <ActionIcon 
+                        color="blue" 
+                        onClick={() => handleEditClick(item)}
+                        title="Edit"
                       >
                         <IconEdit size={16} />
                       </ActionIcon>
-                      <ActionIcon
-                        variant="light"
-                        color="red"
-                        onClick={() => handleDelete(item.id)}
+                      <ActionIcon 
+                        color="red" 
+                        onClick={() => handleDeleteClick(item.id)}
+                        title="Delete"
+                        loading={deleteMutation.isPending}
                       >
                         <IconTrash size={16} />
                       </ActionIcon>
                     </Group>
-                  </Table.Td>
-                </Table.Tr>
-              ))
-            ) : (
-              <Table.Tr>
-                <Table.Td colSpan={getColumns().length + 1} style={{ textAlign: 'center' }}>
-                  No data available
-                </Table.Td>
-              </Table.Tr>
-            )}
-          </Table.Tbody>
-        </Table>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        )}
+
+        {data?.total > 0 && (
+          <Group position="right" mt="md">
+            <Pagination 
+              total={totalPages} 
+              value={page} 
+              onChange={setPage} 
+            />
+            <Text size="sm" color="dimmed">
+              Showing {((page - 1) * pageSize) + 1}-{Math.min(page * pageSize, data.total)} of {data.total} items
+            </Text>
+          </Group>
+        )}
       </Card>
 
-      {showModal && (
-        <IPAMModal
-          show={showModal}
-          onHide={handleCloseModal}
-          tableName={tableName}
-          schema={TABLE_SCHEMAS[tableName]}
-          item={selectedItem}
-        />
-      )}
+      <IPAMModal
+        show={showModal}
+        onHide={handleModalClose}
+        tableName={tableName}
+        schema={schema}
+        item={selectedItem}
+      />
     </Stack>
   );
 }

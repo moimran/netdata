@@ -44,36 +44,55 @@ export function SitesView() {
   const queryClient = useQueryClient();
 
   // Fetch sites
-  const { data: sites = [], isLoading } = useQuery<Site[]>({
+  const { data: sitesData, isLoading } = useQuery({
     queryKey: ['sites'],
     queryFn: async () => {
-      const response = await axios.get('http://localhost:8000/api/sites');
+      const response = await axios.get('http://localhost:9001/api/v1/sites');
       return response.data;
     }
-  });
+  }); 
+
+  // Ensure sites is always an array
+  const sites = sitesData?.items || sitesData?.data || sitesData || [];
 
   // Fetch regions for dropdown
-  const { data: regions = [] } = useQuery<Region[]>({
+  const { data: regionsData } = useQuery({
     queryKey: ['regions'],
     queryFn: async () => {
-      const response = await axios.get('http://localhost:8000/api/regions');
+      const response = await axios.get('http://localhost:9001/api/v1/regions');
       return response.data;
     }
   });
 
+  // Ensure regions is always an array
+  const regions = regionsData?.items || regionsData?.data || regionsData || [];
+
   // Fetch site groups for dropdown
-  const { data: siteGroups = [] } = useQuery<SiteGroup[]>({
+  const { data: siteGroupsData } = useQuery({
     queryKey: ['siteGroups'],
     queryFn: async () => {
-      const response = await axios.get('http://localhost:8000/api/site-groups');
+      const response = await axios.get('http://localhost:9001/api/v1/site_groups');
       return response.data;
     }
   });
+
+  // Ensure siteGroups is always an array
+  const siteGroups = siteGroupsData?.items || siteGroupsData?.data || siteGroupsData || [];
 
   // Create site mutation
   const createSite = useMutation({
     mutationFn: async (siteData: typeof newSite) => {
-      const response = await axios.post('http://localhost:8000/api/sites', siteData);
+      // Convert empty strings to null for numeric fields
+      const formattedData = { ...siteData };
+      
+      // Ensure all numeric fields are either null or valid numbers
+      if (formattedData.region_id === "" || formattedData.region_id === undefined) formattedData.region_id = null;
+      if (formattedData.site_group_id === "" || formattedData.site_group_id === undefined) formattedData.site_group_id = null;
+      if (formattedData.latitude === "" || formattedData.latitude === undefined) formattedData.latitude = null;
+      if (formattedData.longitude === "" || formattedData.longitude === undefined) formattedData.longitude = null;
+      
+      console.log("Submitting site data:", formattedData);
+      const response = await axios.post('http://localhost:9001/api/v1/sites', formattedData);
       return response.data;
     },
     onSuccess: () => {
@@ -171,7 +190,7 @@ export function SitesView() {
           <Select
             label="Site Group"
             placeholder="Select site group"
-            value={newSite.site_group_id?.toString()}
+            value={newSite.site_group_id?.toString() || null}
             onChange={(value) => setNewSite({ ...newSite, site_group_id: value ? parseInt(value) : null })}
             data={siteGroups.map(g => ({ value: g.id.toString(), label: g.name }))}
             clearable

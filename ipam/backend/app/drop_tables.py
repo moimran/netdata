@@ -1,11 +1,17 @@
-from sqlmodel import SQLModel
-from .database import engine
-from .models import *
+import sys
+import os
 
-def drop_all_tables():
+# Add the parent directory to sys.path to import app modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from app.database import engine
+from sqlmodel import SQLModel
+from app.models import *
+
+def drop_tables():
     print("Dropping all tables...")
     SQLModel.metadata.drop_all(engine)
     print("All tables dropped successfully!")
 
 if __name__ == "__main__":
-    drop_all_tables()
+    drop_tables()

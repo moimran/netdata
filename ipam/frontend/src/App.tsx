@@ -4,6 +4,9 @@ import { MainNavigation } from './components/MainNavigation';
 import { Dashboard } from './components/Dashboard';
 import { IPAMView } from './components/IPAMView';
 import { RegionsView } from './components/RegionsView';
+import { IPAddressView } from './components/IPAddressView';
+import { PrefixView } from './components/PrefixView';
+import { VRFView } from './components/VRFView';
 import type { TableName } from './types';
 
 function AppContent() {
@@ -40,13 +43,13 @@ function AppContent() {
           <Route path="/site-groups" element={<IPAMView tableName="site_groups" />} />
           <Route path="/sites" element={<IPAMView tableName="sites" />} />
           <Route path="/locations" element={<IPAMView tableName="locations" />} />
-          <Route path="/vrfs" element={<IPAMView tableName="vrfs" />} />
+          <Route path="/vrfs" element={<VRFView />} />
           <Route path="/rirs" element={<IPAMView tableName="rirs" />} />
           <Route path="/aggregates" element={<IPAMView tableName="aggregates" />} />
           <Route path="/roles" element={<IPAMView tableName="roles" />} />
-          <Route path="/prefixes" element={<IPAMView tableName="prefixes" />} />
+          <Route path="/prefixes" element={<PrefixView />} />
           <Route path="/ip-ranges" element={<IPAMView tableName="ip_ranges" />} />
-          <Route path="/ip-addresses" element={<IPAMView tableName="ip_addresses" />} />
+          <Route path="/ip-addresses" element={<IPAddressView />} />
         </Routes>
       </AppShell.Main>
     </AppShell>

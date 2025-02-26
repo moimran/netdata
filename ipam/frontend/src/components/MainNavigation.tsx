@@ -44,24 +44,11 @@ export function MainNavigation() {
           label={item.label}
           leftSection={<item.icon size="1rem" stroke={1.5} />}
           active={location.pathname === item.path}
-          styles={(theme) => ({
-            root: {
-              marginBottom: '0.5rem',
-              color: theme.white,
-              '&[data-active]': {
-                backgroundColor: theme.colors.blue[8],
-              },
-              '&:hover': {
-                backgroundColor: theme.colors.dark[6],
-              }
-            },
-            label: {
-              color: 'inherit'
-            },
-            section: {
-              color: 'inherit'
-            }
-          })}
+          className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+          style={{
+            marginBottom: '0.5rem',
+            color: 'white'
+          }}
         />
       ))}
     </Box>

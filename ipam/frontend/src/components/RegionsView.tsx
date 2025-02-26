@@ -5,7 +5,7 @@ import { notifications } from '@mantine/notifications';
 import { IconPlus, IconPencil, IconTrash } from '@tabler/icons-react';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = 'http://localhost:9001/api/v1';
 
 interface Region {
   id: number;
@@ -28,13 +28,16 @@ export function RegionsView() {
   const queryClient = useQueryClient();
 
   // Fetch regions
-  const { data: regions = [], isLoading } = useQuery<Region[]>({
+  const { data: regionsData, isLoading } = useQuery({
     queryKey: ['regions'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE_URL}/regions`);
       return response.data;
     }
   });
+
+  // Ensure regions is always an array
+  const regions = regionsData?.items || regionsData?.data || regionsData || [];
 
   // Create region mutation
   const createRegion = useMutation({
