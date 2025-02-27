@@ -375,8 +375,11 @@ def create_devices(session, sites: List[Site], tenant: Tenant) -> List[Device]:
     return devices
 
 def create_mock_data():
+    print("Starting mock data creation...")
     with Session(engine) as session:
+        print("Creating RIRs...")
         # Create RIRs first
+        print("Creating RIRs...")
         rirs = [
             RIR(
                 name="ARIN",
@@ -396,8 +399,10 @@ def create_mock_data():
         ]
         session.add_all(rirs)
         session.commit()
+        print(f"Created {len(rirs)} RIRs")
 
         # Create ASN Ranges
+        print("Creating ASN Ranges...")
         asn_ranges = [
             ASNRange(
                 name="ARIN Private ASN Range",
@@ -418,8 +423,10 @@ def create_mock_data():
         ]
         session.add_all(asn_ranges)
         session.commit()
+        print(f"Created {len(asn_ranges)} ASN Ranges")
 
         # Create ASNs
+        print("Creating ASNs...")
         asns = [
             ASN(
                 asn=65000,
@@ -445,8 +452,10 @@ def create_mock_data():
         ]
         session.add_all(asns)
         session.commit()
+        print(f"Created {len(asns)} ASNs")
 
         # Create Tenant
+        print("Creating Tenant...")
         tenant = Tenant(
             name="Example Corp",
             slug="example-corp",
@@ -454,8 +463,10 @@ def create_mock_data():
         )
         session.add(tenant)
         session.commit()
+        print(f"Created Tenant: {tenant.name}")
 
         # Create Roles
+        print("Creating Roles...")
         roles = [
             Role(
                 name="Production",
@@ -490,8 +501,10 @@ def create_mock_data():
         ]
         session.add_all(roles)
         session.commit()
+        print(f"Created {len(roles)} Roles")
 
         # Create Sites (Data Centers and Offices)
+        print("Creating Sites...")
         sites = [
             Site(
                 name="NYC-DC1",
@@ -566,8 +579,10 @@ def create_mock_data():
         ]
         session.add_all(sites)
         session.commit()
+        print(f"Created {len(sites)} Sites")
 
         # Create VLANs
+        print("Creating VLANs...")
         vlans = [
             VLAN(
                 name="Production",
@@ -599,8 +614,10 @@ def create_mock_data():
         ]
         session.add_all(vlans)
         session.commit()
+        print(f"Created {len(vlans)} VLANs")
 
         # Create Route Targets for different environments
+        print("Creating Route Targets...")
         route_targets = [
             RouteTarget(
                 name="65000:100",
@@ -625,8 +642,10 @@ def create_mock_data():
         ]
         session.add_all(route_targets)
         session.commit()
+        print(f"Created {len(route_targets)} Route Targets")
 
         # Create VRFs
+        print("Creating VRFs...")
         vrfs = [
             VRF(
                 name="PROD-VRF",
@@ -663,6 +682,7 @@ def create_mock_data():
         ]
         session.add_all(vrfs)
         session.commit()
+        print(f"Created {len(vrfs)} VRFs")
 
         # Associate Route Targets with VRFs
         vrfs[0].import_targets = [route_targets[0]]
@@ -676,6 +696,7 @@ def create_mock_data():
         session.commit()
 
         # Create Production Prefixes
+        print("Creating Production Prefixes...")
         prod_prefixes = [
             # NYC DC Production
             Prefix(
@@ -719,8 +740,10 @@ def create_mock_data():
         ]
         session.add_all(prod_prefixes)
         session.commit()
+        print(f"Created {len(prod_prefixes)} Production Prefixes")
 
         # Create Management Prefixes
+        print("Creating Management Prefixes...")
         mgmt_prefixes = [
             Prefix(
                 name="Global Management",
@@ -760,8 +783,10 @@ def create_mock_data():
         ]
         session.add_all(mgmt_prefixes)
         session.commit()
+        print(f"Created {len(mgmt_prefixes)} Management Prefixes")
 
         # Create DMZ Prefixes
+        print("Creating DMZ Prefixes...")
         dmz_prefixes = [
             Prefix(
                 name="NYC DMZ",
@@ -799,8 +824,10 @@ def create_mock_data():
         ]
         session.add_all(dmz_prefixes)
         session.commit()
+        print(f"Created {len(dmz_prefixes)} DMZ Prefixes")
 
         # Create Development Prefixes
+        print("Creating Development Prefixes...")
         dev_prefixes = [
             Prefix(
                 name="NYC Development",
@@ -829,8 +856,10 @@ def create_mock_data():
         ]
         session.add_all(dev_prefixes)
         session.commit()
+        print(f"Created {len(dev_prefixes)} Development Prefixes")
 
         # Create IP Ranges for specific use cases
+        print("Creating IP Ranges...")
         ip_ranges = [
             # Production Ranges
             IPRange(
@@ -908,7 +937,12 @@ def create_mock_data():
         ]
         session.add_all(ip_ranges)
         session.commit()
+        print(f"Created {len(ip_ranges)} IP Ranges")
 
 if __name__ == "__main__":
-    create_mock_data()
-    print("Mock data created successfully!")
+    try:
+        create_mock_data()
+        print("Mock data created successfully!")
+    except Exception as e:
+        print(f"Error creating mock data: {str(e)}")
+        raise
