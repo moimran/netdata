@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Title, Card, Text, Button, Group, Stack, TextInput, Modal, Select, Table, ActionIcon } from '@mantine/core';
+import { Title, Card, Text, Button, Group, Stack, TextInput, Modal, Select, Table, ActionIcon, Box } from '@mantine/core';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconPlus, IconPencil, IconTrash } from '@tabler/icons-react';
@@ -139,82 +139,73 @@ export function RegionsView() {
       </Group>
 
       <Card withBorder radius="sm">
-        <Table
-          horizontalSpacing="md"
-          verticalSpacing="sm"
-          striped
-          highlightOnHover
-          withTableBorder
-          withColumnBorders
-          styles={(theme) => ({
-            root: {
-              backgroundColor: theme.colors.dark[7],
-              color: theme.white
-            },
-            thead: {
-              backgroundColor: theme.colors.dark[6],
-              th: {
-                color: theme.white,
-                padding: '12px 16px',
-                fontWeight: 700,
-                fontSize: '1rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                borderBottom: `1px solid ${theme.colors.dark[4]}`
-              }
-            },
-            tbody: {
-              tr: {
-                color: theme.white,
+        <Box style={{ overflowX: 'auto' }}>
+          <Table
+            horizontalSpacing="md"
+            verticalSpacing="sm"
+            striped
+            highlightOnHover
+            style={{ 
+              border: '1px solid #ddd', 
+              borderCollapse: 'collapse' 
+            }}
+            styles={(theme) => ({
+              root: {
+                backgroundColor: '#fff',
+                color: theme.black
+              },
+              thead: {
+                backgroundColor: '#f8f9fa',
+                th: {
+                  color: theme.black,
+                  padding: '12px 15px',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  textTransform: 'uppercase',
+                  border: '1px solid #ddd'
+                }
+              },
+              tbody: {
                 td: {
-                  padding: '12px 16px',
-                  borderBottom: `1px solid ${theme.colors.dark[4]}`
-                },
-                '&:nth-of-type(odd)': {
-                  backgroundColor: theme.colors.dark[7]
-                },
-                '&:nth-of-type(even)': {
-                  backgroundColor: theme.colors.dark[6]
-                },
-                '&:hover': {
-                  backgroundColor: theme.colors.dark[5]
+                  padding: '12px 15px',
+                  border: '1px solid #ddd'
                 }
               }
-            }
-          })}
-        >
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Slug</th>
-              <th>Parent ID</th>
-              <th>Description</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {regions.map((region) => (
-              <tr key={region.id}>
-                <td>{region.id}</td>
-                <td>{region.name}</td>
-                <td>{region.slug}</td>
-                <td>{region.parent_id || '-'}</td>
-                <td>{region.description || '-'}</td>
-                <td>
-                  <Group gap="xs">
-                    <ActionIcon variant="subtle" color="blue" size="sm" onClick={() => handleEditClick(region)}>
-                      <IconPencil size={16} />
-                    </ActionIcon>
-                    <ActionIcon variant="subtle" color="red" size="sm" onClick={() => handleDeleteClick(region.id)}>
-                      <IconTrash size={16} />
-                    </ActionIcon>
-                  </Group>
-                </td>
+            })}
+          >
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Parent ID</th>
+                <th>Description</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {regions.map((region) => (
+                <tr key={region.id}>
+                  <td>{region.id}</td>
+                  <td>{region.name}</td>
+                  <td>{region.slug}</td>
+                  <td>{region.parent_id || '-'}</td>
+                  <td>{region.description || '-'}</td>
+                  <td>
+                    <Group gap="xs">
+                      <ActionIcon variant="subtle" color="blue" size="sm" onClick={() => handleEditClick(region)}>
+                        <IconPencil size={16} />
+                      </ActionIcon>
+                      <ActionIcon variant="subtle" color="red" size="sm" onClick={() => handleDeleteClick(region.id)}>
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                    </Group>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </Box>
       </Card>
 
       <Modal

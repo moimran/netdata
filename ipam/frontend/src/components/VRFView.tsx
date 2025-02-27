@@ -210,58 +210,60 @@ export function VRFView() {
             No VRFs found. Try adjusting your filters or add a new VRF.
           </Text>
         ) : (
-          <Table striped highlightOnHover>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>RD</th>
-                <th>Tenant</th>
-                <th>Enforce Unique</th>
-                <th>Prefixes</th>
-                <th>Description</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data?.items?.map((item: any) => (
-                <tr key={item.id}>
-                  <td>
-                    <Text weight={500}>{item.name}</Text>
-                  </td>
-                  <td>{item.rd || '-'}</td>
-                  <td>{item.tenant?.name || '-'}</td>
-                  <td>
-                    <Badge color={item.enforce_unique ? 'green' : 'gray'}>
-                      {item.enforce_unique ? 'Yes' : 'No'}
-                    </Badge>
-                  </td>
-                  <td>
-                    <Badge>{getPrefixCount(item.id)}</Badge>
-                  </td>
-                  <td>{item.description || '-'}</td>
-                  <td>
-                    <Group spacing="xs">
-                      <ActionIcon 
-                        color="blue" 
-                        onClick={() => handleEditClick(item)}
-                        title="Edit"
-                      >
-                        <IconEdit size={16} />
-                      </ActionIcon>
-                      <ActionIcon 
-                        color="red" 
-                        onClick={() => handleDeleteClick(item.id)}
-                        title="Delete"
-                        loading={deleteMutation.isPending}
-                      >
-                        <IconTrash size={16} />
-                      </ActionIcon>
-                    </Group>
-                  </td>
+          <Box style={{ overflowX: 'auto' }}>
+            <Table striped highlightOnHover style={{ border: '1px solid #ddd', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd' }}>Name</th>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd' }}>RD</th>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd' }}>Tenant</th>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd' }}>Enforce Unique</th>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd' }}>Prefixes</th>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd' }}>Description</th>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd', width: '100px', textAlign: 'center' }}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {data?.items?.map((item: any) => (
+                  <tr key={item.id}>
+                    <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>
+                      <Text weight={500}>{item.name}</Text>
+                    </td>
+                    <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>{item.rd || '-'}</td>
+                    <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>{item.tenant?.name || '-'}</td>
+                    <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>
+                      <Badge color={item.enforce_unique ? 'green' : 'gray'}>
+                        {item.enforce_unique ? 'Yes' : 'No'}
+                      </Badge>
+                    </td>
+                    <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>
+                      <Badge>{getPrefixCount(item.id)}</Badge>
+                    </td>
+                    <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>{item.description || '-'}</td>
+                    <td style={{ padding: '12px 15px', border: '1px solid #ddd', width: '100px', textAlign: 'center' }}>
+                      <Group spacing="xs">
+                        <ActionIcon 
+                          color="blue" 
+                          onClick={() => handleEditClick(item)}
+                          title="Edit"
+                        >
+                          <IconEdit size={16} />
+                        </ActionIcon>
+                        <ActionIcon 
+                          color="red" 
+                          onClick={() => handleDeleteClick(item.id)}
+                          title="Delete"
+                          loading={deleteMutation.isPending}
+                        >
+                          <IconTrash size={16} />
+                        </ActionIcon>
+                      </Group>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </Box>
         )}
 
         {data?.total > 0 && (

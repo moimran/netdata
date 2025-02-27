@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import { AppShell, Title, MantineProvider } from '@mantine/core';
+import { AppShell, Title, MantineProvider, Group, Avatar, Text, Box, Burger, Drawer, ScrollArea, useMantineTheme } from '@mantine/core';
 import { MainNavigation } from './components/MainNavigation';
 import { Dashboard } from './components/Dashboard';
 import { IPAMView } from './components/IPAMView';
@@ -7,33 +7,63 @@ import { RegionsView } from './components/RegionsView';
 import { IPAddressView } from './components/IPAddressView';
 import { PrefixView } from './components/PrefixView';
 import { VRFView } from './components/VRFView';
+import { useState } from 'react';
+import { IconNetwork } from '@tabler/icons-react';
 import type { TableName } from './types';
 
 function AppContent() {
+  const [opened, setOpened] = useState(false);
+  const theme = useMantineTheme();
+
   return (
     <AppShell
       padding="md"
-      navbar={{ width: 250, breakpoint: 'sm' }}
-      header={{ height: 60 }}
-      styles={(theme) => ({
+      navbar={{ width: 280, breakpoint: 'sm', collapsed: { mobile: !opened } }}
+      header={{ height: 70 }}
+      styles={{
         main: {
-          backgroundColor: theme.colors.dark[7]
+          backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0]
         },
         header: {
-          backgroundColor: theme.colors.dark[7]
+          backgroundColor: theme.colors.blue[7]
         },
         navbar: {
-          backgroundColor: theme.colors.dark[8],
-          borderRight: `1px solid ${theme.colors.dark[5]}`
+          backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : 'white',
+          borderRight: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[3]}`
         }
-      })}
+      }}
     >
-      <AppShell.Header p="xs">
-        <Title order={1} c="white">IPAM System</Title>
+      <AppShell.Header p="md">
+        <Group position="apart" align="center" h="100%">
+          <Group>
+            <Burger
+              opened={opened}
+              onClick={() => setOpened((o) => !o)}
+              color="white"
+              size="sm"
+              mr="xl"
+              hiddenFrom="sm"
+            />
+            <Group spacing="xs">
+              <IconNetwork size={30} color="white" />
+              <Title order={1} c="white" style={{ fontWeight: 700 }}>IPAM System</Title>
+            </Group>
+          </Group>
+          
+          <Group>
+            <Avatar color="blue" radius="xl">IP</Avatar>
+            <Box visibleFrom="sm">
+              <Text c="white" weight={500}>Admin User</Text>
+              <Text c="white" size="xs">Administrator</Text>
+            </Box>
+          </Group>
+        </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar>
-        <MainNavigation />
+      <AppShell.Navbar p={0}>
+        <ScrollArea>
+          <MainNavigation />
+        </ScrollArea>
       </AppShell.Navbar>
 
       <AppShell.Main>
@@ -60,10 +90,22 @@ function App() {
   return (
     <MantineProvider
       theme={{
-        colorScheme: 'dark',
+        colorScheme: 'light',
         primaryColor: 'blue',
-        defaultRadius: 'sm',
+        defaultRadius: 'md',
         colors: {
+          blue: [
+            '#e6f7ff',
+            '#bae7ff',
+            '#91d5ff',
+            '#69c0ff',
+            '#40a9ff',
+            '#1890ff',
+            '#096dd9',
+            '#0050b3',
+            '#003a8c',
+            '#002766',
+          ],
           dark: [
             '#C1C2C5',
             '#A6A7AB',
@@ -77,6 +119,11 @@ function App() {
             '#101113',
           ],
         },
+        fontFamily: 'Roboto, sans-serif',
+        headings: {
+          fontFamily: 'Roboto, sans-serif',
+          fontWeight: 700,
+        }
       }}
       withGlobalStyles
     >

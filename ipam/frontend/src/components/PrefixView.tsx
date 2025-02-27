@@ -314,77 +314,78 @@ export function PrefixView() {
             No prefixes found. Try adjusting your filters or add a new prefix.
           </Text>
         ) : (
-          <Table striped highlightOnHover>
-            <thead>
-              <tr>
-                <th>Prefix</th>
-                <th>Name</th>
-                <th>Status</th>
-                <th>VRF</th>
-                <th>Site</th>
-                <th>Role</th>
-                <th>Utilization</th>
-                <th>Description</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data?.items?.map((item: any) => {
-                // Calculate a mock utilization for display purposes
-                // In a real app, this would come from the backend
-                const utilization = item.mark_utilized ? 100 : (item.child_count > 0 ? Math.min(item.child_count * 10, 100) : Math.floor(Math.random() * 100));
-                
-                return (
-                  <tr key={item.id}>
-                    <td>
-                      <Text weight={500}>{item.prefix}</Text>
-                      {item.is_pool && <Badge size="xs" ml={5}>Pool</Badge>}
-                    </td>
-                    <td>{item.name || '-'}</td>
-                    <td>
-                      <Badge color={getStatusColor(item.status)}>
-                        {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-                      </Badge>
-                    </td>
-                    <td>{item.vrf?.name || 'Global'}</td>
-                    <td>{item.site?.name || '-'}</td>
-                    <td>{item.role?.name || '-'}</td>
-                    <td style={{ width: '150px' }}>
-                      <Group spacing={5} wrap="nowrap">
-                        <Progress 
-                          value={utilization} 
-                          color={getUtilizationColor(utilization)}
-                          size="sm"
-                          style={{ width: '100px' }}
-                        />
-                        <Text size="xs">{utilization}%</Text>
-                      </Group>
-                    </td>
-                    <td>{item.description || '-'}</td>
-                    <td>
-                      <Group spacing="xs">
-                        <ActionIcon 
-                          color="blue" 
-                          onClick={() => handleEditClick(item)}
-                          title="Edit"
-                        >
-                          <IconEdit size={16} />
-                        </ActionIcon>
-                        <ActionIcon 
-                          color="red" 
-                          onClick={() => handleDeleteClick(item.id)}
-                          title="Delete"
-                          loading={deleteMutation.isPending}
-                        >
-                          <IconTrash size={16} />
-                        </ActionIcon>
-                      </Group>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
+          <Box style={{ overflowX: 'auto' }}>
+            <Table striped highlightOnHover style={{ border: '1px solid #ddd', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd' }}>Prefix</th>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd' }}>Name</th>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd' }}>Status</th>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd' }}>VRF</th>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd' }}>Site</th>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd' }}>Role</th>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd' }}>Utilization</th>
+                  <th style={{ backgroundColor: '#f8f9fa', fontWeight: 600, fontSize: '0.85rem', padding: '12px 15px', textTransform: 'uppercase', border: '1px solid #ddd', width: '100px', textAlign: 'center' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data?.items?.map((item: any) => {
+                  // Calculate a mock utilization for display purposes
+                  // In a real app, this would come from the backend
+                  const utilization = item.mark_utilized ? 100 : (item.child_count > 0 ? Math.min(item.child_count * 10, 100) : Math.floor(Math.random() * 100));
+                  
+                  return (
+                    <tr key={item.id}>
+                      <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>
+                        <Text weight={500}>{item.prefix}</Text>
+                        {item.is_pool && <Badge size="xs" ml={5}>Pool</Badge>}
+                      </td>
+                      <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>{item.name || '-'}</td>
+                      <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>
+                        <Badge color={getStatusColor(item.status)}>
+                          {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                        </Badge>
+                      </td>
+                      <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>{item.vrf?.name || 'Global'}</td>
+                      <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>{item.site?.name || '-'}</td>
+                      <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>{item.role?.name || '-'}</td>
+                      <td style={{ padding: '12px 15px', border: '1px solid #ddd', width: '150px' }}>
+                        <Group spacing={5} wrap="nowrap">
+                          <Progress 
+                            value={utilization} 
+                            color={getUtilizationColor(utilization)}
+                            size="sm"
+                            style={{ width: '100px' }}
+                          />
+                          <Text size="xs">{utilization}%</Text>
+                        </Group>
+                      </td>
+                      <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>{item.description || '-'}</td>
+                      <td style={{ padding: '12px 15px', border: '1px solid #ddd', width: '100px', textAlign: 'center' }}>
+                        <Group spacing="xs">
+                          <ActionIcon 
+                            color="blue" 
+                            onClick={() => handleEditClick(item)}
+                            title="Edit"
+                          >
+                            <IconEdit size={16} />
+                          </ActionIcon>
+                          <ActionIcon 
+                            color="red" 
+                            onClick={() => handleDeleteClick(item.id)}
+                            title="Delete"
+                            loading={deleteMutation.isPending}
+                          >
+                            <IconTrash size={16} />
+                          </ActionIcon>
+                        </Group>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </Table>
+          </Box>
         )}
 
         {data?.total > 0 && (

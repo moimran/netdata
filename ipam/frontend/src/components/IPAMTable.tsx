@@ -342,60 +342,72 @@ export function IPAMTable({ tableName }: IPAMTableProps) {
   return (
     <Stack spacing="md">
       <Card shadow="sm" p="lg" radius="md" withBorder>
-        <Group position="apart" mb="md">
-          <Title order={3}>
-            {tableName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-          </Title>
+        <Group position="apart" mb="lg">
+          <Box>
+            <Title order={3} mb={5}>
+              {tableName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+            </Title>
+            <Text color="dimmed" size="sm">Manage your {tableName.replace(/_/g, ' ')} data</Text>
+          </Box>
           <Button 
             leftSection={<IconPlus size={16} />} 
             onClick={handleAddClick}
+            radius="md"
+            variant="filled"
           >
-            Add
+            Add New
           </Button>
         </Group>
 
-        <form onSubmit={handleSearch}>
-          <Group mb="md" align="flex-end">
-            <TextInput
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              icon={<IconSearch size={16} />}
-              style={{ flexGrow: 1 }}
-            />
-            
-            <Select
-              placeholder="Filter by field"
-              value={filterField}
-              onChange={setFilterField}
-              data={filterableFields}
-              clearable
-              icon={<IconFilter size={16} />}
-              style={{ width: '200px' }}
-            />
-            
-            {filterField && (
+        <Card withBorder p="xs" radius="md" mb="md" bg="gray.0">
+          <form onSubmit={handleSearch}>
+            <Group mb="xs" align="flex-end" spacing="md">
               <TextInput
-                placeholder="Filter value"
-                value={filterValue}
-                onChange={(e) => setFilterValue(e.target.value)}
-                style={{ width: '200px' }}
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                icon={<IconSearch size={16} />}
+                style={{ flexGrow: 1 }}
+                radius="md"
               />
-            )}
-            
-            <Button type="submit">Apply Filters</Button>
-            <Button variant="outline" onClick={handleClearFilters}>Clear</Button>
-            <Tooltip label="Refresh data">
-              <ActionIcon 
-                color="blue" 
-                variant="light" 
-                onClick={() => refetch()}
-              >
-                <IconRefresh size={20} />
-              </ActionIcon>
-            </Tooltip>
-          </Group>
-        </form>
+              
+              <Select
+                placeholder="Filter by field"
+                value={filterField}
+                onChange={setFilterField}
+                data={filterableFields}
+                clearable
+                icon={<IconFilter size={16} />}
+                style={{ width: '200px' }}
+                radius="md"
+              />
+              
+              {filterField && (
+                <TextInput
+                  placeholder="Filter value"
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(e.target.value)}
+                  style={{ width: '200px' }}
+                  radius="md"
+                />
+              )}
+              
+              <Button type="submit" radius="md">Apply Filters</Button>
+              <Button variant="outline" onClick={handleClearFilters} radius="md">Clear</Button>
+              <Tooltip label="Refresh data">
+                <ActionIcon 
+                  color="blue" 
+                  variant="light" 
+                  onClick={() => refetch()}
+                  radius="md"
+                  size="lg"
+                >
+                  <IconRefresh size={18} />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
+          </form>
+        </Card>
 
         {isLoading ? (
           <Box p="xl" style={{ display: 'flex', justifyContent: 'center' }}>
@@ -410,60 +422,88 @@ export function IPAMTable({ tableName }: IPAMTableProps) {
             No items found. Try adjusting your filters or add a new item.
           </Text>
         ) : (
-          <Table striped highlightOnHover>
-            <thead>
-              <tr>
-                {schema.map(column => (
-                  <th key={column.name}>
-                    {column.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                  </th>
-                ))}
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data?.items?.map((item: any) => (
-                <tr key={item.id}>
+          <Box style={{ overflowX: 'auto' }}>
+            <Table striped highlightOnHover style={{ border: '1px solid #ddd', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
                   {schema.map(column => (
-                    <td key={column.name}>
-                      {formatCellValue(column, item[column.name], referenceData)}
-                    </td>
+                    <th key={column.name} style={{ 
+                      backgroundColor: '#f8f9fa', 
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      padding: '12px 15px',
+                      textTransform: 'uppercase',
+                      border: '1px solid #ddd',
+                      borderColor: 'gray.2'
+                    }}>
+                      {column.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                    </th>
                   ))}
-                  <td>
-                    <Group spacing="xs">
-                      <ActionIcon 
-                        color="blue" 
-                        onClick={() => handleEditClick(item)}
-                        title="Edit"
-                      >
-                        <IconEdit size={16} />
-                      </ActionIcon>
-                      <ActionIcon 
-                        color="red" 
-                        onClick={() => handleDeleteClick(item.id)}
-                        title="Delete"
-                        loading={deleteMutation.isPending}
-                      >
-                        <IconTrash size={16} />
-                      </ActionIcon>
-                    </Group>
-                  </td>
+                  <th style={{ 
+                    backgroundColor: '#f8f9fa', 
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    padding: '12px 15px',
+                    textTransform: 'uppercase',
+                    width: '100px',
+                    textAlign: 'center',
+                    border: '1px solid #ddd',
+                    borderColor: 'gray.2'
+                  }}>
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {data?.items?.map((item: any) => (
+                  <tr key={item.id}>
+                    {schema.map(column => (
+                      <td key={column.name} style={{ padding: '10px 15px', border: '1px solid #ddd', borderColor: 'gray.2' }}>
+                        {formatCellValue(column, item[column.name], referenceData)}
+                      </td>
+                    ))}
+                    <td style={{ padding: '10px 15px', border: '1px solid #ddd', borderColor: 'gray.2' }}>
+                      <Group spacing="xs" position="center">
+                        <ActionIcon 
+                          color="blue" 
+                          onClick={() => handleEditClick(item)}
+                          title="Edit"
+                          variant="light"
+                          radius="md"
+                        >
+                          <IconEdit size={16} />
+                        </ActionIcon>
+                        <ActionIcon 
+                          color="red" 
+                          onClick={() => handleDeleteClick(item.id)}
+                          title="Delete"
+                          loading={deleteMutation.isPending}
+                          variant="light"
+                          radius="md"
+                        >
+                          <IconTrash size={16} />
+                        </ActionIcon>
+                      </Group>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </Box>
         )}
 
         {data?.total > 0 && (
-          <Group position="right" mt="md">
+          <Group position="apart" mt="lg">
+            <Text size="sm" color="dimmed">
+              Showing {((page - 1) * pageSize) + 1}-{Math.min(page * pageSize, data.total)} of {data.total} items
+            </Text>
             <Pagination 
               total={totalPages} 
               value={page} 
               onChange={setPage} 
+              radius="md"
+              withControls
             />
-            <Text size="sm" color="dimmed">
-              Showing {((page - 1) * pageSize) + 1}-{Math.min(page * pageSize, data.total)} of {data.total} items
-            </Text>
           </Group>
         )}
       </Card>
