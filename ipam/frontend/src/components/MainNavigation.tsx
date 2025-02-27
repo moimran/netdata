@@ -47,7 +47,9 @@ export function MainNavigation() {
         { icon: IconDatabase, label: 'Aggregates', path: '/aggregates' },
         { icon: IconShield, label: 'Roles', path: '/roles' },
         { icon: IconBorderAll, label: 'IP Ranges', path: '/ip-ranges' },
-        { icon: IconDeviceDesktopAnalytics, label: 'IP Addresses', path: '/ip-addresses' }
+        { icon: IconDeviceDesktopAnalytics, label: 'IP Addresses', path: '/ip-addresses' },
+        { icon: IconNetworkOff, label: 'ASNs', path: '/asns' },
+        { icon: IconLayersIntersect, label: 'ASN Ranges', path: '/asn-ranges' }
       ]
     }
   ];

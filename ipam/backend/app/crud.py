@@ -8,7 +8,8 @@ from typing import List, Type, TypeVar, Generic, Optional, Dict, Any, Union
 from fastapi import HTTPException
 from .models import (
     Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 
-    Prefix, IPRange, IPAddress, Tenant, Device, Interface, VLAN
+    Prefix, IPRange, IPAddress, Tenant, Device, Interface, VLAN,
+    ASN, ASNRange
 )
 import logging
 
@@ -169,6 +170,8 @@ tenant = CRUDBase(Tenant)
 device = CRUDBase(Device)
 interface = CRUDBase(Interface)
 vlan = CRUDBase(VLAN)
+asn = CRUDBase(ASN)
+asn_range = CRUDBase(ASNRange)
 
 # Add specialized CRUD operations for specific models if needed
 # For example:

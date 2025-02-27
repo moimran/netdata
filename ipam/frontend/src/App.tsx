@@ -7,6 +7,8 @@ import { RegionsView } from './components/RegionsView';
 import { IPAddressView } from './components/IPAddressView';
 import { PrefixView } from './components/PrefixView';
 import { VRFView } from './components/VRFView';
+import { ASNView } from './components/ASNView';
+import { ASNRangeView } from './components/ASNRangeView';
 import { useState } from 'react';
 import { IconNetwork } from '@tabler/icons-react';
 import type { TableName } from './types';
@@ -80,6 +82,8 @@ function AppContent() {
           <Route path="/prefixes" element={<PrefixView />} />
           <Route path="/ip-ranges" element={<IPAMView tableName="ip_ranges" />} />
           <Route path="/ip-addresses" element={<IPAddressView />} />
+          <Route path="/asns" element={<ASNView />} />
+          <Route path="/asn-ranges" element={<ASNRangeView />} />
         </Routes>
       </AppShell.Main>
     </AppShell>

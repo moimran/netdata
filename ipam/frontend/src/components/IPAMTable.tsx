@@ -135,6 +135,23 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'assigned_object_id', type: 'number' },
     { name: 'description', type: 'string' }
   ],
+  asns: [
+    { name: 'id', type: 'number' },
+    { name: 'asn', type: 'number', required: true },
+    { name: 'name', type: 'string', required: true },
+    { name: 'slug', type: 'string', required: true },
+    { name: 'description', type: 'string' },
+    { name: 'rir_id', type: 'number', reference: 'rirs' }
+  ],
+  asn_ranges: [
+    { name: 'id', type: 'number' },
+    { name: 'name', type: 'string', required: true },
+    { name: 'slug', type: 'string', required: true },
+    { name: 'start', type: 'number', required: true },
+    { name: 'end', type: 'number', required: true },
+    { name: 'rir_id', type: 'number', reference: 'rirs' },
+    { name: 'description', type: 'string' }
+  ],
   tenants: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
