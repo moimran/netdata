@@ -1,0 +1,317 @@
+@startuml IPAM Data Model
+
+' Styling and Theme
+!theme plain
+skinparam backgroundColor white
+skinparam linetype ortho
+skinparam shadowing false
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundCorner 8
+skinparam dpi 300
+skinparam arrowColor #666666
+skinparam noteBackgroundColor #FFFFCC
+skinparam noteBorderColor #999999
+
+' Custom colors for different model categories
+skinparam class {
+    BackgroundColor<<Base>> #FFFFFF
+    BorderColor<<Base>> #000000
+    HeaderBackgroundColor<<Base>> #FFFFFF
+    
+    BackgroundColor<<Location>> #E0F7FA
+    BorderColor<<Location>> #006064
+    HeaderBackgroundColor<<Location>> #B2EBF2
+    
+    BackgroundColor<<Network>> #E8F5E9
+    BorderColor<<Network>> #1B5E20
+    HeaderBackgroundColor<<Network>> #C8E6C9
+    
+    BackgroundColor<<IPAM>> #FFF3E0
+    BorderColor<<IPAM>> #E65100
+    HeaderBackgroundColor<<IPAM>> #FFE0B2
+    
+    BackgroundColor<<Device>> #F3E5F5
+    BorderColor<<Device>> #4A148C
+    HeaderBackgroundColor<<Device>> #E1BEE7
+    
+    BackgroundColor<<Organizational>> #E3F2FD
+    BorderColor<<Organizational>> #0D47A1
+    HeaderBackgroundColor<<Organizational>> #BBDEFB
+}
+
+' Legend
+legend right
+    <b>IPAM Data Model Categories</b>
+    |= Category |= Description |
+    |<back:#FFFFFF>   <color:#000000>Base</color>   </back>| Core model all entities inherit from |
+    |<back:#E0F7FA>   <color:#006064>Location</color>   </back>| Physical locations and hierarchy |
+    |<back:#E8F5E9>   <color:#1B5E20>Network</color>   </back>| Network infrastructure components |
+    |<back:#FFF3E0>   <color:#E65100>IPAM</color>   </back>| IP Address Management entities |
+    |<back:#F3E5F5>   <color:#4A148C>Device</color>   </back>| Physical devices and interfaces |
+    |<back:#E3F2FD>   <color:#0D47A1>Organizational</color>   </back>| Organizational entities |
+endlegend
+
+' Stereotypes
+stereotype Base <<Base>>
+stereotype Location <<Location>>
+stereotype Network <<Network>>
+stereotype IPAM <<IPAM>>
+stereotype Device <<Device>>
+stereotype Organizational <<Organizational>>
+
+' Base class
+abstract class BaseModel <<Base>> {
+    +id: int
+    +created_at: datetime
+    +updated_at: datetime
+}
+
+' Organizational entities
+class Tenant <<Organizational>> {
+    +name: str
+    +slug: str
+    +description: str
+    +comments: str
+}
+
+' Location hierarchy
+package "Location Hierarchy" {
+    class Region <<Location>> {
+        +name: str
+        +slug: str
+        +description: str
+    }
+    
+    class SiteGroup <<Location>> {
+        +name: str
+        +slug: str
+        +description: str
+    }
+    
+    class Site <<Location>> {
+        +name: str
+        +slug: str
+        +status: str
+        +facility: str
+        +address: str
+        +latitude: float
+        +longitude: float
+        +contact_info: str
+    }
+    
+    class Location <<Location>> {
+        +name: str
+        +slug: str
+        +description: str
+        +status: str
+    }
+}
+
+' Network components
+package "Network Infrastructure" {
+    class VRF <<Network>> {
+        +name: str
+        +rd: str
+        +description: str
+        +enforce_unique: bool
+    }
+    
+    class RouteTarget <<Network>> {
+        +name: str
+        +description: str
+    }
+    
+    class Role <<Network>> {
+        +name: str
+        +slug: str
+        +description: str
+        +color: str
+    }
+    
+    class VLAN <<Network>> {
+        +vid: int
+        +name: str
+        +status: VLANStatusEnum
+        +description: str
+    }
+    
+    class VLANGroup <<Network>> {
+        +name: str
+        +slug: str
+        +description: str
+        +min_vid: int
+        +max_vid: int
+    }
+}
+
+' IPAM components
+package "IP Address Management" {
+    class RIR <<IPAM>> {
+        +name: str
+        +slug: str
+        +description: str
+        +is_private: bool
+    }
+    
+    class Aggregate <<IPAM>> {
+        +prefix: str
+        +date_added: date
+    }
+    
+    class Prefix <<IPAM>> {
+        +prefix: str
+        +status: PrefixStatusEnum
+        +is_pool: bool
+        +mark_utilized: bool
+    }
+    
+    class IPRange <<IPAM>> {
+        +start_address: str
+        +end_address: str
+        +size: int
+        +status: IPRangeStatusEnum
+        +mark_utilized: bool
+    }
+    
+    class IPAddress <<IPAM>> {
+        +address: str
+        +status: IPAddressStatusEnum
+        +role: IPAddressRoleEnum
+        +dns_name: str
+        +family: str
+        +mask_length: int
+    }
+    
+    class ASN <<IPAM>> {
+        +asn: int
+        +name: str
+        +description: str
+        +asn_asdot: str
+    }
+    
+    class ASNRange <<IPAM>> {
+        +start: int
+        +end: int
+    }
+}
+
+' Device components
+package "Device Management" {
+    class Device <<Device>> {
+        +name: str
+        +description: str
+        +status: str
+        +serial: str
+        +asset_tag: str
+    }
+    
+    class Interface <<Device>> {
+        +name: str
+        +description: str
+        +status: str
+        +mac_address: str
+        +mtu: int
+    }
+}
+
+' Inheritance relationships
+BaseModel <|-- Tenant
+BaseModel <|-- Region
+BaseModel <|-- SiteGroup
+BaseModel <|-- Site
+BaseModel <|-- Location
+BaseModel <|-- VRF
+BaseModel <|-- RouteTarget
+BaseModel <|-- Role
+BaseModel <|-- VLAN
+BaseModel <|-- VLANGroup
+BaseModel <|-- RIR
+BaseModel <|-- Aggregate
+BaseModel <|-- Prefix
+BaseModel <|-- IPRange
+BaseModel <|-- IPAddress
+BaseModel <|-- ASN
+BaseModel <|-- ASNRange
+BaseModel <|-- Device
+BaseModel <|-- Interface
+
+' Location hierarchy relationships
+Region "1" o-- "*" Site : contains >
+SiteGroup "1" o-- "*" Site : groups >
+Site "1" o-- "*" Location : contains >
+Location "0..1" o-- "*" Location : parent/children >
+
+' Organizational relationships
+Tenant "1" o-- "*" Site : owns >
+Tenant "1" o-- "*" VRF : owns >
+Tenant "1" o-- "*" VLAN : owns >
+Tenant "1" o-- "*" Prefix : owns >
+Tenant "1" o-- "*" IPRange : owns >
+Tenant "1" o-- "*" IPAddress : owns >
+Tenant "1" o-- "*" Device : owns >
+
+' Network relationships
+VRF "*" -- "*" RouteTarget : import/export
+VLANGroup "1" o-- "*" VLAN : contains >
+Site "1" o-- "*" VLAN : contains >
+Role "1" o-- "*" VLAN : categorizes >
+Role "1" o-- "*" Prefix : categorizes >
+
+' IPAM relationships
+RIR "1" o-- "*" Aggregate : allocates >
+RIR "1" o-- "*" ASN : allocates >
+RIR "1" o-- "*" ASNRange : allocates >
+
+VRF "1" o-- "*" Prefix : contains >
+VRF "1" o-- "*" IPRange : contains >
+VRF "1" o-- "*" IPAddress : contains >
+
+Aggregate "1" o-- "*" Prefix : subdivided into >
+Prefix "1" o-- "*" Prefix : subdivided into >
+Prefix "1" o-- "*" IPRange : contains >
+Prefix "1" o-- "*" IPAddress : contains >
+IPRange "1" o-- "*" IPAddress : contains >
+
+VLAN "1" -- "*" Prefix : assigned to >
+
+' Additional relationships from models
+Tenant "1" o-- "*" Aggregate : owns >
+Tenant "1" o-- "*" ASN : owns >
+Tenant "1" o-- "*" ASNRange : owns >
+Tenant "1" o-- "*" Role : owns >
+Tenant "1" o-- "*" VLANGroup : owns >
+
+Site "1" o-- "*" Prefix : contains >
+Site "1" o-- "*" IPRange : contains >
+Site "1" o-- "*" IPAddress : contains >
+
+VLANGroup "1" o-- "*" VLAN : contains >
+Role "1" o-- "*" VLAN : categorizes >
+Role "1" o-- "*" Prefix : categorizes >
+
+Device "1" o-- "*" Interface : has >
+Interface "1" -- "*" IPAddress : assigned >
+
+' Device relationships
+Location "1" o-- "*" Device : houses >
+Device "1" o-- "*" Interface : has >
+Interface "1" -- "*" IPAddress : assigned >
+
+note right of BaseModel
+  All models inherit from BaseModel
+  which provides common fields and behavior
+end note
+
+note bottom of Tenant
+  Tenants represent organizations or customers
+  and can own multiple resources
+end note
+
+note bottom of VRF
+  Virtual Routing and Forwarding (VRF) instances
+  provide network isolation
+end note
+
+@enduml

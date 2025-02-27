@@ -25,6 +25,9 @@ export function RegionsView() {
     description: ''
   });
 
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingRegion, setEditingRegion] = useState<Region | null>(null);
+
   const queryClient = useQueryClient();
 
   // Fetch regions
@@ -62,9 +65,63 @@ export function RegionsView() {
     }
   });
 
+  const updateRegion = useMutation({
+    mutationFn: async (regionData: Region) => {
+      const response = await axios.put(`${API_BASE_URL}/regions/${regionData.id}`, regionData);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['regions'] });
+      setEditModalOpen(false);
+      setEditingRegion(null);
+      notifications.show({
+        title: 'Success',
+        message: 'Region updated successfully',
+      });
+    },
+    onError: (error: any) => {
+      notifications.show({
+        title: 'Error',
+        message: error.message,
+      });
+    }
+  });
+
+  const deleteRegion = useMutation({
+    mutationFn: async (regionId: number) => {
+      await axios.delete(`${API_BASE_URL}/regions/${regionId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['regions'] });
+      notifications.show({
+        title: 'Success',
+        message: 'Region deleted successfully',
+      });
+    },
+    onError: (error: any) => {
+      notifications.show({
+        title: 'Error',
+        message: error.message,
+      });
+    }
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createRegion.mutate(newRegion);
+    if (editingRegion) {
+      updateRegion.mutate(editingRegion);
+    } else {
+      createRegion.mutate(newRegion);
+    }
+  };
+
+  const handleEditClick = (region: Region) => {
+    setEditingRegion(region);
+    setEditModalOpen(true);
+  };
+
+  const handleDeleteClick = (regionId: number) => {
+    deleteRegion.mutate(regionId);
   };
 
   return (
@@ -146,10 +203,10 @@ export function RegionsView() {
                 <td>{region.description || '-'}</td>
                 <td>
                   <Group gap="xs">
-                    <ActionIcon variant="subtle" color="blue" size="sm">
+                    <ActionIcon variant="subtle" color="blue" size="sm" onClick={() => handleEditClick(region)}>
                       <IconPencil size={16} />
                     </ActionIcon>
-                    <ActionIcon variant="subtle" color="red" size="sm">
+                    <ActionIcon variant="subtle" color="red" size="sm" onClick={() => handleDeleteClick(region.id)}>
                       <IconTrash size={16} />
                     </ActionIcon>
                   </Group>
@@ -161,9 +218,13 @@ export function RegionsView() {
       </Card>
 
       <Modal
-        opened={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        title="Create Region"
+        opened={createModalOpen || editModalOpen}
+        onClose={() => {
+          setCreateModalOpen(false);
+          setEditModalOpen(false);
+          setEditingRegion(null);
+        }}
+        title={editingRegion ? 'Edit Region' : 'Create Region'}
         styles={(theme) => ({
           header: {
             backgroundColor: theme.colors.dark[7],
@@ -183,8 +244,14 @@ export function RegionsView() {
           <Stack>
             <TextInput
               label="Name"
-              value={newRegion.name}
-              onChange={(e) => setNewRegion({ ...newRegion, name: e.target.value })}
+              value={editingRegion ? editingRegion.name : newRegion.name}
+              onChange={(e) => {
+                if (editingRegion) {
+                  setEditingRegion({ ...editingRegion, name: e.target.value });
+                } else {
+                  setNewRegion({ ...newRegion, name: e.target.value });
+                }
+              }}
               required
               styles={(theme) => ({
                 input: {
@@ -200,8 +267,14 @@ export function RegionsView() {
             />
             <TextInput
               label="Slug"
-              value={newRegion.slug}
-              onChange={(e) => setNewRegion({ ...newRegion, slug: e.target.value })}
+              value={editingRegion ? editingRegion.slug : newRegion.slug}
+              onChange={(e) => {
+                if (editingRegion) {
+                  setEditingRegion({ ...editingRegion, slug: e.target.value });
+                } else {
+                  setNewRegion({ ...newRegion, slug: e.target.value });
+                }
+              }}
               required
               styles={(theme) => ({
                 input: {
@@ -217,8 +290,14 @@ export function RegionsView() {
             />
             <Select
               label="Parent Region"
-              value={newRegion.parent_id?.toString() || ''}
-              onChange={(value) => setNewRegion({ ...newRegion, parent_id: value ? parseInt(value) : null })}
+              value={editingRegion ? editingRegion.parent_id?.toString() || '' : newRegion.parent_id?.toString() || ''}
+              onChange={(value) => {
+                if (editingRegion) {
+                  setEditingRegion({ ...editingRegion, parent_id: value ? parseInt(value) : null });
+                } else {
+                  setNewRegion({ ...newRegion, parent_id: value ? parseInt(value) : null });
+                }
+              }}
               data={[{ value: '', label: 'None' }, ...regions.map((region) => ({ value: region.id.toString(), label: region.name }))]}
               styles={(theme) => ({
                 input: {
@@ -248,8 +327,14 @@ export function RegionsView() {
             />
             <TextInput
               label="Description"
-              value={newRegion.description}
-              onChange={(e) => setNewRegion({ ...newRegion, description: e.target.value })}
+              value={editingRegion ? editingRegion.description || '' : newRegion.description}
+              onChange={(e) => {
+                if (editingRegion) {
+                  setEditingRegion({ ...editingRegion, description: e.target.value });
+                } else {
+                  setNewRegion({ ...newRegion, description: e.target.value });
+                }
+              }}
               styles={(theme) => ({
                 input: {
                   backgroundColor: theme.colors.dark[6],
@@ -262,7 +347,7 @@ export function RegionsView() {
                 }
               })}
             />
-            <Button type="submit" mt="md">Create</Button>
+            <Button type="submit" mt="md">{editingRegion ? 'Update' : 'Create'}</Button>
           </Stack>
         </form>
       </Modal>

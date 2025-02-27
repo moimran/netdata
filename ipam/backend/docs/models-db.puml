@@ -1,0 +1,395 @@
+@startuml IPAM Database ER Diagram
+
+' Color definitions for different table categories
+!define LOCATION_COLOR #CDFAD5
+!define NETWORK_COLOR #F6FDC3
+!define IP_COLOR #FFCF81
+!define EQUIPMENT_COLOR #D4F0F7
+!define ADMIN_COLOR #FFD9C0
+!define JUNCTION_COLOR #E5E1F1
+
+' Define table styles with colors based on category
+!define location_table(x) class x << (T,#CDFAD5) >> 
+!define network_table(x) class x << (T,#F6FDC3) >>
+!define ip_table(x) class x << (T,#FFCF81) >>
+!define equipment_table(x) class x << (T,#D4F0F7) >>
+!define admin_table(x) class x << (T,#FFD9C0) >>
+!define junction_table(x) class x << (T,#E5E1F1) >>
+
+' Define field styles
+!define primary_key(x) <b><color:#9C0000>x</color></b>
+!define foreign_key(x) <color:#0000FF><i>x</i></color>
+!define unique(x) <color:#006400><u>x</u></color>
+!define index(x) <color:#5500AA>x</color>
+!define not_null(x) <color:#AA0000>x</color>
+
+' Styling
+skinparam linetype ortho
+skinparam shadowing false
+skinparam handwritten false
+skinparam packageStyle rectangle
+skinparam packageBackgroundColor transparent
+skinparam packageBorderColor transparent
+
+skinparam class {
+    BackgroundColor white
+    ArrowColor #333333
+    BorderColor #333333
+    FontSize 12
+    AttributeFontSize 11
+}
+
+skinparam note {
+    BackgroundColor #FFFFCC
+    BorderColor #999999
+}
+
+skinparam dpi 300
+
+' Title and headers
+title <font size=24><b>IPAM Database ER Diagram</b></font>
+
+' Legend
+legend right
+  <b><color:#9C0000>Primary Key</color></b>
+  <color:#0000FF><i>Foreign Key</i></color>
+  <color:#006400><u>Unique</u></color>
+  <color:#5500AA>Indexed</color>
+  <color:#AA0000>Not Null</color>
+  
+  <back:#CDFAD5>Location Tables</back>
+  <back:#F6FDC3>Network Tables</back>
+  <back:#FFCF81>IP Address Tables</back>
+  <back:#D4F0F7>Equipment Tables</back>
+  <back:#FFD9C0>Administrative Tables</back>
+  <back:#E5E1F1>Junction Tables</back>
+endlegend
+
+' Group tables by category
+package "Location Management" {
+  location_table(regions) {
+    primary_key(id) INT
+    not_null(name) VARCHAR(255)
+    not_null(slug) VARCHAR(255)
+    description VARCHAR(255)
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  location_table(site_groups) {
+    primary_key(id) INT
+    not_null(name) VARCHAR(255)
+    not_null(slug) VARCHAR(255)
+    description VARCHAR(255)
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  location_table(sites) {
+    primary_key(id) INT
+    not_null(name) VARCHAR(255)
+    not_null(slug) VARCHAR(255)
+    description VARCHAR(255)
+    facility VARCHAR(255)
+    physical_address VARCHAR(255)
+    latitude FLOAT
+    longitude FLOAT
+    not_null(status) VARCHAR(50)
+    contact_name VARCHAR(255)
+    contact_email VARCHAR(255)
+    contact_phone VARCHAR(255)
+    foreign_key(tenant_id) INT
+    foreign_key(region_id) INT
+    foreign_key(site_group_id) INT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  location_table(locations) {
+    primary_key(id) INT
+    not_null(name) VARCHAR(255)
+    not_null(slug) VARCHAR(255)
+    description VARCHAR(255)
+    not_null(status) VARCHAR(50)
+    foreign_key(site_id) INT
+    foreign_key(parent_id) INT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+}
+
+package "Administrative Data" {
+  admin_table(tenants) {
+    primary_key(id) INT
+    not_null(name) VARCHAR(255)
+    not_null(slug) VARCHAR(255)
+    description VARCHAR(255)
+    comments TEXT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  admin_table(rirs) {
+    primary_key(id) INT
+    not_null(name) VARCHAR(255)
+    not_null(slug) VARCHAR(255)
+    description VARCHAR(255)
+    not_null(is_private) BOOLEAN
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  admin_table(roles) {
+    primary_key(id) INT
+    not_null(name) VARCHAR(255)
+    not_null(slug) VARCHAR(255)
+    description VARCHAR(255)
+    color VARCHAR(50)
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+}
+
+package "Network Organization" {
+  network_table(vrfs) {
+    primary_key(id) INT
+    not_null(name) VARCHAR(255)
+    rd VARCHAR(255)
+    description VARCHAR(255)
+    not_null(enforce_unique) BOOLEAN
+    foreign_key(tenant_id) INT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  network_table(route_targets) {
+    primary_key(id) INT
+    not_null(unique(name)) VARCHAR(255)
+    description VARCHAR(255)
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  junction_table(vrf_import_targets) {
+    primary_key(vrf_id) INT
+    primary_key(route_target_id) INT
+  }
+
+  junction_table(vrf_export_targets) {
+    primary_key(vrf_id) INT
+    primary_key(route_target_id) INT
+  }
+
+  network_table(vlan_groups) {
+    primary_key(id) INT
+    not_null(name) VARCHAR(255)
+    not_null(slug) VARCHAR(255)
+    description VARCHAR(255)
+    not_null(min_vid) INT
+    not_null(max_vid) INT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  network_table(vlans) {
+    primary_key(id) INT
+    not_null(name) VARCHAR(255)
+    not_null(slug) VARCHAR(255)
+    description VARCHAR(255)
+    not_null(vid) INT
+    not_null(status) VARCHAR(50)
+    foreign_key(tenant_id) INT
+    foreign_key(site_id) INT
+    foreign_key(group_id) INT
+    foreign_key(role_id) INT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+}
+
+package "IP Address Management" {
+  ip_table(aggregates) {
+    primary_key(id) INT
+    not_null(prefix) VARCHAR(255)
+    date_added DATE
+    foreign_key(rir_id) INT
+    foreign_key(tenant_id) INT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  ip_table(prefixes) {
+    primary_key(id) INT
+    name VARCHAR(255)
+    slug VARCHAR(255)
+    description VARCHAR(255)
+    not_null(index(prefix)) VARCHAR(255)
+    not_null(status) VARCHAR(50)
+    not_null(is_pool) BOOLEAN
+    not_null(mark_utilized) BOOLEAN
+    not_null(depth) INT
+    not_null(child_count) INT
+    foreign_key(site_id) INT
+    foreign_key(vrf_id) INT
+    foreign_key(tenant_id) INT
+    foreign_key(vlan_id) INT
+    foreign_key(role_id) INT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  ip_table(ip_ranges) {
+    primary_key(id) INT
+    description VARCHAR(255)
+    not_null(index(start_address)) VARCHAR(255)
+    not_null(index(end_address)) VARCHAR(255)
+    not_null(size) INT
+    not_null(status) VARCHAR(50)
+    not_null(mark_utilized) BOOLEAN
+    foreign_key(vrf_id) INT
+    foreign_key(tenant_id) INT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  ip_table(ip_addresses) {
+    primary_key(id) INT
+    name VARCHAR(255)
+    slug VARCHAR(255)
+    not_null(index(address)) VARCHAR(255)
+    not_null(status) VARCHAR(50)
+    role VARCHAR(50)
+    dns_name VARCHAR(255)
+    assigned_object_type VARCHAR(255)
+    assigned_object_id INT
+    foreign_key(vrf_id) INT
+    foreign_key(tenant_id) INT
+    foreign_key(nat_inside_id) INT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  ip_table(asns) {
+    primary_key(id) INT
+    not_null(asn) INT
+    not_null(name) VARCHAR(255)
+    not_null(slug) VARCHAR(255)
+    description VARCHAR(255)
+    asn_asdot VARCHAR(255)
+    foreign_key(rir_id) INT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  ip_table(asn_ranges) {
+    primary_key(id) INT
+    not_null(start) INT
+    not_null(end) INT
+    foreign_key(rir_id) INT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+}
+
+package "Equipment" {
+  equipment_table(devices) {
+    primary_key(id) INT
+    not_null(name) VARCHAR(255)
+    description VARCHAR(255)
+    foreign_key(location_id) INT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+
+  equipment_table(interfaces) {
+    primary_key(id) INT
+    not_null(name) VARCHAR(255)
+    description VARCHAR(255)
+    foreign_key(device_id) INT
+    created_at TIMESTAMP
+    updated_at TIMESTAMP
+  }
+}
+
+' Relationships with better styling
+' Location relationships
+regions ||--o{ sites : "contains"
+site_groups ||--o{ sites : "contains"
+sites ||--o{ locations : "contains"
+locations ||--o{ locations : "parent_of"
+
+' Equipment relationships
+locations ||--o{ devices : "houses"
+devices ||--o{ interfaces : "has"
+
+' Tenant relationships
+tenants ||--o{ sites : "owns"
+tenants ||--o{ vrfs : "owns"
+tenants ||--o{ aggregates : "owns"
+tenants ||--o{ vlans : "owns"
+tenants ||--o{ prefixes : "owns"
+tenants ||--o{ ip_ranges : "owns"
+tenants ||--o{ ip_addresses : "owns"
+
+' RIR relationships
+rirs ||--o{ aggregates : "allocates"
+rirs ||--o{ asns : "allocates"
+rirs ||--o{ asn_ranges : "allocates"
+
+' VRF relationships
+vrfs ||--o{ prefixes : "contains"
+vrfs ||--o{ ip_ranges : "contains"
+vrfs ||--o{ ip_addresses : "contains"
+vrfs }o--o{ route_targets : "imports"
+vrfs }o--o{ route_targets : "exports"
+vrf_import_targets }|--|| vrfs : "vrf_id"
+vrf_import_targets }|--|| route_targets : "route_target_id"
+vrf_export_targets }|--|| vrfs : "vrf_id"
+vrf_export_targets }|--|| route_targets : "route_target_id"
+
+' Role relationships
+roles ||--o{ vlans : "categorizes"
+roles ||--o{ prefixes : "categorizes"
+
+' VLAN relationships
+vlan_groups ||--o{ vlans : "contains"
+sites ||--o{ vlans : "contains"
+vlans ||--o{ prefixes : "assigned_to"
+
+' IP address relationships
+ip_addresses }o--|| interfaces : "assigned_to"
+ip_addresses }o--|| ip_addresses : "nat_inside"
+
+' Notes with better styling
+note bottom of vrfs #FFFFCC
+  <b>Virtual Routing and Forwarding (VRF)</b>
+  Virtual routers with isolated routing tables
+  providing network segmentation
+end note
+
+note bottom of prefixes #FFFFCC
+  <b>IP Prefixes</b>
+  IPv4 or IPv6 networks with mask length
+  (CIDR notation) like 192.168.1.0/24
+end note
+
+note bottom of ip_addresses #FFFFCC
+  <b>IP Addresses</b>
+  Individual IPv4/IPv6 addresses that can be
+  assigned to interfaces or other objects
+  via generic foreign keys
+end note
+
+note bottom of vrf_import_targets #FFFFCC
+  <b>VRF Route Target Import</b>
+  Junction table for many-to-many relationship
+  between VRFs and their imported route targets
+end note
+
+note bottom of vrf_export_targets #FFFFCC
+  <b>VRF Route Target Export</b>
+  Junction table for many-to-many relationship
+  between VRFs and their exported route targets
+end note
+
+@enduml
