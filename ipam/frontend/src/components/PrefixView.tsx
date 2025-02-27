@@ -350,7 +350,7 @@ export function PrefixView() {
                     <td>{item.site?.name || '-'}</td>
                     <td>{item.role?.name || '-'}</td>
                     <td style={{ width: '150px' }}>
-                      <Group spacing={5} noWrap>
+                      <Group spacing={5} wrap="nowrap">
                         <Progress 
                           value={utilization} 
                           color={getUtilizationColor(utilization)}

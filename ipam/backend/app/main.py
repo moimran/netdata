@@ -10,6 +10,8 @@ from .database import engine, get_session
 from .models import *
 from .config import settings
 from pydantic import BaseModel
+from ipaddress import IPv4Network, IPv6Network
+from .serializers import jsonable_encoder, model_to_dict
 import logging
 import time
 import json
@@ -69,6 +71,22 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+# Override FastAPI's default JSONResponse to use our custom encoder
+class CustomJSONResponse(JSONResponse):
+    def render(self, content: Any) -> bytes:
+        return json.dumps(
+            content,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=None,
+            separators=(",", ":"),
+            cls=json.JSONEncoder,
+            default=lambda o: str(o) if isinstance(o, (IPv4Network, IPv6Network)) else None,
+        ).encode("utf-8")
+
+# Use our custom response class as the default
+app.router.default_response_class = CustomJSONResponse
+
 # Add exception handlers
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -104,16 +122,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     
     logger.error(f"Request body: {body}")
     
-    # Return a more detailed error response
     return JSONResponse(
         status_code=422,
-        content={
-            "detail": error_details,
-            "user_friendly_errors": user_friendly_errors,
-            "url": str(request.url),
-            "method": request.method,
-            "query_params": str(request.query_params)
-        }
+        content={"detail": user_friendly_errors},
     )
 
 # Create API router with /api/v1 prefix
@@ -121,7 +132,7 @@ api_router = APIRouter()
 
 # Generic CRUD endpoints for each model
 def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type):
-    @router.get(f"/{path}", response_model=PaginatedResponse)
+    @router.get(f"/{path}")
     def get_all(
         skip: int = Query(0, ge=0),
         limit: int = Query(20, ge=1, le=100),
@@ -163,8 +174,11 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type):
             
             logger.debug(f"GET /{path} - Found {len(items)} items, total: {total}")
             
+            # Convert items to dictionaries with proper serialization
+            serialized_items = model_to_dict(items)
+            
             return {
-                "items": items,
+                "items": serialized_items,
                 "total": total,
                 "page": skip // limit + 1,
                 "size": limit
@@ -173,14 +187,17 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type):
             logger.error(f"Error in GET /{path}: {str(e)}", exc_info=True)  # Add exc_info for stack trace
             raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-    @router.get(f"/{path}/{{item_id}}", response_model=model_type)
+    @router.get(f"/{path}/{{item_id}}")
     def get_one(item_id: int, session: Session = Depends(get_session)):
         item = crud_instance.get_by_id(session, item_id)
         if not item:
             raise HTTPException(status_code=404, detail=f"{path} not found")
-        return item
+        
+        # Convert item to dictionary with proper serialization
+        serialized_item = model_to_dict(item)
+        return serialized_item
 
-    @router.post(f"/{path}", response_model=model_type, status_code=201)
+    @router.post(f"/{path}", status_code=201)
     def create_item(item: Dict[str, Any], session: Session = Depends(get_session)):
         # Convert empty strings to None for fields that should be integers or floats
         for key, value in item.items():
@@ -199,9 +216,12 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type):
                         # If any error occurs during type checking, keep the original value
                         pass
         
-        return crud_instance.create(session, item)
+        created_item = crud_instance.create(session, item)
+        # Convert created item to dictionary with proper serialization
+        serialized_item = model_to_dict(created_item)
+        return serialized_item
 
-    @router.put(f"/{path}/{{item_id}}", response_model=model_type)
+    @router.put(f"/{path}/{{item_id}}")
     def update_item(item_id: int, item: Dict[str, Any], session: Session = Depends(get_session)):
         # Convert empty strings to None for fields that should be integers or floats
         for key, value in item.items():
@@ -223,7 +243,10 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type):
         updated_item = crud_instance.update(session, item_id, item)
         if not updated_item:
             raise HTTPException(status_code=404, detail=f"Item with id {item_id} not found")
-        return updated_item
+        
+        # Convert updated item to dictionary with proper serialization
+        serialized_item = model_to_dict(updated_item)
+        return serialized_item
 
     @router.delete(f"/{path}/{{item_id}}", status_code=204)
     def delete_item(item_id: int, session: Session = Depends(get_session)):
@@ -251,8 +274,17 @@ create_crud_routes(api_router, "vlans", crud.vlan, VLAN)
 
 # Specialized endpoints
 
-# Get prefix counts for each VRF
-@api_router.get("/vrfs/prefix-counts", response_model=Dict[int, int])
+# Get available IP addresses in a prefix
+@api_router.get("/prefixes/{prefix_id}/available-ips")
+def get_available_ips(
+    prefix_id: int,
+    limit: int = Query(100, ge=1, le=1000),
+    session: Session = Depends(get_session)
+):
+    pass
+
+# Add a VRF prefix counts endpoint before including the API router
+@app.get("/api/v1/vrfs/prefix-counts", tags=["VRFs"])
 def get_vrf_prefix_counts(session: Session = Depends(get_session)):
     """
     Get the count of prefixes for each VRF.
@@ -267,7 +299,10 @@ def get_vrf_prefix_counts(session: Session = Depends(get_session)):
         count = len(session.exec(query).all())
         result[vrf.id] = count
     
-    return result
+    return model_to_dict(result)
+
+# Mount the API router under /api/v1
+app.include_router(api_router, prefix="/api/v1")
 
 # Create tables
 SQLModel.metadata.create_all(engine)
@@ -288,166 +323,154 @@ async def get_table_schema(table_name: str) -> Dict[str, Any]:
             'roles': Role,
             'prefixes': Prefix,
             'ip_ranges': IPRange,
-            'ip_addresses': IPAddress
+            'ip_addresses': IPAddress,
+            'tenants': Tenant,
+            'devices': Device,
+            'interfaces': Interface,
+            'vlans': VLAN
         }
         
         if table_name not in model_mapping:
             raise HTTPException(status_code=404, detail=f"Table {table_name} not found")
-            
-        model = model_mapping[table_name]
+        
+        model_class = model_mapping[table_name]
+        
+        # Get table information
         inspector = inspect(engine)
+        columns = inspector.get_columns(table_name)
         
-        # Get column information
-        columns = []
-        relationships = []
+        # Get foreign keys
+        foreign_keys = inspector.get_foreign_keys(table_name)
         
-        # Get foreign key information first
-        fk_info = {}
-        for fk in inspector.get_foreign_keys(model.__tablename__):
-            fk_info[fk['constrained_columns'][0]] = {
-                'referenced_table': fk['referred_table'],
-                'referenced_column': fk['referred_columns'][0]
-            }
-        
-        # Get column information
-        for column in inspector.get_columns(model.__tablename__):
-            # Convert column type to string representation
-            column_type = str(column['type'])
-            if hasattr(column['type'], 'python_type'):
-                column_type = column['type'].python_type.__name__
-            
-            # Check if this column is a foreign key
-            is_foreign_key = column['name'] in fk_info
-            referenced_table = fk_info[column['name']]['referenced_table'] if is_foreign_key else None
-            
-            column_info = {
-                'name': column['name'],
-                'type': column_type,
-                'nullable': column['nullable'],
-                'primary_key': column.get('primary_key', False),
-                'default': str(column['default']) if column['default'] is not None else None,
-                'is_foreign_key': is_foreign_key,
-                'referenced_table': referenced_table,
-                'input_type': 'reference' if is_foreign_key else (
-                    'datetime-local' if column_type == 'datetime' else
-                    'number' if column_type in ('int', 'float') else
-                    'text'
-                )
-            }
-            columns.append(column_info)
-            
-        return {
-            'table_name': model.__tablename__,
-            'columns': columns,
-            'foreign_keys': [
-                {
-                    'column': col,
-                    'references_table': info['referenced_table'],
-                    'references_column': info['referenced_column']
-                }
-                for col, info in fk_info.items()
-            ]
-        }
-    except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"Error in get_table_schema: {error_details}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/reference-options/{table_name}/{field_name}")
-async def get_reference_options(table_name: str, field_name: str, session: Session = Depends(get_session)) -> List[Dict[str, Any]]:
-    """Get options for a foreign key reference field."""
-    try:
-        # Get the model class for the table
-        model_mapping = {
-            'regions': Region,
-            'site_groups': SiteGroup,
-            'sites': Site,
-            'locations': Location,
-            'vrfs': VRF,
-            'rirs': RIR,
-            'aggregates': Aggregate,
-            'roles': Role,
-            'prefixes': Prefix,
-            'ip_ranges': IPRange,
-            'ip_addresses': IPAddress
+        # Build schema information
+        schema = {
+            "table_name": table_name,
+            "columns": [],
+            "foreign_keys": []
         }
         
-        if table_name not in model_mapping:
-            raise HTTPException(status_code=404, detail=f"Table {table_name} not found")
-            
-        model = model_mapping[table_name]
+        # Add column information
+        for column in columns:
+            col_info = {
+                "name": column["name"],
+                "type": str(column["type"]),
+                "nullable": column["nullable"],
+                "default": str(column["default"]) if column["default"] is not None else None,
+                "primary_key": column.get("primary_key", False)
+            }
+            schema["columns"].append(col_info)
         
-        # Get foreign key information
-        inspector = inspect(engine)
-        foreign_keys = inspector.get_foreign_keys(model.__tablename__)
-        
-        # Find the referenced table for this field
-        referenced_table = None
+        # Add foreign key information
         for fk in foreign_keys:
-            if field_name in fk['constrained_columns']:
-                referenced_table = fk['referred_table']
-                break
-                
-        if not referenced_table:
-            raise HTTPException(status_code=404, detail=f"Foreign key {field_name} not found in table {table_name}")
-            
-        # Get the model for the referenced table
-        referenced_model = None
-        for model_class in model_mapping.values():
-            if model_class.__tablename__ == referenced_table:
-                referenced_model = model_class
-                break
-                
-        if not referenced_model:
-            raise HTTPException(status_code=404, detail=f"Referenced table {referenced_table} not found")
-            
-        # Query the referenced table
-        items = session.query(referenced_model).all()
-        
-        # Convert to list of dicts with id and display fields
-        return [
-            {
-                "id": item.id,
-                "name": getattr(item, "name", None),
-                "slug": getattr(item, "slug", None)
+            fk_info = {
+                "constrained_columns": fk["constrained_columns"],
+                "referred_table": fk["referred_table"],
+                "referred_columns": fk["referred_columns"]
             }
-            for item in items
+            schema["foreign_keys"].append(fk_info)
+        
+        return model_to_dict(schema)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting schema: {str(e)}")
+
+@app.get("/api/reference/{table_name}/{field_name}")
+async def get_reference_options(table_name: str, field_name: str, session: Session = Depends(get_session)):
+    """
+    Get options for a foreign key reference field.
+    """
+    try:
+        # Define mappings for reference fields
+        reference_mappings = {
+            # Table -> Field -> (Referenced Table, CRUD instance, Display Field)
+            "sites": {
+                "region_id": ("regions", crud.region, "name"),
+                "site_group_id": ("site_groups", crud.site_group, "name"),
+                "tenant_id": ("tenants", crud.tenant, "name")
+            },
+            "locations": {
+                "site_id": ("sites", crud.site, "name"),
+                "parent_id": ("locations", crud.location, "name"),
+                "tenant_id": ("tenants", crud.tenant, "name")
+            },
+            "prefixes": {
+                "site_id": ("sites", crud.site, "name"),
+                "vrf_id": ("vrfs", crud.vrf, "name"),
+                "tenant_id": ("tenants", crud.tenant, "name"),
+                "vlan_id": ("vlans", crud.vlan, "name"),
+                "role_id": ("roles", crud.role, "name")
+            },
+            "ip_addresses": {
+                "prefix_id": ("prefixes", crud.prefix, "prefix"),
+                "interface_id": ("interfaces", crud.interface, "name"),
+                "tenant_id": ("tenants", crud.tenant, "name"),
+                "vrf_id": ("vrfs", crud.vrf, "name")
+            },
+            "ip_ranges": {
+                "prefix_id": ("prefixes", crud.prefix, "prefix"),
+                "tenant_id": ("tenants", crud.tenant, "name"),
+                "vrf_id": ("vrfs", crud.vrf, "name"),
+                "role_id": ("roles", crud.role, "name")
+            },
+            "aggregates": {
+                "rir_id": ("rirs", crud.rir, "name"),
+                "tenant_id": ("tenants", crud.tenant, "name")
+            },
+            "interfaces": {
+                "device_id": ("devices", crud.device, "name")
+            },
+            "vlans": {
+                "site_id": ("sites", crud.site, "name"),
+                "tenant_id": ("tenants", crud.tenant, "name"),
+                "role_id": ("roles", crud.role, "name")
+            }
+        }
+        
+        if table_name not in reference_mappings:
+            raise HTTPException(status_code=404, detail=f"No reference mappings for table {table_name}")
+        
+        if field_name not in reference_mappings[table_name]:
+            raise HTTPException(status_code=404, detail=f"No reference mapping for field {field_name} in table {table_name}")
+        
+        ref_table, crud_instance, display_field = reference_mappings[table_name][field_name]
+        
+        # Get all options from the referenced table
+        options = crud_instance.get_all(session)
+        
+        # Format options for display
+        formatted_options = []
+        for option in options:
+            option_dict = model_to_dict(option)
+            formatted_options.append({
+                "id": option_dict["id"],
+                "label": option_dict.get(display_field, f"ID: {option_dict['id']}")
+            })
+        
+        return model_to_dict(formatted_options)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting reference options: {str(e)}")
+
+@app.get("/api/all-tables")
+async def get_all_tables():
+    """
+    Get all data from all tables.
+    """
+    try:
+        # Define the tables we want to get data from
+        tables = [
+            "regions", "site_groups", "sites", "locations", "vrfs", "rirs", 
+            "aggregates", "roles", "prefixes", "ip_ranges", "ip_addresses", 
+            "tenants", "devices", "interfaces", "vlans"
         ]
         
+        # Get the base URL
+        base_url = "/api/v1"
+        
+        # Create a dictionary of URLs for each table
+        urls = {table: f"{base_url}/{table}" for table in tables}
+        
+        return model_to_dict(urls)
     except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"Error in get_reference_options: {error_details}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/tables")
-async def get_all_tables() -> Dict[str, List[Dict[str, Any]]]:
-    """Get all data from all tables."""
-    with Session(engine) as session:
-        def to_dict(model):
-            return {
-                col.name: getattr(model, col.name)
-                for col in model.__table__.columns
-            }
-
-        tables = {
-            'regions': [to_dict(item) for item in session.exec(select(Region)).all()],
-            'site_groups': [to_dict(item) for item in session.exec(select(SiteGroup)).all()],
-            'sites': [to_dict(item) for item in session.exec(select(Site)).all()],
-            'locations': [to_dict(item) for item in session.exec(select(Location)).all()],
-            'vrfs': [to_dict(item) for item in session.exec(select(VRF)).all()],
-            'rirs': [to_dict(item) for item in session.exec(select(RIR)).all()],
-            'aggregates': [to_dict(item) for item in session.exec(select(Aggregate)).all()],
-            'roles': [to_dict(item) for item in session.exec(select(Role)).all()],
-            'prefixes': [to_dict(item) for item in session.exec(select(Prefix)).all()],
-            'ip_ranges': [to_dict(item) for item in session.exec(select(IPRange)).all()],
-            'ip_addresses': [to_dict(item) for item in session.exec(select(IPAddress)).all()]
-        }
-        return tables
-
-# Mount the API router under /api/v1
-app.include_router(api_router, prefix="/api/v1")
+        raise HTTPException(status_code=500, detail=f"Error getting tables: {str(e)}")
 
 # Add a simple test endpoint
 @app.get("/api/test")
@@ -455,5 +478,29 @@ async def test_endpoint():
     """
     A simple test endpoint to verify that the API is working correctly.
     """
-    logger.debug("Test endpoint called")
-    return {"status": "ok", "message": "API is working correctly"}
+    from ipaddress import IPv4Network, IPv6Network
+    from .serializers import model_to_dict
+    
+    # Create test objects with IP networks
+    test_data = {
+        "ipv4_network": IPv4Network("192.168.1.0/24"),
+        "ipv6_network": IPv6Network("2001:db8::/64"),
+        "string": "This is a string",
+        "number": 42,
+        "boolean": True,
+        "none": None,
+        "list": [
+            IPv4Network("10.0.0.0/8"),
+            IPv4Network("172.16.0.0/12"),
+            IPv4Network("192.168.0.0/16")
+        ],
+        "nested": {
+            "ipv4": IPv4Network("192.168.2.0/24"),
+            "ipv6": IPv6Network("2001:db8:1::/64")
+        }
+    }
+    
+    # Serialize the test data
+    serialized_data = model_to_dict(test_data)
+    
+    return serialized_data

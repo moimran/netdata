@@ -3,7 +3,7 @@ IPAM Models package
 """
 # Base and utility models first
 from .base import BaseModel
-from .fields import IPNetworkType, CIDRField, ASNField, DNSNameField
+from .fields import IPNetworkType, IPNetworkField, ASNField, DNSNameField
 from .ip_constants import PrefixStatusEnum, IPRangeStatusEnum, IPAddressStatusEnum, IPAddressRoleEnum
 from .ip_utils import (
     validate_ip_network,
@@ -32,7 +32,7 @@ __all__ = [
     # Base and Fields
     "BaseModel",
     "IPNetworkType",
-    "CIDRField",
+    "IPNetworkField",
     "ASNField",
     "DNSNameField",
     

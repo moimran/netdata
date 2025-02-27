@@ -30,7 +30,7 @@ class IPNetworkType(TypeDecorator):
             return None
         return ip_network(value)
 
-class CIDRField:
+class IPNetworkField:
     """Field type for IP networks using CIDR notation"""
     
     @classmethod
@@ -38,24 +38,35 @@ class CIDRField:
         yield cls.validate
     
     @classmethod
-    def validate(cls, v: Any) -> IPNetwork:
-        if isinstance(v, IPNetwork):
+    def validate(cls, v: Any) -> Union[IPv4Network, IPv6Network]:
+        if isinstance(v, (IPv4Network, IPv6Network)):
             return v
         try:
-            return IPNetwork(str(v))
+            return ip_network(str(v))
         except (AddrFormatError, ValueError) as e:
             raise ValueError(f"Invalid CIDR notation: {v}") from e
 
     @classmethod
-    def __get_pydantic_json_schema__(
-        cls,
-        _schema: Any,
-        _handler: Any,
-    ) -> Any:
+    def __modify_schema__(cls, field_schema):
+        field_schema.update(type="string", format="cidr")
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, _schema, _handler):
         return {
             "type": "string",
             "format": "cidr"
         }
+
+    @classmethod
+    def __get_pydantic_core_schema__(cls, _source_type, _handler):
+        from pydantic_core import core_schema
+        return core_schema.no_info_after_validator_function(
+            cls.validate,
+            core_schema.str_schema(),
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                lambda x: str(x)
+            )
+        )
 
 def IPNetworkField(
     *,
