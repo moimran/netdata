@@ -9,6 +9,7 @@ import { PrefixView } from './components/PrefixView';
 import { VRFView } from './components/VRFView';
 import { ASNView } from './components/ASNView';
 import { ASNRangeView } from './components/ASNRangeView';
+import { VRFDetailView } from './components/VRFDetailView';
 import { useState } from 'react';
 import { IconNetwork } from '@tabler/icons-react';
 import type { TableName } from './types';
@@ -76,6 +77,7 @@ function AppContent() {
           <Route path="/sites" element={<IPAMView tableName="sites" />} />
           <Route path="/locations" element={<IPAMView tableName="locations" />} />
           <Route path="/vrfs" element={<VRFView />} />
+          <Route path="/vrfs/:id" element={<VRFDetailView />} />
           <Route path="/route-targets" element={<IPAMView tableName="route_targets" />} />
           <Route path="/vrf-import-targets" element={<IPAMView tableName="vrf_import_targets" />} />
           <Route path="/vrf-export-targets" element={<IPAMView tableName="vrf_export_targets" />} />

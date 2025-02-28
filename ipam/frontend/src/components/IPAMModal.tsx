@@ -38,6 +38,7 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [vlanIdRanges, setVlanIdRanges] = useState('');
 
   // Prepare form values based on the schema and item
   useEffect(() => {
@@ -77,6 +78,17 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
     if (item) {
       // For editing existing items
       setFormData({ ...item });
+      
+      // Initialize VLAN ID ranges for VLAN groups
+      if (tableName === 'vlan_groups') {
+        if (item.vlan_id_ranges) {
+          // If we have stored ranges, use them
+          setVlanIdRanges(item.vlan_id_ranges);
+        } else if (item.min_vid && item.max_vid) {
+          // Fallback to min_vid-max_vid if no stored ranges
+          setVlanIdRanges(`${item.min_vid}-${item.max_vid}`);
+        }
+      }
     } else {
       // For creating new items, set defaults
       const initialData = schema.reduce((acc, col) => {
@@ -92,10 +104,15 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
         return acc;
       }, {} as Record<string, any>);
       setFormData(initialData);
+      
+      // Set default VLAN ID ranges for VLAN groups
+      if (tableName === 'vlan_groups') {
+        setVlanIdRanges('1-4094');
+      }
     }
     // Clear validation errors when modal reopens
     setValidationErrors({});
-  }, [item, schema, show]);
+  }, [item, schema, show, tableName]);
 
   const referenceTableNames = [...new Set(schema
     .filter(col => col.reference)
@@ -173,6 +190,25 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
       }
     });
     
+    // Parse VLAN ID ranges for VLAN groups
+    if (tableName === 'vlan_groups' && vlanIdRanges) {
+      try {
+        // Store the raw ranges string
+        formData.vlan_id_ranges = vlanIdRanges.replace(/\s+/g, ''); // Remove any spaces
+        
+        // Also calculate min_vid and max_vid for validation
+        const ranges = parseVlanIdRanges(vlanIdRanges);
+        if (ranges) {
+          formData.min_vid = ranges.min_vid;
+          formData.max_vid = ranges.max_vid;
+        } else {
+          errors.vlanIdRanges = 'Invalid VLAN ID ranges format';
+        }
+      } catch (error: any) {
+        errors.vlanIdRanges = error.message || 'Invalid VLAN ID ranges format';
+      }
+    }
+    
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       setLoading(false);
@@ -232,6 +268,48 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
       ];
     }
   };
+  
+  // Parse VLAN ID ranges (e.g., "1-5,20-30") into min_vid and max_vid
+  const parseVlanIdRanges = (rangesStr: string): { min_vid: number, max_vid: number } | null => {
+    try {
+      // Split by commas to get individual ranges
+      const ranges = rangesStr.split(',').map(r => r.trim());
+      
+      // Extract all numbers from the ranges
+      const allNumbers: number[] = [];
+      
+      for (const range of ranges) {
+        if (range.includes('-')) {
+          // It's a range like "1-5"
+          const [start, end] = range.split('-').map(n => parseInt(n.trim()));
+          if (isNaN(start) || isNaN(end) || start < 1 || end > 4094 || start > end) {
+            throw new Error(`Invalid range: ${range}`);
+          }
+          allNumbers.push(start, end);
+        } else {
+          // It's a single number like "10"
+          const num = parseInt(range);
+          if (isNaN(num) || num < 1 || num > 4094) {
+            throw new Error(`Invalid number: ${range}`);
+          }
+          allNumbers.push(num);
+        }
+      }
+      
+      if (allNumbers.length === 0) {
+        throw new Error('No valid numbers found');
+      }
+      
+      // Find min and max
+      return {
+        min_vid: Math.min(...allNumbers),
+        max_vid: Math.max(...allNumbers)
+      };
+    } catch (error) {
+      console.error('Error parsing VLAN ID ranges:', error);
+      return null;
+    }
+  };
 
   // Get role options for IP addresses
   const getRoleOptions = () => {
@@ -261,27 +339,51 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
       opened={show} 
       onClose={onHide} 
       title={`${item ? 'Edit' : 'Add'} ${tableName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}`}
-      styles={(theme) => ({
-        header: {
-          backgroundColor: theme.colors.dark[7],
-          color: theme.white
-        },
-        content: {
-          backgroundColor: theme.colors.dark[7]
-        }
-      })}
+      styles={{
+        header: { backgroundColor: '#1A1B1E', color: 'white' },
+        content: { backgroundColor: '#1A1B1E' }
+      }}
       size="lg"
     >
       <form onSubmit={handleSubmit}>
-        <Stack pos="relative" spacing="md">
+        <Stack pos="relative" gap="md">
           <LoadingOverlay visible={isLoading || mutation.isPending || loading} />
           
           {validationErrors['general'] && (
             <Text color="red" size="sm">{validationErrors['general']}</Text>
           )}
           
+          {/* Special handling for VLAN ID ranges in VLAN groups */}
+          {tableName === 'vlan_groups' && (
+            <TextInput
+              label="VLAN ID Ranges"
+              placeholder="e.g., 1-100,200-300"
+              description="Specify one or more numeric ranges separated by commas. Example: 1-5,20-30"
+              value={vlanIdRanges}
+              onChange={(e) => setVlanIdRanges(e.target.value)}
+              error={validationErrors.vlanIdRanges}
+              styles={(theme) => ({
+                input: {
+                  backgroundColor: theme.colors.dark[6],
+                  color: theme.white,
+                  '&::placeholder': {
+                    color: theme.colors.gray[5]
+                  }
+                },
+                label: {
+                  color: theme.white
+                }
+              })}
+            />
+          )}
+          
           {schema.map(column => {
             if (column.name === 'id') return null;
+            
+            // Skip min_vid, max_vid, and vlan_id_ranges for VLAN groups as we handle them with the VLAN ID Ranges field
+            if (tableName === 'vlan_groups' && (column.name === 'min_vid' || column.name === 'max_vid' || column.name === 'vlan_id_ranges')) {
+              return null;
+            }
 
             // Handle reference fields (foreign keys)
             if (column.reference) {
@@ -507,7 +609,7 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
             );
           })}
 
-          <Group position="right" mt="md">
+          <Group justify="flex-end" mt="md">
             <Button variant="outline" onClick={onHide} color="gray">
               Cancel
             </Button>

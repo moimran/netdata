@@ -1,0 +1,240 @@
+@startuml Netbox Database Schema
+
+' Style settings
+!define ENTITY_BG_COLOR #f8f9fa
+!define ENTITY_BORDER_COLOR #dee2e6
+!define ENTITY_HEADER_BG_COLOR #e9ecef
+!define RELATIONSHIP_COLOR #6c757d
+skinparam class {
+    BackgroundColor ENTITY_BG_COLOR
+    BorderColor ENTITY_BORDER_COLOR
+    HeaderBackgroundColor ENTITY_HEADER_BG_COLOR
+    ArrowColor RELATIONSHIP_COLOR
+}
+skinparam linetype ortho
+hide circle
+hide methods
+
+' Base Models
+abstract class PrimaryModel {
+    id: UUID
+    created: DateTime
+    last_updated: DateTime
+    description: String
+    tags: ManyToMany
+}
+
+abstract class OrganizationalModel {
+    id: UUID
+    created: DateTime
+    last_updated: DateTime
+    description: String
+    tags: ManyToMany
+}
+
+abstract class ChangeLoggedModel {
+    id: UUID
+    created: DateTime
+    last_updated: DateTime
+}
+
+' ASN Models
+class ASN {
+    asn: ASNField
+    rir: ForeignKey
+    tenant: ForeignKey
+}
+
+class ASNRange {
+    name: String
+    slug: SlugField
+    rir: ForeignKey
+    start: ASNField
+    end: ASNField
+    tenant: ForeignKey
+}
+
+' FHRP Models
+class FHRPGroup {
+    group_id: PositiveSmallInteger
+    name: String
+    protocol: String
+    auth_type: String
+    auth_key: String
+}
+
+class FHRPGroupAssignment {
+    interface_type: ForeignKey
+    interface_id: PositiveBigInteger
+    group: ForeignKey
+    priority: PositiveSmallInteger
+}
+
+' IP Models
+class RIR {
+    name: String
+    slug: SlugField
+    is_private: Boolean
+}
+
+class Aggregate {
+    prefix: IPNetworkField
+    rir: ForeignKey
+    tenant: ForeignKey
+    date_added: Date
+}
+
+class Role {
+    name: String
+    slug: SlugField
+    weight: PositiveSmallInteger
+}
+
+class Prefix {
+    prefix: IPNetworkField
+    site: ForeignKey
+    vrf: ForeignKey
+    tenant: ForeignKey
+    vlan: ForeignKey
+    status: String
+    role: ForeignKey
+    is_pool: Boolean
+    mark_utilized: Boolean
+    _depth: PositiveSmallInteger
+    _children: PositiveBigInteger
+}
+
+class IPRange {
+    start_address: IPAddressField
+    end_address: IPAddressField
+    size: PositiveInteger
+    vrf: ForeignKey
+    tenant: ForeignKey
+    status: String
+    role: ForeignKey
+    mark_utilized: Boolean
+}
+
+class IPAddress {
+    address: IPAddressField
+    vrf: ForeignKey
+    tenant: ForeignKey
+    status: String
+    role: String
+    assigned_object_type: ForeignKey
+    assigned_object_id: PositiveBigInteger
+    nat_inside: ForeignKey
+    dns_name: String
+}
+
+' Service Models
+class ServiceTemplate {
+    name: String
+    protocol: String
+    ports: Array
+}
+
+class Service {
+    device: ForeignKey
+    virtual_machine: ForeignKey
+    name: String
+    protocol: String
+    ports: Array
+}
+
+' VLAN Models
+class VLANGroup {
+    name: String
+    slug: SlugField
+    scope_type: ForeignKey
+    scope_id: PositiveBigInteger
+    min_vid: PositiveSmallInteger
+    max_vid: PositiveSmallInteger
+}
+
+class VLAN {
+    site: ForeignKey
+    group: ForeignKey
+    vid: PositiveSmallInteger
+    name: String
+    tenant: ForeignKey
+    status: String
+    role: ForeignKey
+}
+
+' VRF Models
+class VRF {
+    name: String
+    rd: String
+    tenant: ForeignKey
+    enforce_unique: Boolean
+}
+
+class RouteTarget {
+    name: String
+    tenant: ForeignKey
+}
+
+' Inheritance relationships
+PrimaryModel <|-- ASN
+PrimaryModel <|-- FHRPGroup
+PrimaryModel <|-- Aggregate
+PrimaryModel <|-- Prefix
+PrimaryModel <|-- IPRange
+PrimaryModel <|-- IPAddress
+PrimaryModel <|-- ServiceTemplate
+PrimaryModel <|-- Service
+PrimaryModel <|-- VLAN
+PrimaryModel <|-- VRF
+PrimaryModel <|-- RouteTarget
+
+OrganizationalModel <|-- ASNRange
+OrganizationalModel <|-- RIR
+OrganizationalModel <|-- Role
+OrganizationalModel <|-- VLANGroup
+
+ChangeLoggedModel <|-- FHRPGroupAssignment
+
+' Relationships
+ASN "many" -- "1" RIR : belongs to
+ASN "many" -- "0..1" Tenant : belongs to
+
+ASNRange "many" -- "1" RIR : belongs to
+ASNRange "many" -- "0..1" Tenant : belongs to
+
+FHRPGroup "1" -- "many" FHRPGroupAssignment : has
+FHRPGroup "1" -- "many" IPAddress : has
+
+Aggregate "many" -- "1" RIR : belongs to
+Aggregate "many" -- "0..1" Tenant : belongs to
+
+Prefix "many" -- "0..1" Site : belongs to
+Prefix "many" -- "0..1" VRF : belongs to
+Prefix "many" -- "0..1" Tenant : belongs to
+Prefix "many" -- "0..1" VLAN : belongs to
+Prefix "many" -- "0..1" Role : has
+
+IPRange "many" -- "0..1" VRF : belongs to
+IPRange "many" -- "0..1" Tenant : belongs to
+IPRange "many" -- "0..1" Role : has
+
+IPAddress "many" -- "0..1" VRF : belongs to
+IPAddress "many" -- "0..1" Tenant : belongs to
+IPAddress "many" -- "0..1" IPAddress : nat inside
+IPAddress "many" -- "many" Service : assigned to
+
+Service "many" -- "0..1" Device : belongs to
+Service "many" -- "0..1" VirtualMachine : belongs to
+
+VLAN "many" -- "0..1" Site : belongs to
+VLAN "many" -- "0..1" VLANGroup : belongs to
+VLAN "many" -- "0..1" Tenant : belongs to
+VLAN "many" -- "0..1" Role : has
+
+VRF "many" -- "0..1" Tenant : belongs to
+VRF "many" -- "many" RouteTarget : import targets
+VRF "many" -- "many" RouteTarget : export targets
+
+RouteTarget "many" -- "0..1" Tenant : belongs to
+
+@enduml

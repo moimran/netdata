@@ -48,6 +48,8 @@ export function MainNavigation() {
         { icon: IconNetwork, label: 'Prefixes', path: '/prefixes' },
         { icon: IconRouter, label: 'VRFs', path: '/vrfs' },
         { icon: IconLayersIntersect, label: 'Route Targets', path: '/route-targets' },
+        { icon: IconLayersIntersect, label: 'VRF Import Targets', path: '/vrf-import-targets' },
+        { icon: IconLayersIntersect, label: 'VRF Export Targets', path: '/vrf-export-targets' },
         { icon: IconWorld, label: 'RIRs', path: '/rirs' },
         { icon: IconDatabase, label: 'Aggregates', path: '/aggregates' },
         { icon: IconShield, label: 'Roles', path: '/roles' },

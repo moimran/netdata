@@ -75,8 +75,8 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'name', type: 'string', required: true },
     { name: 'slug', type: 'string', required: true },
     { name: 'description', type: 'string' },
-    { name: 'min_vid', type: 'number' },
-    { name: 'max_vid', type: 'number' }
+    { name: 'vlan_id_ranges', type: 'string' }
+    // min_vid and max_vid are still stored in the database but not shown in the table
   ],
   vrfs: [
     { name: 'id', type: 'number' },
@@ -196,7 +196,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
 
 
 // Helper function to format cell values for display
-const formatCellValue = (column: Column, value: any, referenceData: Record<string, any[]>) => {
+const formatCellValue = (column: Column, value: any, referenceData: Record<string, any[]>, item?: any, tableName?: TableName) => {
   if (value === null || value === undefined) return '-';
   
   if (column.name === 'status') {
@@ -205,6 +205,24 @@ const formatCellValue = (column: Column, value: any, referenceData: Record<strin
   
   if (column.type === 'boolean') {
     return value ? 'Yes' : 'No';
+  }
+  
+  // Special handling for VLAN ID ranges
+  if (column.name === 'vlan_id_ranges') {
+    // If we have a stored vlan_id_ranges value, use it
+    if (value) {
+      return value;
+    }
+    // Otherwise, fall back to min_vid-max_vid if available
+    if (item?.min_vid && item?.max_vid) {
+      return `${item.min_vid}-${item.max_vid}`;
+    }
+    return '-';
+  }
+  
+  // Debug logging to see what's happening with VLAN ID ranges
+  if (tableName === 'vlan_groups' && column.name === 'vlan_id_ranges') {
+    console.log('VLAN ID ranges for', tableName, ':', value, item);
   }
   
   if (column.reference && value) {
@@ -226,6 +244,7 @@ const formatCellValue = (column: Column, value: any, referenceData: Record<strin
 
 interface IPAMTableProps {
   tableName: TableName;
+  customActionsRenderer?: (item: any) => React.ReactNode;
 }
 
 const useReferenceData = (referenceTableNames: string[]) => {
@@ -266,7 +285,7 @@ const useReferenceData = (referenceTableNames: string[]) => {
   return referenceQueryData || {};
 };
 
-export function IPAMTable({ tableName }: IPAMTableProps) {
+export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) {
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [page, setPage] = useState(1);
@@ -452,37 +471,51 @@ export function IPAMTable({ tableName }: IPAMTableProps) {
         ) : (
           <Box style={{ overflowX: 'auto' }}>
             <StyledTable>
-              <TableHeader columns={schema.map(col => col.name)} />
+              <TableHeader 
+                columns={schema.map(col => {
+                  // Rename vlan_id_ranges to VLAN IDs for better display
+                  if (col.name === 'vlan_id_ranges') {
+                    return 'VLAN IDs';
+                  }
+                  return col.name;
+                })} 
+              />
               <tbody>
                 {data?.items?.map((item: any) => (
                   <tr key={item.id}>
                     {schema.map(column => (
                       <td key={column.name} style={tableStyles.cell}>
-                        {formatCellValue(column, item[column.name], referenceData)}
+                        {formatCellValue(column, item[column.name], referenceData, item, tableName)}
                       </td>
                     ))}
                     <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}>
-                      <Group gap="xs" justify="center">
-                        <ActionIcon 
-                          color="blue" 
-                          onClick={() => handleEditClick(item)}
-                          title="Edit"
-                          variant="light"
-                          radius="md"
-                        >
-                          <IconEdit size={16} />
-                        </ActionIcon>
-                        <ActionIcon 
-                          color="red" 
-                          onClick={() => handleDeleteClick(item.id)}
-                          title="Delete"
-                          loading={deleteMutation.isPending}
-                          variant="light"
-                          radius="md"
-                        >
-                          <IconTrash size={16} />
-                        </ActionIcon>
-                      </Group>
+                      {customActionsRenderer ? (
+                        // Use custom renderer if provided
+                        customActionsRenderer(item)
+                      ) : (
+                        // Default actions
+                        <Group gap="xs" justify="center">
+                          <ActionIcon 
+                            color="blue" 
+                            onClick={() => handleEditClick(item)}
+                            title="Edit"
+                            variant="light"
+                            radius="md"
+                          >
+                            <IconEdit size={16} />
+                          </ActionIcon>
+                          <ActionIcon 
+                            color="red" 
+                            onClick={() => handleDeleteClick(item.id)}
+                            title="Delete"
+                            loading={deleteMutation.isPending}
+                            variant="light"
+                            radius="md"
+                          >
+                            <IconTrash size={16} />
+                          </ActionIcon>
+                        </Group>
+                      )}
                     </td>
                   </tr>
                 ))}

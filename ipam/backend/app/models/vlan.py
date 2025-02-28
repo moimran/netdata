@@ -38,6 +38,10 @@ class VLANGroup(BaseModel, table=True):
         le=4094,
         description="Highest permissible ID of a child VLAN"
     )
+    vlan_id_ranges: Optional[str] = Field(
+        default=None,
+        description="VLAN ID ranges in format like '1-20,60-90'"
+    )
     
     # Relationships
     vlans: List["VLAN"] = Relationship(back_populates="group")
