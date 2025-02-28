@@ -178,17 +178,115 @@ vrf_import_targets = CRUDBase(VRFImportTargets)
 vrf_export_targets = CRUDBase(VRFExportTargets)
 
 # Add specialized CRUD operations for specific models if needed
-# For example:
 
-# class PrefixCRUD(CRUDBase[Prefix]):
-#     """
-#     CRUD operations specific to Prefix model.
-#     """
-#     def get_available_ips(self, session: Session, prefix_id: int) -> List[str]:
-#         """
-#         Get available IP addresses in a prefix.
-#         """
-#         # Implementation here
-#         pass
+class PrefixCRUD(CRUDBase[Prefix]):
+    """
+    CRUD operations specific to Prefix model.
+    """
+    def create(self, session: Session, obj_in: Dict[str, Any]) -> Prefix:
+        """
+        Create a new prefix and update hierarchical relationships.
+        """
+        # Create the prefix using the base method
+        db_obj = super().create(session, obj_in)
+        
+        # Update hierarchical relationships
+        db_obj.update_hierarchy(session)
+        
+        # Commit changes
+        session.commit()
+        session.refresh(db_obj)
+        
+        return db_obj
+    
+    def update(self, session: Session, id: int, obj_in: Dict[str, Any]) -> Optional[Prefix]:
+        """
+        Update a prefix and update hierarchical relationships if needed.
+        """
+        # Get the existing prefix
+        db_obj = self.get_by_id(session, id)
+        if not db_obj:
+            return None
+        
+        # Check if the prefix value is changing
+        prefix_changing = 'prefix' in obj_in and obj_in['prefix'] != db_obj.prefix
+        vrf_changing = 'vrf_id' in obj_in and obj_in['vrf_id'] != db_obj.vrf_id
+        
+        # Update the prefix using the base method
+        db_obj = super().update(session, id, obj_in)
+        
+        # If the prefix or VRF changed, update hierarchical relationships
+        if prefix_changing or vrf_changing:
+            db_obj.update_hierarchy(session)
+        
+        # Commit changes
+        session.commit()
+        session.refresh(db_obj)
+        
+        return db_obj
+    
+    def delete(self, session: Session, id: int) -> bool:
+        """
+        Delete a prefix and update hierarchical relationships.
+        """
+        # Get the prefix to delete
+        db_obj = self.get_by_id(session, id)
+        if not db_obj:
+            return False
+        
+        # Update parent's child count if this prefix has a parent
+        if db_obj.parent_id:
+            parent = session.get(Prefix, db_obj.parent_id)
+            if parent:
+                parent.child_count = max(0, parent.child_count - 1)
+                session.add(parent)
+        
+        # Delete the prefix using the base method
+        result = super().delete(session, id)
+        
+        # Commit changes
+        session.commit()
+        
+        return result
+    
+    def get_hierarchy(self, session: Session, vrf_id: Optional[int] = None) -> List[Dict[str, Any]]:
+        """
+        Get prefixes in a hierarchical structure.
+        
+        Args:
+            session: Database session
+            vrf_id: Optional VRF ID to filter by
+            
+        Returns:
+            List of prefixes with hierarchical information
+        """
+        # Query for all prefixes, optionally filtered by VRF
+        query = select(Prefix)
+        if vrf_id is not None:
+            query = query.where(Prefix.vrf_id == vrf_id)
+        
+        # Order by prefix to ensure consistent results
+        query = query.order_by(Prefix.prefix)
+        
+        prefixes = session.exec(query).all()
+        
+        # Convert to dictionaries with additional hierarchical information
+        result = []
+        for prefix in prefixes:
+            prefix_dict = {
+                "id": prefix.id,
+                "prefix": prefix.prefix,
+                "status": prefix.status,
+                "vrf_id": prefix.vrf_id,
+                "site_id": prefix.site_id,
+                "tenant_id": prefix.tenant_id,
+                "depth": prefix.depth,
+                "parent_id": prefix.parent_id,
+                "child_count": prefix.child_count
+            }
+            result.append(prefix_dict)
+        
+        return result
 
-# prefix = PrefixCRUD(Prefix)
+# Replace the default prefix CRUD with our specialized version
+prefix = PrefixCRUD(Prefix)

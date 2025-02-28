@@ -26,7 +26,8 @@ from .location import Location
 from .vlan import VLAN, VLANGroup, VLANStatusEnum
 from .ip_prefix import Prefix, IPRange
 from .ip_address import IPAddress
-from .ip_base import Device, Interface
+from .device import Device
+from .interface import Interface
 
 __all__ = [
     # Base and Fields

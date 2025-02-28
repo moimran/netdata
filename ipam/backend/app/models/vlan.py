@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Optional, List, TYPE_CHECKING
+import sqlalchemy as sa
 from sqlmodel import SQLModel, Field, Relationship
 from .base import BaseModel
 
@@ -88,6 +89,14 @@ class VLAN(BaseModel, table=True):
     site_id: Optional[int] = Field(default=None, foreign_key="sites.id")
     group_id: Optional[int] = Field(default=None, foreign_key="vlan_groups.id")
     role_id: Optional[int] = Field(default=None, foreign_key="roles.id")
+    
+    # Add a unique constraint for VLAN ID within a site or group
+    __table_args__ = (
+        sa.UniqueConstraint('vid', 'site_id', name='uq_vlan_vid_site'),
+        sa.UniqueConstraint('vid', 'group_id', name='uq_vlan_vid_group'),
+        sa.UniqueConstraint('name', 'site_id', name='uq_vlan_name_site'),
+        sa.UniqueConstraint('name', 'group_id', name='uq_vlan_name_group'),
+    )
     
     # Relationships
     tenant: Optional["Tenant"] = Relationship(back_populates="vlans")

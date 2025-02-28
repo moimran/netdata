@@ -1,4 +1,5 @@
 from typing import Optional, List, TYPE_CHECKING
+import sqlalchemy as sa
 from sqlmodel import SQLModel, Field, Relationship
 from .base import BaseModel
 
@@ -16,6 +17,11 @@ class ASNRange(BaseModel, table=True):
     
     # Foreign Keys
     rir_id: Optional[int] = Field(default=None, foreign_key="rirs.id")
+    
+    # Add a unique constraint for ASN range within an RIR
+    __table_args__ = (
+        sa.UniqueConstraint('start', 'end', 'rir_id', name='uq_asnrange_rir'),
+    )
     
     # Relationships
     rir: Optional["RIR"] = Relationship(back_populates="asn_ranges")

@@ -3,6 +3,31 @@ import ipaddress
 import re
 from .ip_constants import IPV4_MASK_MAX, IPV4_MASK_MIN, IPV6_MASK_MAX, IPV6_MASK_MIN
 
+def is_subnet_of(subnet: str, parent: str) -> bool:
+    """
+    Check if a subnet is contained within a parent network.
+    
+    Args:
+        subnet: The subnet to check, e.g. "192.168.1.0/24"
+        parent: The potential parent network, e.g. "192.168.0.0/16"
+        
+    Returns:
+        bool: True if subnet is contained within parent, False otherwise
+    """
+    try:
+        subnet_network = ipaddress.ip_network(subnet)
+        parent_network = ipaddress.ip_network(parent)
+        
+        # Check if they're the same IP version
+        if subnet_network.version != parent_network.version:
+            return False
+            
+        # Check if subnet is a subnet of parent
+        return subnet_network.subnet_of(parent_network)
+    except ValueError:
+        # If there's an error parsing the networks, return False
+        return False
+
 def validate_ip_address(address: str) -> Tuple[bool, Optional[str]]:
     """
     Validate an IP address string.

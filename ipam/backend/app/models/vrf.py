@@ -5,6 +5,7 @@ from .base import BaseModel
 if TYPE_CHECKING:
     from .tenant import Tenant
     from .ip_prefix import Prefix, IPRange
+    from .ip_address import IPAddress
 
 # Association tables for VRF-RouteTarget many-to-many relationships
 class VRFImportTargets(SQLModel, table=True):
@@ -50,8 +51,8 @@ class VRF(BaseModel, table=True):
     __tablename__ = "vrfs"
     
     # Basic fields
-    name: str = Field(..., description="Name of the VRF")
-    rd: Optional[str] = Field(default=None, description="Route distinguisher value (ASN:NN or IP:NN)")
+    name: str = Field(..., description="Name of the VRF", unique=True)
+    rd: Optional[str] = Field(default=None, description="Route distinguisher value (ASN:NN or IP:NN)", unique=True)
     description: Optional[str] = Field(default=None, description="Brief description")
     enforce_unique: bool = Field(
         default=True,
@@ -65,6 +66,7 @@ class VRF(BaseModel, table=True):
     tenant: Optional["Tenant"] = Relationship(back_populates="vrfs")
     prefixes: List["Prefix"] = Relationship(back_populates="vrf")
     ip_ranges: List["IPRange"] = Relationship(back_populates="vrf")
+    ip_addresses: List["IPAddress"] = Relationship(back_populates="vrf")
     import_targets: List[RouteTarget] = Relationship(back_populates="importing_vrfs", link_model=VRFImportTargets)
     export_targets: List[RouteTarget] = Relationship(back_populates="exporting_vrfs", link_model=VRFExportTargets)
     

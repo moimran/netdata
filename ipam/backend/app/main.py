@@ -10,6 +10,7 @@ from .database import engine, get_session
 from .models import *
 from .config import settings
 from pydantic import BaseModel
+import ipaddress
 from ipaddress import IPv4Network, IPv6Network
 from .serializers import jsonable_encoder, model_to_dict
 import logging
@@ -255,6 +256,31 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type):
             raise HTTPException(status_code=404, detail=f"Item with id {item_id} not found")
         return None
 
+# Specialized endpoints
+
+# Get prefixes in a hierarchical structure
+@api_router.get("/prefixes/hierarchy", tags=["Prefixes"])
+def get_prefix_hierarchy(
+    vrf_id: Optional[int] = None,
+    session: Session = Depends(get_session)
+):
+    """
+    Get prefixes in a hierarchical structure.
+    
+    Args:
+        vrf_id: Optional VRF ID to filter by
+        
+    Returns:
+        List of prefixes with hierarchical information
+    """
+    try:
+        # Use the specialized CRUD method to get the hierarchy
+        prefixes = crud.prefix.get_hierarchy(session, vrf_id)
+        return model_to_dict({"items": prefixes})
+    except Exception as e:
+        logger.error(f"Error getting prefix hierarchy: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error getting prefix hierarchy: {str(e)}")
+
 # Create routes for all models
 create_crud_routes(api_router, "regions", crud.region, Region)
 create_crud_routes(api_router, "site_groups", crud.site_group, SiteGroup)
@@ -278,8 +304,6 @@ create_crud_routes(api_router, "route_targets", crud.route_target, RouteTarget)
 create_crud_routes(api_router, "vrf_import_targets", crud.vrf_import_targets, VRFImportTargets)
 create_crud_routes(api_router, "vrf_export_targets", crud.vrf_export_targets, VRFExportTargets)
 
-# Specialized endpoints
-
 # Get available IP addresses in a prefix
 @api_router.get("/prefixes/{prefix_id}/available-ips")
 def get_available_ips(
@@ -288,6 +312,67 @@ def get_available_ips(
     session: Session = Depends(get_session)
 ):
     pass
+
+# Get prefix utilization
+@api_router.get("/prefixes/{prefix_id}/utilization")
+def get_prefix_utilization(
+    prefix_id: int,
+    session: Session = Depends(get_session)
+):
+    """
+    Get utilization data for a prefix.
+    
+    Args:
+        prefix_id: Prefix ID
+        
+    Returns:
+        Utilization data including percentage, used IPs, and total IPs
+    """
+    try:
+        # Get the prefix
+        prefix = session.get(Prefix, prefix_id)
+        if not prefix:
+            raise HTTPException(status_code=404, detail=f"Prefix with ID {prefix_id} not found")
+        
+        # Get IP addresses in this prefix
+        query = select(IPAddress).where(IPAddress.prefix_id == prefix_id)
+        ip_addresses = session.exec(query).all()
+        
+        # Get child prefixes
+        query = select(Prefix).where(Prefix.parent_id == prefix_id)
+        child_prefixes = session.exec(query).all()
+        
+        # Calculate utilization
+        from .models.ip_utils import calculate_prefix_utilization
+        
+        # Extract prefix strings from child prefixes
+        child_prefix_strings = [p.prefix for p in child_prefixes]
+        
+        # Extract IP address strings
+        ip_address_strings = [ip.address for ip in ip_addresses]
+        
+        # Calculate utilization percentage
+        percentage = calculate_prefix_utilization(
+            prefix.prefix, 
+            child_prefixes=child_prefix_strings,
+            used_ips=ip_address_strings
+        )
+        
+        # Calculate total IPs
+        network = ipaddress.ip_network(prefix.prefix)
+        total_ips = network.num_addresses
+        
+        # Calculate used IPs based on percentage
+        used_ips = int(total_ips * (percentage / 100))
+        
+        return {
+            "percentage": percentage,
+            "used": used_ips,
+            "total": total_ips
+        }
+    except Exception as e:
+        logger.error(f"Error calculating prefix utilization: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error calculating prefix utilization: {str(e)}")
 
 # Add a VRF prefix counts endpoint before including the API router
 @app.get("/api/v1/vrfs/prefix-counts", tags=["VRFs"])

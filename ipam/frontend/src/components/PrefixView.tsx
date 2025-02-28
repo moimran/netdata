@@ -1,5 +1,5 @@
-import { IPAMView } from './IPAMView';
+import { PrefixTable } from './PrefixTable';
 
 export function PrefixView() {
-  return <IPAMView tableName="prefixes" />;
+  return <PrefixTable />;
 }

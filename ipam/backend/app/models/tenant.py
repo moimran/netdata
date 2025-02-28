@@ -9,6 +9,8 @@ if TYPE_CHECKING:
     from .site import Site
     from .vlan import VLAN
     from .aggregate import Aggregate
+    from .device import Device
+    from .ip_address import IPAddress
 
 class Tenant(BaseModel, table=True):
     """
@@ -29,6 +31,11 @@ class Tenant(BaseModel, table=True):
     sites: List["Site"] = Relationship(back_populates="tenant")
     vlans: List["VLAN"] = Relationship(back_populates="tenant")
     aggregates: List["Aggregate"] = Relationship(back_populates="tenant")
+    devices: List["Device"] = Relationship(
+        back_populates="tenant",
+        sa_relationship_kwargs={"primaryjoin": "Tenant.id == Device.tenant_id"}
+    )
+    ip_addresses: List["IPAddress"] = Relationship(back_populates="tenant")
     
     class Config:
         arbitrary_types_allowed = True

@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from .region import Region
     from .site_group import SiteGroup
     from .location import Location
+    from .device import Device
 
 class Site(BaseModel, table=True):
     """
@@ -45,6 +46,10 @@ class Site(BaseModel, table=True):
     vlans: List["VLAN"] = Relationship(back_populates="site")
     prefixes: List["Prefix"] = Relationship(back_populates="site")
     locations: List["Location"] = Relationship(back_populates="site")
+    devices: List["Device"] = Relationship(
+        back_populates="site",
+        sa_relationship_kwargs={"primaryjoin": "Site.id == Device.site_id"}
+    )
     
     class Config:
         arbitrary_types_allowed = True
