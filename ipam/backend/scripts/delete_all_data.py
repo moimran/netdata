@@ -10,7 +10,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.models import (
     Site, VRF, Prefix, IPRange, Role, RouteTarget, Tenant, VLAN, RIR, ASN, ASNRange,
-    Device, Interface, Location, Region, SiteGroup, VRFImportTargets, VRFExportTargets
+    Device, Interface, Location, Region, SiteGroup, VRFImportTargets, VRFExportTargets,
+    IPAddress
 )
 
 # Database connection
@@ -21,6 +22,9 @@ def delete_all_data():
     print("Starting data deletion...")
     with Session(engine) as session:
         # Delete data from all tables in reverse order of dependencies
+        print("Deleting IP Addresses...")
+        session.exec(delete(IPAddress))
+        
         print("Deleting IP Ranges...")
         session.exec(delete(IPRange))
         

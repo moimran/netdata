@@ -16,8 +16,13 @@ class Region(BaseModel, table=True):
     slug: str = Field(..., description="URL-friendly name")
     description: Optional[str] = Field(default=None, description="Brief description")
     
+    # Foreign Keys
+    parent_id: Optional[int] = Field(default=None, foreign_key="regions.id")
+    
     # Relationships
     sites: List["Site"] = Relationship(back_populates="region")
+    parent: Optional["Region"] = Relationship(back_populates="children", sa_relationship_kwargs={"remote_side": "Region.id"})
+    children: List["Region"] = Relationship(back_populates="parent")
     
     class Config:
         arbitrary_types_allowed = True

@@ -37,6 +37,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
     { name: 'slug', type: 'string', required: true },
+    { name: 'parent_id', type: 'number', reference: 'regions' },
     { name: 'description', type: 'string' }
   ],
   site_groups: [
@@ -59,6 +60,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'name', type: 'string', required: true },
     { name: 'slug', type: 'string', required: true },
     { name: 'site_id', type: 'number', reference: 'sites' },
+    { name: 'parent_id', type: 'number', reference: 'locations' },
     { name: 'status', type: 'string', required: true },
     { name: 'description', type: 'string' }
   ],

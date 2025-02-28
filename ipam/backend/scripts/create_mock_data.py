@@ -24,6 +24,11 @@ def create_mock_data():
         print("Creating Regions...")
         regions = [
             Region(
+                name="Global",
+                slug="global",
+                description="Global Region"
+            ),
+            Region(
                 name="North America",
                 slug="na",
                 description="North America Region"
@@ -41,6 +46,50 @@ def create_mock_data():
         ]
         session.add_all(regions)
         session.commit()
+        
+        # Set parent-child relationships for regions
+        regions[1].parent_id = regions[0].id  # North America -> Global
+        regions[2].parent_id = regions[0].id  # Europe -> Global
+        regions[3].parent_id = regions[0].id  # Asia-Pacific -> Global
+        
+        # Add sub-regions
+        sub_regions = [
+            Region(
+                name="US East",
+                slug="us-east",
+                description="US East Region",
+                parent_id=regions[1].id  # Parent: North America
+            ),
+            Region(
+                name="US West",
+                slug="us-west",
+                description="US West Region",
+                parent_id=regions[1].id  # Parent: North America
+            ),
+            Region(
+                name="Western Europe",
+                slug="western-eu",
+                description="Western Europe Region",
+                parent_id=regions[2].id  # Parent: Europe
+            ),
+            Region(
+                name="Eastern Europe",
+                slug="eastern-eu",
+                description="Eastern Europe Region",
+                parent_id=regions[2].id  # Parent: Europe
+            ),
+            Region(
+                name="Southeast Asia",
+                slug="sea",
+                description="Southeast Asia Region",
+                parent_id=regions[3].id  # Parent: Asia-Pacific
+            )
+        ]
+        session.add_all(sub_regions)
+        session.commit()
+        
+        # Add all regions to the list
+        regions.extend(sub_regions)
         print(f"Created {len(regions)} Regions")
         print("Creating RIRs...")
         # Create RIRs first
@@ -183,7 +232,8 @@ def create_mock_data():
                 contact_name="John Smith",
                 contact_email="john.smith@example.com",
                 contact_phone="+1-212-555-0100",
-                tenant=tenant
+                tenant=tenant,
+                region_id=sub_regions[0].id  # US East
             ),
             Site(
                 name="SJC-DC1",
@@ -197,7 +247,8 @@ def create_mock_data():
                 contact_name="Jane Doe",
                 contact_email="jane.doe@example.com",
                 contact_phone="+1-408-555-0200",
-                tenant=tenant
+                tenant=tenant,
+                region_id=sub_regions[1].id  # US West
             ),
             Site(
                 name="LON-DC1",
@@ -211,7 +262,8 @@ def create_mock_data():
                 contact_name="James Wilson",
                 contact_email="james.wilson@example.com",
                 contact_phone="+44-20-7123-4567",
-                tenant=tenant
+                tenant=tenant,
+                region_id=sub_regions[2].id  # Western Europe
             ),
             Site(
                 name="NYC-OFF1",
@@ -225,7 +277,8 @@ def create_mock_data():
                 contact_name="Sarah Johnson",
                 contact_email="sarah.j@example.com",
                 contact_phone="+1-212-555-0300",
-                tenant=tenant
+                tenant=tenant,
+                region_id=sub_regions[0].id  # US East
             ),
             Site(
                 name="SFO-OFF1",
@@ -239,12 +292,105 @@ def create_mock_data():
                 contact_name="Michael Brown",
                 contact_email="michael.b@example.com",
                 contact_phone="+1-415-555-0400",
-                tenant=tenant
+                tenant=tenant,
+                region_id=sub_regions[1].id  # US West
             )
         ]
         session.add_all(sites)
         session.commit()
         print(f"Created {len(sites)} Sites")
+        
+        # Create Locations with parent-child relationships
+        print("Creating Locations...")
+        locations = [
+            # NYC DC1 Locations
+            Location(
+                name="NYC-DC1-Floor1",
+                slug="nyc-dc1-floor1",
+                description="NYC DC1 Floor 1",
+                status="active",
+                site_id=sites[0].id
+            ),
+            Location(
+                name="NYC-DC1-Floor2",
+                slug="nyc-dc1-floor2",
+                description="NYC DC1 Floor 2",
+                status="active",
+                site_id=sites[0].id
+            ),
+            # SJC DC1 Locations
+            Location(
+                name="SJC-DC1-Floor1",
+                slug="sjc-dc1-floor1",
+                description="SJC DC1 Floor 1",
+                status="active",
+                site_id=sites[1].id
+            ),
+            # LON DC1 Locations
+            Location(
+                name="LON-DC1-Floor1",
+                slug="lon-dc1-floor1",
+                description="LON DC1 Floor 1",
+                status="active",
+                site_id=sites[2].id
+            )
+        ]
+        session.add_all(locations)
+        session.commit()
+        
+        # Create sub-locations (rooms)
+        sub_locations = [
+            # NYC DC1 Floor 1 Rooms
+            Location(
+                name="NYC-DC1-F1-ServerRoom",
+                slug="nyc-dc1-f1-server",
+                description="NYC DC1 Floor 1 Server Room",
+                status="active",
+                site_id=sites[0].id,
+                parent_id=locations[0].id
+            ),
+            Location(
+                name="NYC-DC1-F1-NetworkRoom",
+                slug="nyc-dc1-f1-network",
+                description="NYC DC1 Floor 1 Network Room",
+                status="active",
+                site_id=sites[0].id,
+                parent_id=locations[0].id
+            ),
+            # NYC DC1 Floor 2 Rooms
+            Location(
+                name="NYC-DC1-F2-ServerRoom",
+                slug="nyc-dc1-f2-server",
+                description="NYC DC1 Floor 2 Server Room",
+                status="active",
+                site_id=sites[0].id,
+                parent_id=locations[1].id
+            ),
+            # SJC DC1 Floor 1 Rooms
+            Location(
+                name="SJC-DC1-F1-ServerRoom",
+                slug="sjc-dc1-f1-server",
+                description="SJC DC1 Floor 1 Server Room",
+                status="active",
+                site_id=sites[1].id,
+                parent_id=locations[2].id
+            ),
+            # LON DC1 Floor 1 Rooms
+            Location(
+                name="LON-DC1-F1-ServerRoom",
+                slug="lon-dc1-f1-server",
+                description="LON DC1 Floor 1 Server Room",
+                status="active",
+                site_id=sites[2].id,
+                parent_id=locations[3].id
+            )
+        ]
+        session.add_all(sub_locations)
+        session.commit()
+        
+        # Add all locations to the list
+        locations.extend(sub_locations)
+        print(f"Created {len(locations)} Locations")
 
         # Create VLANs
         print("Creating VLANs...")
