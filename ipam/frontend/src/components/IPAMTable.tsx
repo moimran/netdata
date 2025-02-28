@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { 
-  Table,
   Button,
   Group,
   Title,
   Card,
   Text,
-  Badge,
   ActionIcon,
   Stack,
   Tooltip,
@@ -17,6 +15,7 @@ import {
   Loader,
   Alert
 } from '@mantine/core';
+import { StyledTable, TableHeader, StatusBadge, tableStyles } from './TableStyles';
 import { IconEdit, IconTrash, IconPlus, IconSearch, IconFilter, IconRefresh } from '@tabler/icons-react';
 import { IPAMModal } from './IPAMModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -160,36 +159,13 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   ]
 };
 
-// Helper function to get status badge color
-const getStatusColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'active':
-      return 'green';
-    case 'reserved':
-      return 'blue';
-    case 'deprecated':
-      return 'gray';
-    case 'container':
-      return 'indigo';
-    case 'dhcp':
-      return 'cyan';
-    case 'slaac':
-      return 'teal';
-    default:
-      return 'gray';
-  }
-};
 
 // Helper function to format cell values for display
 const formatCellValue = (column: Column, value: any, referenceData: Record<string, any[]>) => {
   if (value === null || value === undefined) return '-';
   
   if (column.name === 'status') {
-    return (
-      <Badge color={getStatusColor(value)}>
-        {value.charAt(0).toUpperCase() + value.slice(1)}
-      </Badge>
-    );
+    return <StatusBadge status={value} />;
   }
   
   if (column.type === 'boolean') {
@@ -357,9 +333,9 @@ export function IPAMTable({ tableName }: IPAMTableProps) {
     : 1;
 
   return (
-    <Stack spacing="md">
+    <Stack gap="md">
       <Card shadow="sm" p="lg" radius="md" withBorder>
-        <Group position="apart" mb="lg">
+          <Group justify="space-between" mb="lg">
           <Box>
             <Title order={3} mb={5}>
               {tableName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
@@ -378,12 +354,12 @@ export function IPAMTable({ tableName }: IPAMTableProps) {
 
         <Card withBorder p="xs" radius="md" mb="md" bg="gray.0">
           <form onSubmit={handleSearch}>
-            <Group mb="xs" align="flex-end" spacing="md">
+            <Group mb="xs" align="flex-end" gap="md">
               <TextInput
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                icon={<IconSearch size={16} />}
+                leftSection={<IconSearch size={16} />}
                 style={{ flexGrow: 1 }}
                 radius="md"
               />
@@ -391,10 +367,10 @@ export function IPAMTable({ tableName }: IPAMTableProps) {
               <Select
                 placeholder="Filter by field"
                 value={filterField}
-                onChange={setFilterField}
+                onChange={(value) => setFilterField(value || '')}
                 data={filterableFields}
                 clearable
-                icon={<IconFilter size={16} />}
+                leftSection={<IconFilter size={16} />}
                 style={{ width: '200px' }}
                 radius="md"
               />
@@ -435,52 +411,23 @@ export function IPAMTable({ tableName }: IPAMTableProps) {
             Failed to load data. Please try again.
           </Alert>
         ) : data?.items?.length === 0 ? (
-          <Text align="center" color="dimmed" py="xl">
+            <Text ta="center" c="dimmed" py="xl">
             No items found. Try adjusting your filters or add a new item.
           </Text>
         ) : (
           <Box style={{ overflowX: 'auto' }}>
-            <Table striped highlightOnHover style={{ border: '1px solid #ddd', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  {schema.map(column => (
-                    <th key={column.name} style={{ 
-                      backgroundColor: '#f8f9fa', 
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      padding: '12px 15px',
-                      textTransform: 'uppercase',
-                      border: '1px solid #ddd',
-                      borderColor: 'gray.2'
-                    }}>
-                      {column.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                    </th>
-                  ))}
-                  <th style={{ 
-                    backgroundColor: '#f8f9fa', 
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    padding: '12px 15px',
-                    textTransform: 'uppercase',
-                    width: '100px',
-                    textAlign: 'center',
-                    border: '1px solid #ddd',
-                    borderColor: 'gray.2'
-                  }}>
-                    Actions
-                  </th>
-                </tr>
-              </thead>
+            <StyledTable>
+              <TableHeader columns={schema.map(col => col.name)} />
               <tbody>
                 {data?.items?.map((item: any) => (
                   <tr key={item.id}>
                     {schema.map(column => (
-                      <td key={column.name} style={{ padding: '10px 15px', border: '1px solid #ddd', borderColor: 'gray.2' }}>
+                      <td key={column.name} style={tableStyles.cell}>
                         {formatCellValue(column, item[column.name], referenceData)}
                       </td>
                     ))}
-                    <td style={{ padding: '10px 15px', border: '1px solid #ddd', borderColor: 'gray.2' }}>
-                      <Group spacing="xs" position="center">
+                    <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}>
+                      <Group gap="xs" justify="center">
                         <ActionIcon 
                           color="blue" 
                           onClick={() => handleEditClick(item)}
@@ -505,12 +452,12 @@ export function IPAMTable({ tableName }: IPAMTableProps) {
                   </tr>
                 ))}
               </tbody>
-            </Table>
+            </StyledTable>
           </Box>
         )}
 
         {data?.total > 0 && (
-          <Group position="apart" mt="lg">
+          <Group justify="space-between" mt="lg">
             <Text size="sm" color="dimmed">
               Showing {((page - 1) * pageSize) + 1}-{Math.min(page * pageSize, data.total)} of {data.total} items
             </Text>

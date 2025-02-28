@@ -1,4 +1,4 @@
-export type TableName = 'regions' | 'site_groups' | 'sites' | 'locations' | 'vrfs' | 'rirs' | 'aggregates' | 'roles' | 'prefixes' | 'ip_ranges' | 'ip_addresses' | 'asns' | 'asn_ranges';
+export type TableName = 'regions' | 'site_groups' | 'sites' | 'locations' | 'vrfs' | 'rirs' | 'aggregates' | 'roles' | 'prefixes' | 'ip_ranges' | 'ip_addresses' | 'asns' | 'asn_ranges' | 'vlans' | 'tenants';
 
 export interface TableSchema {
   columns: Array<{
