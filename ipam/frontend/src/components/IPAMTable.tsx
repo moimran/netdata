@@ -65,6 +65,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   vlans: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
+    { name: 'slug', type: 'string', required: true },
     { name: 'vid', type: 'number', required: true },
     { name: 'status', type: 'string', required: true },
     { name: 'description', type: 'string' }
