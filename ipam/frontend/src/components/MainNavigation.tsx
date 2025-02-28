@@ -17,7 +17,10 @@ import {
   IconBuildingFactory2,
   IconMap2,
   IconDashboard,
-  IconChevronRight
+  IconChevronRight,
+  IconBuildingSkyscraper,
+  IconUsers,
+  IconWifi
 } from '@tabler/icons-react';
 
 export function MainNavigation() {
@@ -34,6 +37,7 @@ export function MainNavigation() {
       title: 'Organization',
       items: [
         { icon: IconMap2, label: 'Regions', path: '/regions' },
+        { icon: IconBuildingSkyscraper, label: 'Site Groups', path: '/site-groups' },
         { icon: IconBuildingFactory2, label: 'Sites', path: '/sites' },
         { icon: IconServer, label: 'Locations', path: '/locations' }
       ]
@@ -48,8 +52,15 @@ export function MainNavigation() {
         { icon: IconShield, label: 'Roles', path: '/roles' },
         { icon: IconBorderAll, label: 'IP Ranges', path: '/ip-ranges' },
         { icon: IconDeviceDesktopAnalytics, label: 'IP Addresses', path: '/ip-addresses' },
+        { icon: IconWifi, label: 'VLANs', path: '/vlans' },
         { icon: IconNetworkOff, label: 'ASNs', path: '/asns' },
         { icon: IconLayersIntersect, label: 'ASN Ranges', path: '/asn-ranges' }
+      ]
+    },
+    {
+      title: 'Administration',
+      items: [
+        { icon: IconUsers, label: 'Tenants', path: '/tenants' }
       ]
     }
   ];
@@ -57,20 +68,20 @@ export function MainNavigation() {
   return (
     <Box py="md">
       <Box px="md" pb="md">
-        <Group position="center" mb="xs">
+        <Group justify="center" mb="xs">
           <ThemeIcon size="xl" radius="xl" color="blue">
             <IconNetwork size={24} />
           </ThemeIcon>
         </Group>
-        <Text align="center" size="xs" color="dimmed" mb="md">IP Address Management</Text>
+        <Text ta="center" size="xs" color="dimmed" mb="md">IP Address Management</Text>
       </Box>
 
       {navigationGroups.map((group, index) => (
         <Box key={index} mb="md">
           <Text
-            transform="uppercase"
+            tt="uppercase"
             color="dimmed"
-            weight={700}
+            fw={700}
             size="xs"
             px="md"
             mb="xs"

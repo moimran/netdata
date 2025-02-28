@@ -24,19 +24,19 @@ function AppContent() {
       header={{ height: 70 }}
       styles={{
         main: {
-          backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0]
+          backgroundColor: theme.colors.gray[0]
         },
         header: {
           backgroundColor: theme.colors.blue[7]
         },
         navbar: {
-          backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : 'white',
-          borderRight: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[3]}`
+          backgroundColor: 'white',
+          borderRight: `1px solid ${theme.colors.gray[3]}`
         }
       }}
     >
       <AppShell.Header p="md">
-        <Group position="apart" align="center" h="100%">
+        <Group justify="space-between" align="center" h="100%">
           <Group>
             <Burger
               opened={opened}
@@ -46,7 +46,7 @@ function AppContent() {
               mr="xl"
               hiddenFrom="sm"
             />
-            <Group spacing="xs">
+            <Group gap="xs">
               <IconNetwork size={30} color="white" />
               <Title order={1} c="white" style={{ fontWeight: 700 }}>IPAM System</Title>
             </Group>
@@ -55,7 +55,7 @@ function AppContent() {
           <Group>
             <Avatar color="blue" radius="xl">IP</Avatar>
             <Box visibleFrom="sm">
-              <Text c="white" weight={500}>Admin User</Text>
+              <Text c="white" fw={500}>Admin User</Text>
               <Text c="white" size="xs">Administrator</Text>
             </Box>
           </Group>
@@ -82,8 +82,10 @@ function AppContent() {
           <Route path="/prefixes" element={<PrefixView />} />
           <Route path="/ip-ranges" element={<IPAMView tableName="ip_ranges" />} />
           <Route path="/ip-addresses" element={<IPAddressView />} />
+          <Route path="/vlans" element={<IPAMView tableName="vlans" />} />
           <Route path="/asns" element={<ASNView />} />
           <Route path="/asn-ranges" element={<ASNRangeView />} />
+          <Route path="/tenants" element={<IPAMView tableName="tenants" />} />
         </Routes>
       </AppShell.Main>
     </AppShell>
@@ -94,7 +96,6 @@ function App() {
   return (
     <MantineProvider
       theme={{
-        colorScheme: 'light',
         primaryColor: 'blue',
         defaultRadius: 'md',
         colors: {
@@ -126,10 +127,9 @@ function App() {
         fontFamily: 'Roboto, sans-serif',
         headings: {
           fontFamily: 'Roboto, sans-serif',
-          fontWeight: 700,
+          fontWeight: '700',
         }
       }}
-      withGlobalStyles
     >
       <AppContent />
     </MantineProvider>
