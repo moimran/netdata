@@ -68,6 +68,10 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'slug', type: 'string', required: true },
     { name: 'vid', type: 'number', required: true },
     { name: 'status', type: 'string', required: true },
+    { name: 'group_id', type: 'number', reference: 'vlan_groups' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants' },
+    { name: 'site_id', type: 'number', reference: 'sites' },
+    { name: 'role_id', type: 'number', reference: 'roles' },
     { name: 'description', type: 'string' }
   ],
   vlan_groups: [
@@ -220,23 +224,41 @@ const formatCellValue = (column: Column, value: any, referenceData: Record<strin
     return '-';
   }
   
-  // Debug logging to see what's happening with VLAN ID ranges
-  if (tableName === 'vlan_groups' && column.name === 'vlan_id_ranges') {
-    console.log('VLAN ID ranges for', tableName, ':', value, item);
-  }
-  
-  if (column.reference && value) {
+  // Handle reference fields (foreign keys)
+  if (column.reference && value !== null && value !== undefined) {
     const referenceTable = column.reference;
+    
+    // Debug logging for reference data
+    console.log(`Formatting reference for ${column.name} with value ${value}`, {
+      referenceTable,
+      hasReferenceData: !!referenceData[referenceTable],
+      referenceDataLength: referenceData[referenceTable]?.length || 0
+    });
+    
     const referenceItems = referenceData[referenceTable] || [];
     
     // Ensure referenceItems is an array before using find
-    if (Array.isArray(referenceItems)) {
-      const referencedItem = referenceItems.find((item: any) => item.id === value);
+    if (Array.isArray(referenceItems) && referenceItems.length > 0) {
+      // Debug the first few items to see their structure
+      if (referenceItems.length > 0) {
+        console.log(`Sample reference items for ${referenceTable}:`, referenceItems.slice(0, 3));
+      }
+      
+      // Convert both IDs to strings for comparison to avoid type mismatches
+      const referencedItem = referenceItems.find((item: any) => String(item.id) === String(value));
       
       if (referencedItem) {
-        return referencedItem.name || referencedItem.prefix || referencedItem.address || referencedItem.rd || referencedItem.slug || value;
+        console.log(`Found reference item for ${column.name}:`, referencedItem);
+        return referencedItem.name || referencedItem.prefix || referencedItem.address || referencedItem.rd || referencedItem.slug || String(value);
+      } else {
+        console.log(`No matching reference item found for ${column.name} with value ${value}`);
       }
+    } else {
+      console.log(`No reference items available for ${referenceTable}`);
     }
+    
+    // If we couldn't find a reference item, return a placeholder
+    return `${referenceTable} #${value}`;
   }
   
   return String(value);
@@ -256,6 +278,7 @@ const useReferenceData = (referenceTableNames: string[]) => {
       // Use Promise.all to fetch all reference data in parallel
       await Promise.all(referenceTableNames.map(async (refTableName) => {
         try {
+          console.log(`Fetching reference data for ${refTableName}`);
           const response = await apiClient.get(`${refTableName}`);
           // Ensure we have a consistent data structure
           const responseData = response.data;
@@ -271,6 +294,8 @@ const useReferenceData = (referenceTableNames: string[]) => {
             // Default to empty array if we can't determine the structure
             results[refTableName] = [];
           }
+          
+          console.log(`Fetched ${results[refTableName].length} items for ${refTableName}`);
         } catch (error) {
           console.error(`Error fetching ${refTableName}:`, error);
           results[refTableName] = [];
@@ -473,9 +498,20 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
             <StyledTable>
               <TableHeader 
                 columns={schema.map(col => {
-                  // Rename vlan_id_ranges to VLAN IDs for better display
+                  // Rename columns for better display
                   if (col.name === 'vlan_id_ranges') {
                     return 'VLAN IDs';
+                  } else if (col.name === 'group_id') {
+                    return 'VLAN Group';
+                  } else if (col.name === 'tenant_id') {
+                    return 'Tenant';
+                  } else if (col.name === 'site_id') {
+                    return 'Site';
+                  } else if (col.name === 'role_id') {
+                    return 'Role';
+                  } else if (col.name.endsWith('_id')) {
+                    // For other _id fields, remove the _id suffix and capitalize
+                    return col.name.replace('_id', '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
                   }
                   return col.name;
                 })} 

@@ -39,6 +39,7 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [vlanIdRanges, setVlanIdRanges] = useState('');
+  const [selectedVlanGroup, setSelectedVlanGroup] = useState<any>(null);
 
   // Prepare form values based on the schema and item
   useEffect(() => {
@@ -87,6 +88,19 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
         } else if (item.min_vid && item.max_vid) {
           // Fallback to min_vid-max_vid if no stored ranges
           setVlanIdRanges(`${item.min_vid}-${item.max_vid}`);
+        }
+      }
+      
+      // For VLANs, load the VLAN group if one is selected
+      if (tableName === 'vlans' && item.group_id) {
+        // We'll set the selectedVlanGroup when the reference data is loaded
+        const referenceTableNames = schema
+          .filter(col => col.reference)
+          .map(col => col.reference!);
+          
+        if (referenceTableNames.includes('vlan_groups')) {
+          // The reference data will be loaded by the useQuery hook
+          // We'll set the selectedVlanGroup in a separate useEffect
         }
       }
     } else {
@@ -143,6 +157,24 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
   
   // Process reference data
   const referenceData = referenceQueryData || {};
+  
+  // Set the selectedVlanGroup when reference data is loaded
+  useEffect(() => {
+    if (tableName === 'vlans' && item?.group_id && referenceData.vlan_groups) {
+      const vlanGroups = referenceData.vlan_groups.items || referenceData.vlan_groups.data || referenceData.vlan_groups || [];
+      if (Array.isArray(vlanGroups)) {
+        const selectedGroup = vlanGroups.find((group: any) => String(group.id) === String(item.group_id));
+        if (selectedGroup) {
+          setSelectedVlanGroup(selectedGroup);
+          
+          // Validate VLAN ID against the group's ranges if both exist
+          if (item.vid) {
+            validateVlanIdAgainstGroup(item.vid, selectedGroup);
+          }
+        }
+      }
+    }
+  }, [tableName, item, referenceData]);
 
   const mutation = useMutation({
     mutationFn: async (data: any) => {
@@ -189,6 +221,13 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
         errors[field.name] = 'This field is required';
       }
     });
+    
+    // Validate VLAN ID against VLAN group if both exist
+    if (tableName === 'vlans' && formData.vid && formData.group_id && selectedVlanGroup) {
+      // Perform validation but don't add errors to the errors object
+      // The validateVlanIdAgainstGroup function will update the validationErrors state directly
+      validateVlanIdAgainstGroup(parseInt(formData.vid), selectedVlanGroup);
+    }
     
     // Parse VLAN ID ranges for VLAN groups
     if (tableName === 'vlan_groups' && vlanIdRanges) {
@@ -266,6 +305,58 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
         { value: 'reserved', label: 'Reserved' },
         { value: 'deprecated', label: 'Deprecated' }
       ];
+    }
+  };
+  
+  // Function to validate if a VLAN ID is within the ranges of a VLAN group
+  const validateVlanIdAgainstGroup = (vlanId: number, vlanGroup: any) => {
+    if (!vlanId || !vlanGroup) return;
+    
+    // Get the VLAN ID ranges from the group
+    let ranges = vlanGroup.vlan_id_ranges;
+    
+    // If no ranges are defined, use min_vid and max_vid
+    if (!ranges && vlanGroup.min_vid && vlanGroup.max_vid) {
+      ranges = `${vlanGroup.min_vid}-${vlanGroup.max_vid}`;
+    }
+    
+    if (!ranges) return; // No ranges to validate against
+    
+    // Check if the VLAN ID is within any of the ranges
+    const rangeArray = ranges.split(',').map((r: string) => r.trim());
+    let isInRange = false;
+    
+    for (const range of rangeArray) {
+      if (range.includes('-')) {
+        // It's a range like "1-5"
+        const [start, end] = range.split('-').map((n: string) => parseInt(n.trim()));
+        if (vlanId >= start && vlanId <= end) {
+          isInRange = true;
+          break;
+        }
+      } else {
+        // It's a single number like "10"
+        const num = parseInt(range);
+        if (vlanId === num) {
+          isInRange = true;
+          break;
+        }
+      }
+    }
+    
+    // Set validation error if not in range
+    if (!isInRange) {
+      setValidationErrors(prev => ({
+        ...prev,
+        vid: `VLAN ID ${vlanId} is not within the allowed ranges (${ranges}) for the selected VLAN group`
+      }));
+    } else {
+      // Clear the error if it exists
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.vid;
+        return newErrors;
+      });
     }
   };
   
@@ -388,6 +479,76 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
             // Handle reference fields (foreign keys)
             if (column.reference) {
               const referenceData = getReferenceData(column.reference);
+              
+              // Special handling for VLAN group selection in VLANs
+              if (tableName === 'vlans' && column.name === 'group_id') {
+                return (
+                  <Select
+                    key={column.name}
+                    label="VLAN Group"
+                    placeholder="Select VLAN Group"
+                    data={[
+                      { value: '', label: 'None' },
+                      ...referenceData.map((item: any) => ({
+                        value: item.id.toString(),
+                        label: item.name || String(item.id)
+                      }))
+                    ]}
+                    value={formData[column.name]?.toString() || ''}
+                    onChange={(value) => {
+                      // Update the form data
+                      setFormData({ 
+                        ...formData, 
+                        [column.name]: value ? parseInt(value) : null 
+                      });
+                      
+                      // Find and store the selected VLAN group
+                      if (value) {
+                        // Convert both IDs to strings for comparison to avoid type mismatches
+                        const selectedGroup = referenceData.find((item: any) => String(item.id) === String(value));
+                        setSelectedVlanGroup(selectedGroup);
+                        
+                        // Validate VLAN ID against the group's ranges if both exist
+                        if (selectedGroup && formData.vid) {
+                          validateVlanIdAgainstGroup(formData.vid, selectedGroup);
+                        }
+                      } else {
+                        setSelectedVlanGroup(null);
+                        // Clear any validation errors related to VLAN ID ranges
+                        setValidationErrors(prev => {
+                          const newErrors = { ...prev };
+                          delete newErrors.vid;
+                          return newErrors;
+                        });
+                      }
+                    }}
+                    required={column.required}
+                    error={validationErrors[column.name]}
+                    styles={(theme) => ({
+                      input: {
+                        backgroundColor: theme.colors.dark[6],
+                        color: theme.white,
+                        '&::placeholder': {
+                          color: theme.colors.gray[5]
+                        }
+                      },
+                      label: {
+                        color: theme.white
+                      },
+                      item: {
+                        '&[data-selected]': {
+                          backgroundColor: theme.colors.blue[8],
+                          color: theme.white
+                        },
+                        '&[data-hovered]': {
+                          backgroundColor: theme.colors.dark[5]
+                        }
+                      }
+                    })}
+                  />
+                );
+              }
+              
               return (
                 <Select
                   key={column.name}
@@ -581,6 +742,43 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
               );
             }
 
+            // Special handling for VLAN ID (vid) field in VLANs
+            if (tableName === 'vlans' && column.name === 'vid') {
+              return (
+                <TextInput
+                  key={column.name}
+                  label="VLAN ID"
+                  value={formData[column.name] || ''}
+                  onChange={(e) => {
+                    const newVid = parseInt(e.target.value);
+                    setFormData({ 
+                      ...formData, 
+                      [column.name]: e.target.value 
+                    });
+                    
+                    // Validate against selected VLAN group if one is selected
+                    if (!isNaN(newVid) && selectedVlanGroup) {
+                      validateVlanIdAgainstGroup(newVid, selectedVlanGroup);
+                    }
+                  }}
+                  required={column.required}
+                  error={validationErrors[column.name]}
+                  styles={(theme) => ({
+                    input: {
+                      backgroundColor: theme.colors.dark[6],
+                      color: theme.white,
+                      '&::placeholder': {
+                        color: theme.colors.gray[5]
+                      }
+                    },
+                    label: {
+                      color: theme.white
+                    }
+                  })}
+                />
+              );
+            }
+            
             // Default text input for other fields
             return (
               <TextInput

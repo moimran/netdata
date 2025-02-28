@@ -427,7 +427,8 @@ async def get_reference_options(table_name: str, field_name: str, session: Sessi
             "vlans": {
                 "site_id": ("sites", crud.site, "name"),
                 "tenant_id": ("tenants", crud.tenant, "name"),
-                "role_id": ("roles", crud.role, "name")
+                "role_id": ("roles", crud.role, "name"),
+                "group_id": ("vlan_groups", crud.vlan_group, "name")
             }
         }
         
