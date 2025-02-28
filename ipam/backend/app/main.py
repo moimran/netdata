@@ -271,8 +271,12 @@ create_crud_routes(api_router, "tenants", crud.tenant, Tenant)
 create_crud_routes(api_router, "devices", crud.device, Device)
 create_crud_routes(api_router, "interfaces", crud.interface, Interface)
 create_crud_routes(api_router, "vlans", crud.vlan, VLAN)
+create_crud_routes(api_router, "vlan_groups", crud.vlan_group, VLANGroup)
 create_crud_routes(api_router, "asns", crud.asn, ASN)
 create_crud_routes(api_router, "asn_ranges", crud.asn_range, ASNRange)
+create_crud_routes(api_router, "route_targets", crud.route_target, RouteTarget)
+create_crud_routes(api_router, "vrf_import_targets", crud.vrf_import_targets, VRFImportTargets)
+create_crud_routes(api_router, "vrf_export_targets", crud.vrf_export_targets, VRFExportTargets)
 
 # Specialized endpoints
 

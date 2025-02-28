@@ -47,14 +47,23 @@ export function MainNavigation() {
       items: [
         { icon: IconNetwork, label: 'Prefixes', path: '/prefixes' },
         { icon: IconRouter, label: 'VRFs', path: '/vrfs' },
+        { icon: IconLayersIntersect, label: 'Route Targets', path: '/route-targets' },
         { icon: IconWorld, label: 'RIRs', path: '/rirs' },
         { icon: IconDatabase, label: 'Aggregates', path: '/aggregates' },
         { icon: IconShield, label: 'Roles', path: '/roles' },
         { icon: IconBorderAll, label: 'IP Ranges', path: '/ip-ranges' },
         { icon: IconDeviceDesktopAnalytics, label: 'IP Addresses', path: '/ip-addresses' },
         { icon: IconWifi, label: 'VLANs', path: '/vlans' },
+        { icon: IconBorderAll, label: 'VLAN Groups', path: '/vlan-groups' },
         { icon: IconNetworkOff, label: 'ASNs', path: '/asns' },
         { icon: IconLayersIntersect, label: 'ASN Ranges', path: '/asn-ranges' }
+      ]
+    },
+    {
+      title: 'Devices',
+      items: [
+        { icon: IconServer, label: 'Devices', path: '/devices' },
+        { icon: IconNetwork, label: 'Interfaces', path: '/interfaces' }
       ]
     },
     {

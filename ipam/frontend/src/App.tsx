@@ -76,6 +76,9 @@ function AppContent() {
           <Route path="/sites" element={<IPAMView tableName="sites" />} />
           <Route path="/locations" element={<IPAMView tableName="locations" />} />
           <Route path="/vrfs" element={<VRFView />} />
+          <Route path="/route-targets" element={<IPAMView tableName="route_targets" />} />
+          <Route path="/vrf-import-targets" element={<IPAMView tableName="vrf_import_targets" />} />
+          <Route path="/vrf-export-targets" element={<IPAMView tableName="vrf_export_targets" />} />
           <Route path="/rirs" element={<IPAMView tableName="rirs" />} />
           <Route path="/aggregates" element={<IPAMView tableName="aggregates" />} />
           <Route path="/roles" element={<IPAMView tableName="roles" />} />
@@ -83,6 +86,9 @@ function AppContent() {
           <Route path="/ip-ranges" element={<IPAMView tableName="ip_ranges" />} />
           <Route path="/ip-addresses" element={<IPAddressView />} />
           <Route path="/vlans" element={<IPAMView tableName="vlans" />} />
+          <Route path="/vlan-groups" element={<IPAMView tableName="vlan_groups" />} />
+          <Route path="/devices" element={<IPAMView tableName="devices" />} />
+          <Route path="/interfaces" element={<IPAMView tableName="interfaces" />} />
           <Route path="/asns" element={<ASNView />} />
           <Route path="/asn-ranges" element={<ASNRangeView />} />
           <Route path="/tenants" element={<IPAMView tableName="tenants" />} />

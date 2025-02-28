@@ -70,6 +70,14 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'status', type: 'string', required: true },
     { name: 'description', type: 'string' }
   ],
+  vlan_groups: [
+    { name: 'id', type: 'number' },
+    { name: 'name', type: 'string', required: true },
+    { name: 'slug', type: 'string', required: true },
+    { name: 'description', type: 'string' },
+    { name: 'min_vid', type: 'number' },
+    { name: 'max_vid', type: 'number' }
+  ],
   vrfs: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
@@ -77,6 +85,20 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'description', type: 'string' },
     { name: 'enforce_unique', type: 'boolean' },
     { name: 'tenant_id', type: 'number', reference: 'tenants' }
+  ],
+  route_targets: [
+    { name: 'id', type: 'number' },
+    { name: 'name', type: 'string', required: true },
+    { name: 'slug', type: 'string', required: true },
+    { name: 'description', type: 'string' }
+  ],
+  vrf_import_targets: [
+    { name: 'vrf_id', type: 'number', reference: 'vrfs', required: true },
+    { name: 'route_target_id', type: 'number', reference: 'route_targets', required: true }
+  ],
+  vrf_export_targets: [
+    { name: 'vrf_id', type: 'number', reference: 'vrfs', required: true },
+    { name: 'route_target_id', type: 'number', reference: 'route_targets', required: true }
   ],
   rirs: [
     { name: 'id', type: 'number' },
@@ -134,6 +156,18 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'assigned_object_type', type: 'string' },
     { name: 'assigned_object_id', type: 'number' },
     { name: 'description', type: 'string' }
+  ],
+  devices: [
+    { name: 'id', type: 'number' },
+    { name: 'name', type: 'string', required: true },
+    { name: 'description', type: 'string' },
+    { name: 'location_id', type: 'number', reference: 'locations' }
+  ],
+  interfaces: [
+    { name: 'id', type: 'number' },
+    { name: 'name', type: 'string', required: true },
+    { name: 'description', type: 'string' },
+    { name: 'device_id', type: 'number', reference: 'devices' }
   ],
   asns: [
     { name: 'id', type: 'number' },
