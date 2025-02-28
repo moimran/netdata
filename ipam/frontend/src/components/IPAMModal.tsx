@@ -10,8 +10,10 @@ import {
   Textarea,
   Group,
   Divider,
-  Text
+  Text,
+  Alert
 } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { TableName } from '../types';
 import { API_URL, apiClient } from '../api/client';
@@ -186,25 +188,148 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
         }
         return true;
       } catch (error: any) {
-        if (error.response?.data?.detail) {
-          // Handle validation errors from the backend
-          const errors: Record<string, string> = {};
-          if (Array.isArray(error.response.data.detail)) {
-            error.response.data.detail.forEach((err: any) => {
-              if (err.loc && err.loc[1]) {
-                errors[err.loc[1]] = err.msg;
+        console.error("API Error:", error);
+        
+        // Initialize errors object
+        const errors: Record<string, string> = {};
+        
+        // Check for validation errors in the response
+        if (error.response?.data) {
+          console.log("Error response data:", error.response.data);
+          
+          // Handle different error formats
+          if (error.response.data.detail) {
+            const errorDetail = error.response.data.detail;
+            
+            // Check if detail is an object with its own detail property (nested structure)
+            if (typeof errorDetail === 'object' && errorDetail.detail) {
+              // This handles the case where detail is an object with its own detail property
+              const detailMessage = errorDetail.detail;
+              
+              // Special handling for prefix+VRF uniqueness constraint
+              if (errorDetail.error_type === 'unique_violation' && errorDetail.constraint === 'uq_prefix_vrf') {
+                if (tableName === 'prefixes') {
+                  // Get the specific prefix and VRF values if available
+                  const prefixValue = errorDetail.prefix || '';
+                  const vrfName = errorDetail.vrf_name || 'this VRF';
+                  
+                  errors['prefix'] = `This prefix (${prefixValue}) already exists with ${vrfName}.`;
+                  errors['vrf_id'] = `A prefix with this network already exists in ${vrfName}.`;
+                  
+                  // Also set a general error for visibility
+                  errors['general'] = `Duplicate prefix: ${prefixValue} already exists in ${vrfName}.`;
+                } else {
+                  errors['general'] = detailMessage;
+                }
+              } else {
+                errors['general'] = detailMessage;
               }
-            });
+            } else if (Array.isArray(errorDetail)) {
+              // Handle array of validation errors
+              errorDetail.forEach((err: any) => {
+                if (err.loc && err.loc[1]) {
+                  errors[err.loc[1]] = err.msg;
+                }
+              });
+            } else {
+              // Handle string error message
+              const errorData = error.response.data;
+              const detailMessage = errorData.detail;
+              
+              // Special handling for prefix+VRF uniqueness constraint
+              if (errorData.error_type === 'unique_violation' && errorData.constraint === 'uq_prefix_vrf') {
+                if (tableName === 'prefixes') {
+                  // Get the specific prefix and VRF values if available
+                  const prefixValue = errorData.prefix || '';
+                  const vrfName = errorData.vrf_name || 'this VRF';
+                  
+                  errors['prefix'] = `This prefix (${prefixValue}) already exists with ${vrfName}.`;
+                  errors['vrf_id'] = `A prefix with this network already exists in ${vrfName}.`;
+                  
+                  // Also set a general error for visibility
+                  errors['general'] = `Duplicate prefix: ${prefixValue} already exists in ${vrfName}.`;
+                } else {
+                  errors['general'] = detailMessage;
+                }
+              } else {
+                errors['general'] = detailMessage;
+              }
+            }
+          } else if (typeof error.response.data === 'string') {
+            // Handle plain string error
+            errors['general'] = error.response.data;
+          } else if (error.response.data.message) {
+            // Handle message property
+            errors['general'] = error.response.data.message;
           } else {
-            errors['general'] = error.response.data.detail;
+            // Fallback for handling other error formats
+            if (error.message === 'Network Error') {
+              errors['general'] = 'Network error: Unable to connect to the server. Please check your connection and try again.';
+            } else {
+              errors['general'] = error.message || 'An error occurred while saving the data.';
+            }
           }
-          setValidationErrors(errors);
         }
+        
+        // Check for specific error types based on status code
+        if (error.response?.status === 409) {
+          // Conflict - record already exists
+          if (!Object.keys(errors).length) {
+            // If no specific field errors were set above, set a generic one
+            errors['general'] = 'This record already exists in the database.';
+          }
+        } else if (error.response?.status === 400) {
+          // Bad request - validation error
+          if (!Object.keys(errors).length) {
+            errors['general'] = 'The data you submitted is invalid.';
+          }
+        } else if (error.response?.status === 500) {
+          // Server error
+          errors['general'] = 'A server error occurred. Please try again later.';
+        } else if (!Object.keys(errors).length) {
+          // If no specific errors were found, set a generic error
+          if (error.message === 'Network Error') {
+            errors['general'] = 'Network error: Unable to connect to the server. Please check your connection and try again.';
+          } else {
+            errors['general'] = error.message || 'An error occurred while saving the data.';
+          }
+        }
+        
+        // Set validation errors to display in the form
+        setValidationErrors(errors);
+        
+        // Throw the error to be caught by the mutation's onError handler
         throw error;
       }
     },
     onSuccess: () => {
+      // Invalidate queries based on the table name
+      // This ensures all components using this data will refresh
+      
+      // Always invalidate the standard table query
       queryClient.invalidateQueries({ queryKey: ['table', tableName] });
+      
+      // For specific tables, also invalidate their specialized queries
+      if (tableName === 'prefixes') {
+        // Invalidate prefix hierarchy queries
+        queryClient.invalidateQueries({ queryKey: ['prefixes', 'hierarchy'] });
+        // Also invalidate general prefixes queries
+        queryClient.invalidateQueries({ queryKey: ['prefixes'] });
+      } else if (tableName === 'ip_addresses') {
+        // Invalidate IP address queries
+        queryClient.invalidateQueries({ queryKey: ['ip_addresses'] });
+        // Also invalidate prefix utilization since IP addresses affect it
+        queryClient.invalidateQueries({ queryKey: ['prefixes', 'utilization'] });
+      } else if (tableName === 'vrfs') {
+        // Invalidate VRF queries
+        queryClient.invalidateQueries({ queryKey: ['vrfs'] });
+      } else if (tableName === 'vlan_groups' || tableName === 'vlans') {
+        // Invalidate VLAN-related queries
+        queryClient.invalidateQueries({ queryKey: ['vlans'] });
+        queryClient.invalidateQueries({ queryKey: ['vlan_groups'] });
+      }
+      
+      // Close the modal
       onHide();
     }
   });
@@ -267,6 +392,13 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
     mutation.mutate(submissionData, {
       onError: (error: any) => {
         setLoading(false);
+        
+        // If there's a network error and no validation errors were set in the mutation function
+        if (error.message === 'Network Error' && !Object.keys(validationErrors).length) {
+          setValidationErrors({
+            general: 'Network error: Unable to connect to the server. Please check your connection and try again.'
+          });
+        }
       },
       onSuccess: () => {
         setLoading(false);
@@ -441,7 +573,16 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
           <LoadingOverlay visible={isLoading || mutation.isPending || loading} />
           
           {validationErrors['general'] && (
-            <Text color="red" size="sm">{validationErrors['general']}</Text>
+            <Alert 
+              title="Error" 
+              color="red" 
+              variant="filled" 
+              mb="md"
+              withCloseButton={false}
+              icon={<IconAlertCircle size="1.1rem" />}
+            >
+              {validationErrors['general']}
+            </Alert>
           )}
           
           {/* Special handling for VLAN ID ranges in VLAN groups */}

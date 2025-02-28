@@ -294,7 +294,12 @@ export function PrefixTable() {
       await apiClient.delete(`prefixes/${id}`);
     },
     onSuccess: () => {
+      // Invalidate all prefix-related queries to ensure all components refresh
       queryClient.invalidateQueries({ queryKey: ['prefixes'] });
+      queryClient.invalidateQueries({ queryKey: ['prefixes', 'hierarchy'] });
+      queryClient.invalidateQueries({ queryKey: ['table', 'prefixes'] });
+      // Also invalidate utilization data since deleting a prefix affects it
+      queryClient.invalidateQueries({ queryKey: ['prefixes', 'utilization'] });
     }
   });
 

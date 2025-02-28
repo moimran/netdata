@@ -66,10 +66,11 @@ app.add_middleware(LoggingMiddleware)
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:9001"],  # Frontend development server
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
+    allow_origins=["*"],  # Specifically allow the frontend origin
+    allow_credentials=True,  # Allow credentials
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Specify allowed methods
     allow_headers=["*"],  # Allows all headers
+    expose_headers=["Content-Type", "X-Requested-With", "Accept", "Authorization"],  # Expose specific headers
 )
 
 # Override FastAPI's default JSONResponse to use our custom encoder
@@ -126,6 +127,103 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(
         status_code=422,
         content={"detail": user_friendly_errors},
+    )
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    """
+    Handle all other exceptions and provide user-friendly error messages
+    """
+    # Log the error
+    logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+    
+    # Check for specific database errors
+    error_message = str(exc)
+    status_code = 500
+    
+    # Handle unique constraint violations
+    if "UniqueViolation" in error_message or "duplicate key" in error_message:
+        status_code = 409  # Conflict
+        
+        # Extract specific constraint information
+        if "uq_prefix_vrf" in error_message:
+            # Handle prefix+VRF uniqueness constraint
+            try:
+                # Extract the DETAIL section which contains the values
+                if "DETAIL:" in error_message:
+                    detail_match = error_message.split("DETAIL:")[1].strip()
+                    
+                    # Extract the prefix and VRF values
+                    if "Key (prefix, vrf_id)" in detail_match and "=" in detail_match:
+                        values_match = detail_match.split("=")[1].strip()
+                        
+                        # Parse the values to get prefix and VRF ID
+                        if "(" in values_match and ")" in values_match:
+                            values_content = values_match.strip("()").split(",")
+                            if len(values_content) >= 2:
+                                prefix_value = values_content[0].strip()
+                                vrf_id = values_content[1].strip()
+                                
+                                # Get VRF name if possible
+                                vrf_name = "Unknown VRF"
+                                try:
+                                    with Session(engine) as session:
+                                        vrf = session.get(VRF, int(vrf_id))
+                                        if vrf:
+                                            vrf_name = vrf.name
+                                except Exception as e:
+                                    logger.error(f"Error getting VRF name: {str(e)}")
+                                
+                                return JSONResponse(
+                                    status_code=status_code,
+                                    content={
+                                        "detail": f"The prefix {prefix_value} already exists in {vrf_name}. Please use a different prefix or VRF.",
+                                        "error_type": "unique_violation",
+                                        "constraint": "uq_prefix_vrf",
+                                        "prefix": prefix_value,
+                                        "vrf_id": vrf_id,
+                                        "vrf_name": vrf_name
+                                    }
+                                )
+            except Exception as parse_error:
+                logger.error(f"Error parsing UniqueViolation details: {str(parse_error)}")
+                
+            # Fallback for prefix+VRF constraint if parsing failed
+            return JSONResponse(
+                status_code=status_code,
+                content={
+                    "detail": "A prefix with these network and VRF settings already exists. Please use a different prefix or VRF.",
+                    "error_type": "unique_violation",
+                    "constraint": "uq_prefix_vrf"
+                }
+            )
+        
+        # Generic unique constraint error
+        return JSONResponse(
+            status_code=status_code,
+            content={"detail": "This record already exists in the database."}
+        )
+    
+    # Handle foreign key violations
+    if "ForeignKeyViolation" in error_message:
+        status_code = 400  # Bad Request
+        return JSONResponse(
+            status_code=status_code,
+            content={"detail": "Referenced record does not exist."}
+        )
+    
+    # Handle check constraint violations
+    if "CheckViolation" in error_message:
+        status_code = 400  # Bad Request
+        return JSONResponse(
+            status_code=status_code,
+            content={"detail": "Data validation failed."}
+        )
+    
+    # Default error response
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": "An error occurred while processing your request."}
     )
 
 # Create API router with /api/v1 prefix
