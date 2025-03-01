@@ -190,6 +190,15 @@ function App() {
               },
             },
           },
+          NavLink: {
+            styles: {
+              root: {
+                '&:hover': {
+                  backgroundColor: '#14b8a6 !important',
+                },
+              },
+            },
+          },
         },
       }}
     >

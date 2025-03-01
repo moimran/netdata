@@ -4,10 +4,8 @@ import {
   PRIMARY,
   PRIMARY_LIGHT,
   DARK_HOVER,
-  DARK_BORDER,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
-  TEXT_MUTED,
   TEXT_BRIGHT,
   ICON_ACTIVE,
   ICON_INACTIVE
@@ -126,22 +124,21 @@ export function MainNavigation() {
               }
               rightSection={location.pathname === item.path && <IconChevronRight size={14} color={ICON_ACTIVE} />}
               active={location.pathname === item.path}
-              variant={location.pathname === item.path ? "filled" : "subtle"}
-              color={PRIMARY}
+              variant="light"
+              color={location.pathname === item.path ? PRIMARY : "dark"}
               pl="md"
               py="xs"
               mb={5}
+              className="main-nav-link"
               styles={(theme) => ({
-                root: {
-                  '&:hover': {
-                    backgroundColor: DARK_HOVER,
-                  },
+                label: {
+                  color: location.pathname === item.path ? TEXT_PRIMARY : TEXT_SECONDARY,
                 }
               })}
             />
           ))}
           
-          {index < navigationGroups.length - 1 && <Divider my="sm" color={DARK_BORDER} />}
+          {index < navigationGroups.length - 1 && <Divider my="sm" color={PRIMARY_LIGHT} />}
         </Box>
       ))}
     </Box>

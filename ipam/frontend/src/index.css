@@ -49,9 +49,18 @@ button {
 button:hover {
   border-color: #646cff;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Custom styles for navigation */
+.mantine-NavLink-root:hover,
+.mantine-AppShell-navbar .mantine-NavLink-root:hover,
+.main-nav-link:hover,
+.mantine-NavLink-root.main-nav-link:hover {
+  background-color: #14b8a6 !important; /* Teal color */
 }
 
 h1 {
