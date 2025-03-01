@@ -7,8 +7,9 @@ export const API_URL = 'http://localhost:9001/api/v1';
 export const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   },
+  withCredentials: false // Don't send credentials for CORS requests
 });
 
 // Add request interceptor for debugging

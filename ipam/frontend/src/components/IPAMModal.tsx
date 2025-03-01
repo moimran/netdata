@@ -274,8 +274,13 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
         // Check for specific error types based on status code
         if (error.response?.status === 409) {
           // Conflict - record already exists
-          if (!Object.keys(errors).length) {
-            // If no specific field errors were set above, set a generic one
+          if (tableName === 'devices' && error.response.data) {
+            // Special handling for duplicate devices
+            const nameValue = error.response.data.name || data.name || '';
+            errors['name'] = `Device with name '${nameValue}' already exists. Please use a different name.`;
+            errors['general'] = `Device with name '${nameValue}' already exists. Please use a different name.`;
+          } else if (!Object.keys(errors).length) {
+            // If no specific field errors were set above set a generic one
             errors['general'] = 'This record already exists in the database.';
           }
         } else if (error.response?.status === 400) {

@@ -67,7 +67,7 @@ app.add_middleware(LoggingMiddleware)
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Specifically allow the frontend origin
+    allow_origins=["http://localhost:5173"],  # Specifically allow the frontend origin
     allow_credentials=True,  # Allow credentials
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Specify allowed methods
     allow_headers=["*"],  # Allows all headers
@@ -478,6 +478,54 @@ async def general_exception_handler(request: Request, exc: Exception):
                             "name": name_value
                         }
                     )
+                
+                # Handle Device name uniqueness constraint
+                elif "Key (name)" in detail_match and "=" in detail_match and "uq_device_name" in error_message:
+                    values_match = detail_match.split("=")[1].strip()
+                    name_value = values_match.strip()
+                    
+                    return JSONResponse(
+                        status_code=status_code,
+                        content={
+                            "detail": f"Device with name '{name_value}' already exists. Please use a different name.",
+                            "error_type": "unique_violation",
+                            "constraint": "uq_device_name",
+                            "name": name_value
+                        }
+                    )
+                
+                # Handle Interface name uniqueness constraint
+                elif "Key (name, device_id)" in detail_match and "=" in detail_match and "uq_interface_name_device" in error_message:
+                    values_match = detail_match.split("=")[1].strip()
+                    
+                    # Parse the values to get name and device ID
+                    if "(" in values_match and ")" in values_match:
+                        values_content = values_match.strip("()").split(",")
+                        if len(values_content) >= 2:
+                            name_value = values_content[0].strip()
+                            device_id = values_content[1].strip()
+                            
+                            # Get device name if possible
+                            device_name = "Unknown Device"
+                            try:
+                                with Session(engine) as session:
+                                    device = session.get(Device, int(device_id))
+                                    if device:
+                                        device_name = device.name
+                            except Exception as e:
+                                logger.error(f"Error getting Device name: {str(e)}")
+                            
+                            return JSONResponse(
+                                status_code=status_code,
+                                content={
+                                    "detail": f"Interface with name '{name_value}' already exists on device {device_name}. Please use a different name.",
+                                    "error_type": "unique_violation",
+                                    "constraint": "uq_interface_name_device",
+                                    "name": name_value,
+                                    "device_id": device_id,
+                                    "device_name": device_name
+                                }
+                            )
         except Exception as parse_error:
             logger.error(f"Error parsing UniqueViolation details: {str(parse_error)}")
         

@@ -167,12 +167,15 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   devices: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
+    { name: 'slug', type: 'string', required: true },
     { name: 'description', type: 'string' },
-    { name: 'location_id', type: 'number', reference: 'locations' }
+    { name: 'location_id', type: 'number', reference: 'locations' },
+    { name: 'ip_address_id', type: 'number', reference: 'ip_addresses' }
   ],
   interfaces: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
+    { name: 'slug', type: 'string', required: true },
     { name: 'description', type: 'string' },
     { name: 'device_id', type: 'number', reference: 'devices' }
   ],
@@ -600,7 +603,7 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
           <Alert color="red" title="Error">
             Failed to load data. Please try again.
           </Alert>
-        ) : data?.items?.length === 0 ? (
+        ) : data?.total === 0 ? (
             <Text ta="center" c="dimmed" py="xl">
             No items found. Try adjusting your filters or add a new item.
           </Text>
