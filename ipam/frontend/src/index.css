@@ -123,6 +123,169 @@ button:focus-visible {
   }
 }
 
+/* Search container styling - generic for all tables */
+.mantine-Card-root .mantine-Card-root {
+  background-color: rgba(30, 30, 35, 0.7) !important;
+  border: 1px solid rgba(102, 205, 170, 0.2) !important;
+  transition: all 0.3s ease;
+}
+
+.mantine-Card-root .mantine-Card-root:hover {
+  border-color: rgba(102, 205, 170, 0.4) !important;
+  box-shadow: 0 0 15px rgba(102, 205, 170, 0.1) !important;
+}
+
+/* Search bar styling - generic for all tables */
+.mantine-TextInput-root input[placeholder*="Search"] {
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(102, 205, 170, 0.3) !important;
+  transition: all 0.3s ease;
+}
+
+.mantine-TextInput-root input[placeholder*="Search"]:focus {
+  border-color: #66cdaa !important;
+  box-shadow: 0 0 0 2px rgba(102, 205, 170, 0.2), 0 0 10px rgba(102, 205, 170, 0.3) !important;
+}
+
+.mantine-TextInput-root input[placeholder*="Search"]::placeholder {
+  color: rgba(102, 205, 170, 0.7) !important;
+}
+
+.mantine-TextInput-root:has(input[placeholder*="Search"]):hover input {
+  border-color: rgba(102, 205, 170, 0.6) !important;
+}
+
+.mantine-TextInput-root:has(input[placeholder*="Search"]) .mantine-TextInput-section svg {
+  color: #66cdaa !important;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.mantine-TextInput-root:has(input[placeholder*="Search"]):hover .mantine-TextInput-section svg {
+  opacity: 1;
+  filter: drop-shadow(0 0 3px rgba(102, 205, 170, 0.5));
+  animation: search-icon-pulse 1.5s infinite alternate;
+}
+
+/* Filter select styling - generic for all tables */
+.mantine-Select-root .mantine-Select-input {
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(102, 205, 170, 0.3) !important;
+  transition: all 0.3s ease;
+}
+
+.mantine-Select-root .mantine-Select-input:focus {
+  border-color: #66cdaa !important;
+  box-shadow: 0 0 0 2px rgba(102, 205, 170, 0.2), 0 0 10px rgba(102, 205, 170, 0.3) !important;
+}
+
+.mantine-Select-root .mantine-Select-section svg {
+  color: #66cdaa !important;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.mantine-Select-root:hover .mantine-Select-section svg {
+  opacity: 1;
+  filter: drop-shadow(0 0 3px rgba(102, 205, 170, 0.5));
+}
+
+/* Filter input styling - generic for all tables */
+.mantine-TextInput-root input[placeholder="Filter value"] {
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(102, 205, 170, 0.3) !important;
+  transition: all 0.3s ease;
+}
+
+.mantine-TextInput-root input[placeholder="Filter value"]:focus {
+  border-color: #66cdaa !important;
+  box-shadow: 0 0 0 2px rgba(102, 205, 170, 0.2), 0 0 10px rgba(102, 205, 170, 0.3) !important;
+}
+
+/* Button styling - generic for all tables */
+.mantine-Button-root[type="submit"] {
+  background-color: #14b8a6 !important;
+  border-color: #14b8a6 !important;
+  transition: all 0.3s ease;
+}
+
+.mantine-Button-root[type="submit"]:hover {
+  background-color: #0d9488 !important;
+  box-shadow: 0 0 10px rgba(102, 205, 170, 0.5) !important;
+}
+
+.mantine-Button-root[variant="outline"] {
+  color: #66cdaa !important;
+  border-color: rgba(102, 205, 170, 0.5) !important;
+  transition: all 0.3s ease;
+}
+
+.mantine-Button-root[variant="outline"]:hover {
+  background-color: rgba(102, 205, 170, 0.1) !important;
+  border-color: #66cdaa !important;
+  box-shadow: 0 0 10px rgba(102, 205, 170, 0.3) !important;
+}
+
+/* Refresh button styling - generic for all tables */
+.mantine-ActionIcon-root:has(svg[data-icon="refresh"]) {
+  color: #66cdaa !important;
+  border: 1px solid rgba(102, 205, 170, 0.3) !important;
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  transition: all 0.3s ease;
+}
+
+.mantine-ActionIcon-root:has(svg[data-icon="refresh"]):hover {
+  background-color: rgba(102, 205, 170, 0.1) !important;
+  border-color: #66cdaa !important;
+  box-shadow: 0 0 10px rgba(102, 205, 170, 0.3) !important;
+}
+
+.mantine-ActionIcon-root:has(svg[data-icon="refresh"]):hover svg {
+  animation: rotate-refresh 1s ease;
+}
+
+/* Action buttons in table */
+.mantine-ActionIcon-root:has(svg[data-icon="pencil"]) {
+  color: #66cdaa !important;
+  border: 1px solid rgba(102, 205, 170, 0.3) !important;
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  transition: all 0.3s ease;
+}
+
+.mantine-ActionIcon-root:has(svg[data-icon="pencil"]):hover {
+  background-color: rgba(102, 205, 170, 0.1) !important;
+  border-color: #66cdaa !important;
+  box-shadow: 0 0 10px rgba(102, 205, 170, 0.3) !important;
+}
+
+.mantine-ActionIcon-root:has(svg[data-icon="trash"]) {
+  color: #f87171 !important;
+  border: 1px solid rgba(248, 113, 113, 0.3) !important;
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  transition: all 0.3s ease;
+}
+
+.mantine-ActionIcon-root:has(svg[data-icon="trash"]):hover {
+  background-color: rgba(248, 113, 113, 0.1) !important;
+  border-color: #f87171 !important;
+  box-shadow: 0 0 10px rgba(248, 113, 113, 0.3) !important;
+}
+
+/* Add button styling */
+.mantine-Button-root:has(svg[data-icon="plus"]) {
+  background-color: #14b8a6 !important;
+  border-color: #14b8a6 !important;
+  transition: all 0.3s ease;
+}
+
+.mantine-Button-root:has(svg[data-icon="plus"]):hover {
+  background-color: #0d9488 !important;
+  box-shadow: 0 0 10px rgba(102, 205, 170, 0.5) !important;
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
@@ -381,4 +544,163 @@ h1 {
   button {
     background-color: #f9f9f9;
   }
+}
+
+/* Animation keyframes */
+@keyframes search-icon-pulse {
+  0% {
+    filter: drop-shadow(0 0 3px rgba(102, 205, 170, 0.5));
+  }
+  100% {
+    filter: drop-shadow(0 0 5px rgba(102, 205, 170, 0.8));
+  }
+}
+
+@keyframes rotate-refresh {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Table styling */
+.mantine-Table-root {
+  border: 1px solid rgba(102, 205, 170, 0.2) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.mantine-Table-root th {
+  background-color: rgba(30, 30, 35, 0.9) !important;
+  color: #66cdaa !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  border-bottom: 1px solid rgba(102, 205, 170, 0.3) !important;
+}
+
+.mantine-Table-root td {
+  border-color: rgba(102, 205, 170, 0.1) !important;
+  color: #e0e0e0 !important;
+}
+
+.mantine-Table-root tr:hover td {
+  background-color: rgba(102, 205, 170, 0.05) !important;
+}
+
+.mantine-Table-root tr:nth-of-type(odd) td {
+  background-color: rgba(30, 30, 35, 0.7) !important;
+}
+
+.mantine-Table-root tr:nth-of-type(even) td {
+  background-color: rgba(30, 30, 35, 0.5) !important;
+}
+
+/* Class-based selectors for components */
+.ipam-search-input input {
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(102, 205, 170, 0.3) !important;
+  transition: all 0.3s ease;
+}
+
+.ipam-search-input input:focus {
+  border-color: #66cdaa !important;
+  box-shadow: 0 0 0 2px rgba(102, 205, 170, 0.2), 0 0 10px rgba(102, 205, 170, 0.3) !important;
+}
+
+.ipam-filter-select .mantine-Select-input {
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(102, 205, 170, 0.3) !important;
+  transition: all 0.3s ease;
+}
+
+.ipam-filter-select .mantine-Select-input:focus {
+  border-color: #66cdaa !important;
+  box-shadow: 0 0 0 2px rgba(102, 205, 170, 0.2), 0 0 10px rgba(102, 205, 170, 0.3) !important;
+}
+
+.ipam-apply-button {
+  background-color: #14b8a6 !important;
+  border-color: #14b8a6 !important;
+  transition: all 0.3s ease;
+}
+
+.ipam-apply-button:hover {
+  background-color: #0d9488 !important;
+  box-shadow: 0 0 10px rgba(102, 205, 170, 0.5) !important;
+}
+
+.ipam-clear-button {
+  color: #66cdaa !important;
+  border-color: rgba(102, 205, 170, 0.5) !important;
+  transition: all 0.3s ease;
+}
+
+.ipam-clear-button:hover {
+  background-color: rgba(102, 205, 170, 0.1) !important;
+  border-color: #66cdaa !important;
+  box-shadow: 0 0 10px rgba(102, 205, 170, 0.3) !important;
+}
+
+.ipam-refresh-button {
+  color: #66cdaa !important;
+  border: 1px solid rgba(102, 205, 170, 0.3) !important;
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  transition: all 0.3s ease;
+}
+
+.ipam-refresh-button:hover {
+  background-color: rgba(102, 205, 170, 0.1) !important;
+  border-color: #66cdaa !important;
+  box-shadow: 0 0 10px rgba(102, 205, 170, 0.3) !important;
+}
+
+.ipam-refresh-button:hover svg {
+  animation: rotate-refresh 1s ease;
+}
+
+.ipam-edit-button {
+  color: #66cdaa !important;
+  border: 1px solid rgba(102, 205, 170, 0.3) !important;
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  transition: all 0.3s ease;
+}
+
+.ipam-edit-button:hover {
+  background-color: rgba(102, 205, 170, 0.1) !important;
+  border-color: #66cdaa !important;
+  box-shadow: 0 0 10px rgba(102, 205, 170, 0.3) !important;
+}
+
+.ipam-delete-button {
+  color: #f87171 !important;
+  border: 1px solid rgba(248, 113, 113, 0.3) !important;
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  transition: all 0.3s ease;
+}
+
+.ipam-delete-button:hover {
+  background-color: rgba(248, 113, 113, 0.1) !important;
+  border-color: #f87171 !important;
+  box-shadow: 0 0 10px rgba(248, 113, 113, 0.3) !important;
+}
+
+.ipam-add-button {
+  background-color: #14b8a6 !important;
+  border-color: #14b8a6 !important;
+  transition: all 0.3s ease;
+}
+
+.ipam-add-button:hover {
+  background-color: #0d9488 !important;
+  box-shadow: 0 0 10px rgba(102, 205, 170, 0.5) !important;
+}
+
+.ipam-search-container {
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  border: 1px solid rgba(102, 205, 170, 0.3) !important;
+}
+
+.ipam-table-header {
+  color: #66cdaa !important;
 }

@@ -151,7 +151,7 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
           </Button>
         </Group>
 
-        <Card withBorder p="xs" radius="md" mb="md" bg="gray.0">
+        <Card withBorder p="xs" radius="md" mb="md" bg="gray.0" className="ipam-search-container">
           <form onSubmit={handleSearch}>
             <Group mb="xs" align="flex-end" gap="md">
               <TextInput
@@ -159,6 +159,7 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 leftSection={<IconSearch size={16} />}
+                className="ipam-search-input"
                 style={{ flexGrow: 1 }}
                 radius="md"
               />
@@ -172,6 +173,7 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
                 leftSection={<IconFilter size={16} />}
                 style={{ width: '200px' }}
                 radius="md"
+                className="ipam-filter-select"
               />
               
               {filterField && (
@@ -181,11 +183,12 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
                   onChange={(e) => setFilterValue(e.target.value)}
                   style={{ width: '200px' }}
                   radius="md"
+                  className="ipam-filter-input"
                 />
               )}
               
-              <Button type="submit" radius="md">Apply Filters</Button>
-              <Button variant="outline" onClick={handleClearFilters} radius="md">Clear</Button>
+              <Button type="submit" radius="md" className="ipam-apply-button">Apply Filters</Button>
+              <Button variant="outline" onClick={handleClearFilters} radius="md" className="ipam-clear-button">Clear</Button>
               <Tooltip label="Refresh data">
                 <ActionIcon 
                   color="blue" 
@@ -193,6 +196,7 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
                   onClick={() => refetch()}
                   radius="md"
                   size="lg"
+                  className="ipam-refresh-button"
                 >
                   <IconRefresh size={18} />
                 </ActionIcon>

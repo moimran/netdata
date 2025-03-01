@@ -435,7 +435,7 @@ export function PrefixTable() {
     <Stack gap="md">
       <Card shadow="sm" p="lg" radius="md" withBorder>
         <Group justify="space-between" mb="lg">
-          <Box>
+          <Box className="ipam-table-header">
             <Title order={3} mb={5}>Prefixes</Title>
             <Text color="dimmed" size="sm">Manage your IP prefixes</Text>
           </Box>
@@ -444,12 +444,13 @@ export function PrefixTable() {
             onClick={handleAddClick}
             radius="md"
             variant="filled"
+            className="ipam-add-button"
           >
             Add New
           </Button>
         </Group>
 
-        <Card withBorder p="xs" radius="md" mb="md" bg="gray.0">
+        <Card withBorder p="xs" radius="md" mb="md" bg="gray.0" className="ipam-search-container">
           <form onSubmit={handleSearch}>
             <Group mb="xs" align="flex-end" gap="md">
               <TextInput
@@ -459,6 +460,7 @@ export function PrefixTable() {
                 leftSection={<IconSearch size={16} />}
                 style={{ flexGrow: 1 }}
                 radius="md"
+                className="ipam-search-input"
               />
               
               <Select
@@ -476,10 +478,11 @@ export function PrefixTable() {
                 leftSection={<IconFilter size={16} />}
                 style={{ width: '200px' }}
                 radius="md"
+                className="ipam-filter-select"
               />
               
-              <Button type="submit" radius="md">Apply Filters</Button>
-              <Button variant="outline" onClick={handleClearFilters} radius="md">Clear</Button>
+              <Button type="submit" radius="md" className="ipam-apply-button">Apply Filters</Button>
+              <Button variant="outline" onClick={handleClearFilters} radius="md" className="ipam-clear-button">Clear</Button>
               <Tooltip label="Refresh data">
                 <ActionIcon 
                   color="blue" 
@@ -487,6 +490,7 @@ export function PrefixTable() {
                   onClick={() => refetch()}
                   radius="md"
                   size="lg"
+                  className="ipam-refresh-button"
                 >
                   <IconRefresh size={18} />
                 </ActionIcon>
@@ -509,7 +513,7 @@ export function PrefixTable() {
           </Text>
         ) : (
           <Box style={{ overflowX: 'auto' }}>
-            <StyledTable>
+            <StyledTable className="ipam-table">
               <TableHeader 
                 columns={[
                   'Prefix',
@@ -551,6 +555,7 @@ export function PrefixTable() {
                           title="Edit"
                           variant="light"
                           radius="md"
+                          className="ipam-edit-button"
                         >
                           <IconEdit size={16} />
                         </ActionIcon>
@@ -561,6 +566,7 @@ export function PrefixTable() {
                           loading={deleteMutation.isPending}
                           variant="light"
                           radius="md"
+                          className="ipam-delete-button"
                         >
                           <IconTrash size={16} />
                         </ActionIcon>
