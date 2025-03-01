@@ -1,6 +1,7 @@
 from typing import Optional, List, TYPE_CHECKING
 from sqlmodel import Field, Relationship
 from .base import BaseModel
+import sqlalchemy as sa
 
 if TYPE_CHECKING:
     from .site import Site
@@ -15,6 +16,10 @@ class Region(BaseModel, table=True):
     name: str = Field(..., description="Name of the region")
     slug: str = Field(..., description="URL-friendly name")
     description: Optional[str] = Field(default=None, description="Brief description")
+
+    __table_args__ = (
+        sa.UniqueConstraint('name', name='uq_region_name'),
+    )
     
     # Foreign Keys
     parent_id: Optional[int] = Field(default=None, foreign_key="regions.id")

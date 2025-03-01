@@ -18,11 +18,16 @@ class Interface(BaseModel, table=True):
     description: Optional[str] = Field(default=None, description="Brief description")
     
     # Foreign Keys
-    device_id: Optional[int] = Field(default=None, foreign_key="devices.id")
+    device_id: int = Field(foreign_key="devices.id")
     
     # Relationships
-    device: Optional["Device"] = Relationship(back_populates="interfaces")
+    device: "Device" = Relationship(back_populates="interfaces")
     ip_addresses: List["IPAddress"] = Relationship(back_populates="interface")
+
+    # Add unique constraint for name
+    __table_args__ = (
+        sa.UniqueConstraint('name', name='uq_interface_name'),
+    )
     
     class Config:
         arbitrary_types_allowed = True

@@ -207,7 +207,41 @@ class CRUDBase(Generic[T]):
 
 
 # Create CRUD instances for each model
-region = CRUDBase(Region)
+class RegionCRUD(CRUDBase[Region]):
+    """
+    CRUD operations for Regions.
+    """
+    def create(self, session: Session, obj_in: Dict[str, Any]) -> Region:
+        """
+        Create a new Region with validation for unique name.
+        """
+        try:
+            # Create the Region using the base method
+            name_value = obj_in.get('name')
+            
+            db_obj = super().create(session, obj_in)
+            return db_obj
+        except IntegrityError as e:
+            # Rollback the session in case of error
+            session.rollback()
+            
+            # Check if it's a unique constraint violation for name
+            error_message = str(e)
+            if "uq_region_name" in error_message:
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "detail": f"Region with name '{name_value}' already exists. Please use a different name.",
+                        "error_type": "unique_violation",
+                        "constraint": "uq_region_name",
+                        "name": name_value
+                    }
+                )
+            
+            # Re-raise the exception for other errors
+            raise
+
+region = RegionCRUD(Region)
 site_group = CRUDBase(SiteGroup)
 site = CRUDBase(Site)
 location = CRUDBase(Location)
@@ -217,7 +251,6 @@ aggregate = CRUDBase(Aggregate)
 role = CRUDBase(Role)
 prefix = CRUDBase(Prefix)
 ip_range = CRUDBase(IPRange)
-ip_address = CRUDBase(IPAddress)
 tenant = CRUDBase(Tenant)
 device = CRUDBase(Device)
 interface = CRUDBase(Interface)
@@ -228,8 +261,6 @@ asn_range = CRUDBase(ASNRange)
 route_target = CRUDBase(RouteTarget)
 vrf_import_targets = CRUDBase(VRFImportTargets)
 vrf_export_targets = CRUDBase(VRFExportTargets)
-
-# Add specialized CRUD operations for specific models if needed
 
 class PrefixCRUD(CRUDBase[Prefix]):
     """
@@ -256,34 +287,33 @@ class PrefixCRUD(CRUDBase[Prefix]):
             session.rollback()
             
             # Check for unique constraint violation
-            if "UniqueViolation" in str(e) or "duplicate key" in str(e):
-                if "uq_prefix_vrf" in str(e):
-                    # Extract prefix and VRF information if possible
-                    prefix_value = obj_in.get('prefix', 'unknown')
-                    vrf_id = obj_in.get('vrf_id', None)
-                    
-                    # Get VRF name if possible
-                    vrf_name = "Unknown VRF"
-                    if vrf_id:
-                        try:
-                            vrf = session.get(VRF, vrf_id)
-                            if vrf:
-                                vrf_name = vrf.name
-                        except Exception:
-                            pass
-                    
-                    # Raise a more specific error
-                    raise HTTPException(
-                        status_code=409,
-                        detail={
-                            "detail": f"The prefix {prefix_value} already exists in {vrf_name}. Please use a different prefix or VRF.",
-                            "error_type": "unique_violation",
-                            "constraint": "uq_prefix_vrf",
-                            "prefix": prefix_value,
-                            "vrf_id": vrf_id,
-                            "vrf_name": vrf_name
-                        }
-                    )
+            if "uq_prefix_vrf" in str(e):
+                # Extract prefix and VRF information if possible
+                prefix_value = obj_in.get('prefix', 'unknown')
+                vrf_id = obj_in.get('vrf_id', None)
+                
+                # Get VRF name if possible
+                vrf_name = "Unknown VRF"
+                if vrf_id:
+                    try:
+                        vrf = session.get(VRF, vrf_id)
+                        if vrf:
+                            vrf_name = vrf.name
+                    except Exception:
+                        pass
+                
+                # Raise a more specific error
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "detail": f"The prefix {prefix_value} already exists in {vrf_name}. Please use a different prefix or VRF.",
+                        "error_type": "unique_violation",
+                        "constraint": "uq_prefix_vrf",
+                        "prefix": prefix_value,
+                        "vrf_id": vrf_id,
+                        "vrf_name": vrf_name
+                    }
+                )
             
             # Log the error
             logger.error(f"Error creating prefix: {str(e)}", exc_info=True)
@@ -409,5 +439,50 @@ class PrefixCRUD(CRUDBase[Prefix]):
         
         return result
 
+class IPAddressCRUD(CRUDBase[IPAddress]):
+    """
+    CRUD operations for IP addresses.
+    """
+    def create(self, session: Session, obj_in: Dict[str, Any]) -> IPAddress:
+        """
+        Create a new IP address with validation.
+        """
+        try:
+            # Create the IP address using the base method
+            address_value = obj_in.get('address')
+            vrf_id = obj_in.get('vrf_id')
+            vrf_name = "global"
+            
+            if vrf_id:
+                # Try to get the VRF name for better error messages
+                vrf = session.get(VRF, vrf_id)
+                if vrf:
+                    vrf_name = vrf.name
+            
+            db_obj = super().create(session, obj_in)
+            return db_obj
+        except IntegrityError as e:
+            # Rollback the session in case of error
+            session.rollback()
+            
+            # Check if it's a unique constraint violation for address+VRF
+            error_message = str(e)
+            if "uq_ipaddress_vrf" in error_message:
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "detail": f"The IP address {address_value} already exists in {vrf_name}. Please use a different IP address or VRF.",
+                        "error_type": "unique_violation",
+                        "constraint": "uq_ipaddress_vrf",
+                        "address": address_value,
+                        "vrf_id": vrf_id,
+                        "vrf_name": vrf_name
+                    }
+                )
+            
+            # Re-raise the exception for other errors
+            raise
+
 # Replace the default prefix CRUD with our specialized version
 prefix = PrefixCRUD(Prefix)
+ip_address = IPAddressCRUD(IPAddress)

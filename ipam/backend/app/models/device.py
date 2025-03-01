@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from .site import Site
     from .tenant import Tenant
     from .location import Location
+    from .ip_address import IPAddress
 
 class Device(BaseModel, table=True):
     """
@@ -24,11 +25,20 @@ class Device(BaseModel, table=True):
     tenant_id: Optional[int] = Field(default=None, foreign_key="tenants.id")
     location_id: Optional[int] = Field(default=None, foreign_key="locations.id")
     
+    # Relationship with IPAddress
+    ip_address_id: Optional[int] = Field(default=None, foreign_key="ip_addresses.id")
+    
     # Relationships
     site: Optional["Site"] = Relationship(back_populates="devices")
     tenant: Optional["Tenant"] = Relationship(back_populates="devices")
     location: Optional["Location"] = Relationship(back_populates="devices")
     interfaces: List["Interface"] = Relationship(back_populates="device")
+    ip_address: Optional["IPAddress"] = Relationship()
+    
+    # Add unique constraint for name
+    __table_args__ = (
+        sa.UniqueConstraint('name', name='uq_device_name'),
+    )
     
     class Config:
         arbitrary_types_allowed = True
