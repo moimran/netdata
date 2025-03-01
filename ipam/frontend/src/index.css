@@ -60,7 +60,41 @@ button:focus-visible {
 .mantine-AppShell-navbar .mantine-NavLink-root:hover,
 .main-nav-link:hover,
 .mantine-NavLink-root.main-nav-link:hover {
-  background-color: #14b8a6 !important; /* Teal color */
+  background-color: transparent !important; /* Remove teal background */
+}
+
+/* Navigation text styling and glow effect */
+.mantine-NavLink-label {
+  color: #66cdaa !important; /* Light teal color for text */
+  text-shadow: 0 0 5px rgba(102, 205, 170, 0.3), 0 0 10px rgba(102, 205, 170, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.mantine-NavLink-root:hover .mantine-NavLink-label {
+  color: #ffffff !important; /* White text on hover */
+  text-shadow: 0 0 8px rgba(102, 205, 170, 0.8), 0 0 15px rgba(102, 205, 170, 0.6), 0 0 25px rgba(102, 205, 170, 0.4);
+  letter-spacing: 0.5px; /* Slight letter spacing for emphasis */
+  transform: translateX(3px); /* Slight movement on hover */
+}
+
+/* Active navigation item with enhanced glow */
+.mantine-NavLink-root[data-active="true"] .mantine-NavLink-label {
+  color: #ffffff !important; /* White text for active item */
+  text-shadow: 0 0 10px rgba(102, 205, 170, 0.8), 0 0 20px rgba(102, 205, 170, 0.6), 0 0 30px rgba(102, 205, 170, 0.4);
+  font-weight: 600;
+  animation: glow-pulse 2s infinite alternate;
+  transform: translateX(3px); /* Slight indent for active item */
+}
+
+/* Glow animation */
+@keyframes glow-pulse {
+  0% {
+    text-shadow: 0 0 10px rgba(102, 205, 170, 0.8), 0 0 20px rgba(102, 205, 170, 0.6), 0 0 30px rgba(102, 205, 170, 0.4);
+  }
+  100% {
+    text-shadow: 0 0 15px rgba(102, 205, 170, 1), 0 0 25px rgba(102, 205, 170, 0.8), 0 0 35px rgba(102, 205, 170, 0.6);
+  }
 }
 
 h1 {

@@ -130,11 +130,6 @@ export function MainNavigation() {
               py="xs"
               mb={5}
               className="main-nav-link"
-              styles={(theme) => ({
-                label: {
-                  color: location.pathname === item.path ? TEXT_PRIMARY : TEXT_SECONDARY,
-                }
-              })}
             />
           ))}
           
