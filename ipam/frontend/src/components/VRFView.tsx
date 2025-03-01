@@ -33,21 +33,10 @@ export function VRFView() {
     );
   };
   
-  return (
-    <Card shadow="sm" p="lg" radius="md" withBorder>
-      <Group justify="space-between" mb="lg">
-        <div>
-          <Title order={3} mb={5}>VRFs</Title>
-          <Text color="dimmed" size="sm">
-            Manage your VRFs and their associated route targets
-          </Text>
-        </div>
-      </Group>
-      
+  return (   
       <IPAMTable 
         tableName="vrfs" 
         customActionsRenderer={renderCustomActions}
       />
-    </Card>
   );
 }

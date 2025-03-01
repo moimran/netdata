@@ -97,6 +97,32 @@ button:focus-visible {
   }
 }
 
+/* IPAMTable Title and Text glow effect */
+.ipam-table-header .mantine-Title-root {
+  color: #66cdaa !important; /* Light teal color for text */
+  text-shadow: 0 0 5px rgba(102, 205, 170, 0.5), 0 0 10px rgba(102, 205, 170, 0.3), 0 0 15px rgba(102, 205, 170, 0.2);
+  transition: all 0.3s ease;
+  animation: table-title-glow 3s infinite alternate;
+  letter-spacing: 0.3px;
+}
+
+.ipam-table-header .mantine-Text-root {
+  color: #5eead4 !important; /* Slightly brighter teal for subtitle */
+  text-shadow: 0 0 3px rgba(102, 205, 170, 0.3), 0 0 7px rgba(102, 205, 170, 0.2);
+  transition: all 0.3s ease;
+  letter-spacing: 0.2px;
+}
+
+/* Specific animation for table title */
+@keyframes table-title-glow {
+  0% {
+    text-shadow: 0 0 5px rgba(102, 205, 170, 0.5), 0 0 10px rgba(102, 205, 170, 0.3), 0 0 15px rgba(102, 205, 170, 0.2);
+  }
+  100% {
+    text-shadow: 0 0 8px rgba(102, 205, 170, 0.7), 0 0 15px rgba(102, 205, 170, 0.5), 0 0 25px rgba(102, 205, 170, 0.3);
+  }
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;

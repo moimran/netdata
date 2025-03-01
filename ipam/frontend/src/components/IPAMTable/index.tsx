@@ -135,7 +135,7 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
     <Stack gap="md">
       <Card shadow="sm" p="lg" radius="md" withBorder>
           <Group justify="space-between" mb="lg">
-          <Box>
+          <Box className="ipam-table-header">
             <Title order={3} mb={5}>
               {tableName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
             </Title>
