@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import { AppShell, Title, MantineProvider, Group, Avatar, Text, Box, Burger, Drawer, ScrollArea, useMantineTheme } from '@mantine/core';
+import { AppShell, Title, MantineProvider, Group, Avatar, Text, Box, Burger, ScrollArea, useMantineTheme } from '@mantine/core';
 import { MainNavigation } from './components/MainNavigation';
 import { Dashboard } from './components/Dashboard';
 import { IPAMView } from './components/IPAMView';
@@ -13,6 +13,15 @@ import { VRFDetailView } from './components/VRFDetailView';
 import { useState } from 'react';
 import { IconNetwork } from '@tabler/icons-react';
 import type { TableName } from './types';
+import {
+  PRIMARY,
+  PRIMARY_LIGHT,
+  DARK_BG,
+  DARK_CARD_BG,
+  DARK_BORDER,
+  TEXT_PRIMARY,
+  ICON_ACTIVE
+} from './theme/colors';
 
 function AppContent() {
   const [opened, setOpened] = useState(false);
@@ -25,14 +34,14 @@ function AppContent() {
       header={{ height: 70 }}
       styles={{
         main: {
-          backgroundColor: theme.colors.gray[0]
+          backgroundColor: DARK_BG
         },
         header: {
-          backgroundColor: theme.colors.blue[7]
+          backgroundColor: DARK_CARD_BG
         },
         navbar: {
-          backgroundColor: 'white',
-          borderRight: `1px solid ${theme.colors.gray[3]}`
+          backgroundColor: DARK_CARD_BG,
+          borderRight: `1px solid ${DARK_BORDER}`
         }
       }}
     >
@@ -42,22 +51,22 @@ function AppContent() {
             <Burger
               opened={opened}
               onClick={() => setOpened((o) => !o)}
-              color="white"
+              color={TEXT_PRIMARY}
               size="sm"
               mr="xl"
               hiddenFrom="sm"
             />
             <Group gap="xs">
-              <IconNetwork size={30} color="white" />
-              <Title order={1} c="white" style={{ fontWeight: 700 }}>IPAM System</Title>
+              <IconNetwork size={30} color={ICON_ACTIVE} />
+              <Title order={1} c={TEXT_PRIMARY} style={{ fontWeight: 700 }}>IPAM System</Title>
             </Group>
           </Group>
           
           <Group>
-            <Avatar color="blue" radius="xl">IP</Avatar>
+            <Avatar color={PRIMARY} radius="xl">IP</Avatar>
             <Box visibleFrom="sm">
-              <Text c="white" fw={500}>Admin User</Text>
-              <Text c="white" size="xs">Administrator</Text>
+              <Text c={TEXT_PRIMARY} fw={500}>Admin User</Text>
+              <Text c={TEXT_PRIMARY} size="xs">Administrator</Text>
             </Box>
           </Group>
         </Group>
@@ -104,9 +113,10 @@ function App() {
   return (
     <MantineProvider
       theme={{
-        primaryColor: 'blue',
+        primaryColor: 'teal',
         defaultRadius: 'md',
         colors: {
+          // Vibrant colors for dark theme
           blue: [
             '#e6f7ff',
             '#bae7ff',
@@ -118,6 +128,30 @@ function App() {
             '#0050b3',
             '#003a8c',
             '#002766',
+          ],
+          violet: [
+            '#f3e8ff',
+            '#e9d5ff',
+            '#d8b4fe',
+            '#c084fc',
+            '#a855f7',
+            '#9333ea',
+            '#7e22ce',
+            '#6b21a8',
+            '#581c87',
+            '#4c1d95',
+          ],
+          teal: [
+            '#ccfbf1',
+            '#99f6e4',
+            '#5eead4',
+            '#2dd4bf',
+            '#14b8a6',
+            '#0d9488',
+            '#0f766e',
+            '#115e59',
+            '#134e4a',
+            '#042f2e',
           ],
           dark: [
             '#C1C2C5',
@@ -136,7 +170,27 @@ function App() {
         headings: {
           fontFamily: 'Roboto, sans-serif',
           fontWeight: '700',
-        }
+        },
+        components: {
+          Button: {
+            defaultProps: {
+              variant: 'filled',
+            },
+            styles: {
+              root: {
+                fontWeight: 600,
+              },
+            },
+          },
+          Card: {
+            styles: {
+              root: {
+                backgroundColor: DARK_CARD_BG,
+                borderColor: DARK_BORDER,
+              },
+            },
+          },
+        },
       }}
     >
       <AppContent />

@@ -1,5 +1,17 @@
-import { Box, NavLink, Text, Divider, Group, ThemeIcon } from '@mantine/core';
+import { Box, NavLink, Text, Divider, Group, ThemeIcon, Stack } from '@mantine/core';
 import { Link, useLocation } from 'react-router-dom';
+import {
+  PRIMARY,
+  PRIMARY_LIGHT,
+  DARK_HOVER,
+  DARK_BORDER,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  TEXT_MUTED,
+  TEXT_BRIGHT,
+  ICON_ACTIVE,
+  ICON_INACTIVE
+} from '../theme/colors';
 import { 
   IconWorld,
   IconLayersIntersect,
@@ -77,18 +89,18 @@ export function MainNavigation() {
     <Box py="md">
       <Box px="md" pb="md">
         <Group justify="center" mb="xs">
-          <ThemeIcon size="xl" radius="xl" color="blue">
+          <ThemeIcon size="xl" radius="xl" color={PRIMARY}>
             <IconNetwork size={24} />
           </ThemeIcon>
         </Group>
-        <Text ta="center" size="xs" color="dimmed" mb="md">IP Address Management</Text>
+        <Text ta="center" size="xs" c={TEXT_BRIGHT} fw={600} mb="md">IP Address Management</Text>
       </Box>
 
       {navigationGroups.map((group, index) => (
         <Box key={index} mb="md">
           <Text
             tt="uppercase"
-            color="dimmed"
+            c={TEXT_BRIGHT}
             fw={700}
             size="xs"
             px="md"
@@ -102,23 +114,34 @@ export function MainNavigation() {
               key={item.path}
               component={Link}
               to={item.path}
-              label={item.label}
+              label={
+                <Text c={location.pathname === item.path ? TEXT_PRIMARY : TEXT_SECONDARY} fw={500}>
+                  {item.label}
+                </Text>
+              }
               leftSection={
-                <ThemeIcon variant="light" color={location.pathname === item.path ? 'blue' : 'gray'} size="md">
-                  <item.icon size={16} stroke={1.5} />
+                <ThemeIcon variant="light" color={location.pathname === item.path ? PRIMARY : 'dark'} size="md">
+                  <item.icon size={16} stroke={1.5} color={location.pathname === item.path ? ICON_ACTIVE : ICON_INACTIVE} />
                 </ThemeIcon>
               }
-              rightSection={location.pathname === item.path && <IconChevronRight size={14} />}
+              rightSection={location.pathname === item.path && <IconChevronRight size={14} color={ICON_ACTIVE} />}
               active={location.pathname === item.path}
-              variant={location.pathname === item.path ? "filled" : "light"}
-              color="blue"
+              variant={location.pathname === item.path ? "filled" : "subtle"}
+              color={PRIMARY}
               pl="md"
               py="xs"
               mb={5}
+              styles={(theme) => ({
+                root: {
+                  '&:hover': {
+                    backgroundColor: DARK_HOVER,
+                  },
+                }
+              })}
             />
           ))}
           
-          {index < navigationGroups.length - 1 && <Divider my="sm" />}
+          {index < navigationGroups.length - 1 && <Divider my="sm" color={DARK_BORDER} />}
         </Box>
       ))}
     </Box>

@@ -1,4 +1,17 @@
 import { Table, Badge, type MantineStyleProp, type CSSProperties } from '@mantine/core';
+import {
+  DARK_BG,
+  DARK_CARD_BG,
+  DARK_BORDER,
+  TEXT_SECONDARY,
+  TEXT_PRIMARY,
+  STATUS_ACTIVE,
+  STATUS_RESERVED,
+  STATUS_DEPRECATED,
+  STATUS_CONTAINER,
+  STATUS_DHCP,
+  STATUS_SLAAC
+} from '../theme/colors';
 
 interface TableStyles {
   table: CSSProperties;
@@ -7,24 +20,29 @@ interface TableStyles {
   actionsCell: CSSProperties;
 }
 
-// Shared table styles
+// Shared table styles - Dark Theme
 export const tableStyles: TableStyles = {
   table: {
-    border: '1px solid #ddd',
     borderCollapse: 'collapse' as const,
-    width: '100%'
+    width: '100%',
+    backgroundColor: DARK_BG,
+    color: TEXT_SECONDARY,
+    borderRadius: '8px',
+    overflow: 'hidden'
   },
   header: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: DARK_CARD_BG,
     fontWeight: 600,
     fontSize: '0.85rem',
-    padding: '12px 15px',
+    padding: '14px 16px',
     textTransform: 'uppercase' as const,
-    border: '1px solid #ddd'
+    color: TEXT_PRIMARY,
+    borderBottom: `1px solid ${DARK_BORDER}`
   },
   cell: {
-    padding: '10px 15px',
-    border: '1px solid #ddd'
+    padding: '12px 16px',
+    borderBottom: `1px solid ${DARK_BORDER}`,
+    fontSize: '0.9rem'
   },
   actionsCell: {
     width: '100px',
@@ -32,14 +50,14 @@ export const tableStyles: TableStyles = {
   }
 };
 
-// Shared status badge styles
+// Shared status badge styles - Vibrant colors for dark theme
 export const statusBadgeStyles: Record<string, string> = {
-  active: 'green',
-  reserved: 'blue',
-  deprecated: 'gray',
-  container: 'indigo',
-  dhcp: 'cyan',
-  slaac: 'teal'
+  active: STATUS_ACTIVE,
+  reserved: STATUS_RESERVED,
+  deprecated: STATUS_DEPRECATED,
+  container: STATUS_CONTAINER,
+  dhcp: STATUS_DHCP,
+  slaac: STATUS_SLAAC
 };
 
 // Shared table component
