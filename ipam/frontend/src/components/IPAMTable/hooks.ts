@@ -5,6 +5,9 @@ import { apiClient } from '../../api/client';
 export const useReferenceData = (referenceTableNames: string[]) => {
   const { data: referenceQueryData } = useQuery({
     queryKey: ['references', referenceTableNames],
+    staleTime: 0, // Always consider the data stale to ensure it's refreshed
+    refetchOnMount: true, // Refetch when the component mounts
+    refetchOnWindowFocus: true, // Refetch when the window regains focus
     queryFn: async () => {
       const results: Record<string, any> = {};
       

@@ -11,9 +11,8 @@ import sqlmodel
 import sys
 import os
 
-# Add the project root to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
-import app.models.fields  # Import the fields module
+# We don't need to import app.models.fields directly
+# Just use sqlalchemy types instead
 
 
 # revision identifiers, used by Alembic.

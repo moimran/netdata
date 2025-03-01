@@ -11,6 +11,7 @@ import sqlalchemy
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 from sqlalchemy.sql import func
+from .utils import slugify
 from .models import (
     Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 
     Prefix, IPRange, IPAddress, Tenant, Device, Interface, VLAN, VLANGroup,
@@ -106,6 +107,11 @@ class CRUDBase(Generic[T]):
                         cleaned_obj[key] = value
                 else:
                     cleaned_obj[key] = value
+            
+            # Auto-generate slug if name is provided but slug is not or is None
+            if 'name' in cleaned_obj and hasattr(self.model, 'slug'):
+                if 'slug' not in cleaned_obj or cleaned_obj['slug'] is None or cleaned_obj['slug'] == '':
+                    cleaned_obj['slug'] = slugify(cleaned_obj['name'])
                     
             db_obj = self.model(**cleaned_obj)
             session.add(db_obj)
@@ -156,6 +162,16 @@ class CRUDBase(Generic[T]):
                         cleaned_obj[key] = value
                 else:
                     cleaned_obj[key] = value
+            
+            # Auto-update slug if name is changed but slug is not provided or is empty
+            if 'name' in cleaned_obj and hasattr(self.model, 'slug'):
+                if 'slug' not in cleaned_obj:
+                    # Only update slug if name has changed
+                    if cleaned_obj['name'] != getattr(db_obj, 'name', None):
+                        cleaned_obj['slug'] = slugify(cleaned_obj['name'])
+                elif cleaned_obj['slug'] is None or cleaned_obj['slug'] == '':
+                    # If slug is explicitly set to None or empty string, regenerate it
+                    cleaned_obj['slug'] = slugify(cleaned_obj['name'])
                     
             for key, value in cleaned_obj.items():
                 if hasattr(db_obj, key):

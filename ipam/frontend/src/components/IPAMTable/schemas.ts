@@ -11,20 +11,20 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   regions: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'parent_id', type: 'number', reference: 'regions' },
     { name: 'description', type: 'string' }
   ],
   site_groups: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'description', type: 'string' }
   ],
   sites: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'status', type: 'string', required: true },
     { name: 'region_id', type: 'number', reference: 'regions' },
     { name: 'site_group_id', type: 'number', reference: 'site_groups' },
@@ -33,7 +33,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   locations: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'site_id', type: 'number', reference: 'sites' },
     { name: 'parent_id', type: 'number', reference: 'locations' },
     { name: 'status', type: 'string', required: true },
@@ -42,7 +42,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   vlans: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'vid', type: 'number', required: true },
     { name: 'status', type: 'string', required: true },
     { name: 'group_id', type: 'number', reference: 'vlan_groups' },
@@ -54,7 +54,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   vlan_groups: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'description', type: 'string' },
     { name: 'vlan_id_ranges', type: 'string' }
     // min_vid and max_vid are still stored in the database but not shown in the table
@@ -70,7 +70,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   route_targets: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'description', type: 'string' }
   ],
   vrf_import_targets: [
@@ -84,7 +84,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   rirs: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'description', type: 'string' }
   ],
   aggregates: [
@@ -96,7 +96,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   roles: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'description', type: 'string' }
   ],
   prefixes: [
@@ -141,7 +141,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   devices: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'description', type: 'string' },
     { name: 'location_id', type: 'number', reference: 'locations' },
     { name: 'ip_address_id', type: 'number', reference: 'ip_addresses' }
@@ -149,7 +149,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   interfaces: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'description', type: 'string' },
     { name: 'device_id', type: 'number', reference: 'devices' }
   ],
@@ -157,14 +157,14 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'id', type: 'number' },
     { name: 'asn', type: 'number', required: true },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'description', type: 'string' },
     { name: 'rir_id', type: 'number', reference: 'rirs' }
   ],
   asn_ranges: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'start', type: 'number', required: true },
     { name: 'end', type: 'number', required: true },
     { name: 'rir_id', type: 'number', reference: 'rirs' },
@@ -173,7 +173,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   tenants: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
     { name: 'description', type: 'string' }
   ]
 };

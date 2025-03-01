@@ -30,6 +30,9 @@ export const useReferenceData = ({
   // Use a single query to fetch all reference data
   const { data: referenceQueryData, isLoading, isError } = useQuery({
     queryKey: ['references', referenceTableNames],
+    staleTime: 0, // Always consider the data stale to ensure it's refreshed
+    refetchOnMount: true, // Refetch when the component mounts
+    refetchOnWindowFocus: true, // Refetch when the window regains focus
     queryFn: async () => {
       const results: Record<string, any> = {};
       
@@ -37,10 +40,24 @@ export const useReferenceData = ({
       await Promise.all(referenceTableNames.map(async (refTableName) => {
         try {
           const response = await apiClient.get(`${refTableName}`);
-          results[refTableName] = response.data;
+          const responseData = response.data;
+          
+          // Store data in a consistent format
+          if (Array.isArray(responseData)) {
+            results[refTableName] = responseData;
+          } else if (responseData?.items && Array.isArray(responseData.items)) {
+            results[refTableName] = responseData.items;
+          } else if (responseData?.data && Array.isArray(responseData.data)) {
+            results[refTableName] = responseData.data;
+          } else {
+            // Default to empty array if we can't determine the structure
+            results[refTableName] = [];
+          }
+          
+          console.log(`Fetched ${results[refTableName].length} items for ${refTableName}`);
         } catch (error) {
           console.error(`Error fetching ${refTableName}:`, error);
-          results[refTableName] = { items: [] };
+          results[refTableName] = [];
         }
       }));
       
@@ -55,8 +72,16 @@ export const useReferenceData = ({
   // Set the selectedVlanGroup when reference data is loaded
   useEffect(() => {
     if (tableName === 'vlans' && item?.group_id && referenceData.vlan_groups) {
-      const vlanGroups = referenceData.vlan_groups.items || referenceData.vlan_groups.data || referenceData.vlan_groups || [];
-      if (Array.isArray(vlanGroups)) {
+      // Get the VLAN groups data in a consistent format
+      let vlanGroups = referenceData.vlan_groups;
+      
+      // Ensure we have an array
+      if (!Array.isArray(vlanGroups)) {
+        vlanGroups = vlanGroups.items || vlanGroups.data || [];
+      }
+      
+      if (Array.isArray(vlanGroups) && vlanGroups.length > 0) {
+        // Convert both IDs to strings for comparison to avoid type mismatches
         const selectedGroup = vlanGroups.find((group: any) => String(group.id) === String(item.group_id));
         if (selectedGroup) {
           setSelectedVlanGroup(selectedGroup);
@@ -70,7 +95,13 @@ export const useReferenceData = ({
     const refData = referenceData[referenceName];
     if (!refData) return [];
     
-    // Handle different data structures
+    // The data should already be in a consistent format from the queryFn
+    // But we'll add a safety check just in case
+    if (Array.isArray(refData)) {
+      return refData;
+    }
+    
+    // Handle different data structures as a fallback
     return refData.items || refData.data || refData || [];
   };
 

@@ -41,14 +41,15 @@ export const useFormData = ({ schema, item, tableName }: UseFormDataProps): UseF
     schema.forEach(field => {
       if (field.name === 'id') return; // Skip ID field
       
-      // Special case for name and slug fields which are required
-      if (field.name === 'name' && !item?.name) {
-        initialValues[field.name] = '';
-      } else if (field.name === 'slug' && !item?.slug) {
-        initialValues[field.name] = '';
-      } else {
-        initialValues[field.name] = item?.[field.name] ?? null;
-      }
+  // Special case for name field which is required
+  if (field.name === 'name' && !item?.name) {
+    initialValues[field.name] = '';
+  } else if (field.name === 'slug') {
+    // For slug field, set to null to trigger auto-generation in the backend
+    initialValues[field.name] = item?.slug || null;
+  } else {
+    initialValues[field.name] = item?.[field.name] ?? null;
+  }
     });
     
     // Add name and slug fields for Prefix and IPAddress if they don't exist in schema
@@ -57,7 +58,7 @@ export const useFormData = ({ schema, item, tableName }: UseFormDataProps): UseF
         initialValues['name'] = item?.name || '';
       }
       if (!initialValues.hasOwnProperty('slug')) {
-        initialValues['slug'] = item?.slug || '';
+        initialValues['slug'] = item?.slug || null;
       }
     }
     
@@ -88,6 +89,9 @@ export const useFormData = ({ schema, item, tableName }: UseFormDataProps): UseF
             acc[col.name] = false;
           } else if (col.name === 'status') {
             acc[col.name] = 'active';
+          } else if (col.name === 'slug') {
+            // Set slug to null to trigger auto-generation in the backend
+            acc[col.name] = null;
           } else {
             acc[col.name] = '';
           }
@@ -165,9 +169,10 @@ export const useFormData = ({ schema, item, tableName }: UseFormDataProps): UseF
   const prepareSubmissionData = (): FormData => {
     const submissionData = { ...formData };
     
-    // Convert empty strings to null for numeric fields
+    // Convert empty strings to null for numeric fields and slug fields
     schema.forEach(field => {
-      if (field.type === 'number' && submissionData[field.name] === '') {
+      if ((field.type === 'number' && submissionData[field.name] === '') || 
+          (field.name === 'slug' && submissionData[field.name] === '')) {
         submissionData[field.name] = null;
       }
     });

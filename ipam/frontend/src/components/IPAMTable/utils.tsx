@@ -147,37 +147,27 @@ export const formatCellValue = (
       }
     }
     
-    // Debug logging for reference data
-    console.log(`Formatting reference for ${column.name} with value ${value}`, {
-      referenceTable,
-      hasReferenceData: !!referenceData[referenceTable],
-      referenceDataLength: referenceData[referenceTable]?.length || 0
-    });
-    
     const referenceItems = referenceData[referenceTable] || [];
     
     // Ensure referenceItems is an array before using find
     if (Array.isArray(referenceItems) && referenceItems.length > 0) {
-      // Debug the first few items to see their structure
-      if (referenceItems.length > 0) {
-        console.log(`Sample reference items for ${referenceTable}:`, referenceItems.slice(0, 3));
-      }
-      
       // Convert both IDs to strings for comparison to avoid type mismatches
       const referencedItem = referenceItems.find((item: any) => String(item.id) === String(value));
       
       if (referencedItem) {
-        console.log(`Found reference item for ${column.name}:`, referencedItem);
-        return referencedItem.name || referencedItem.prefix || referencedItem.address || referencedItem.rd || referencedItem.slug || String(value);
-      } else {
-        console.log(`No matching reference item found for ${column.name} with value ${value}`);
+        // Return the most appropriate field from the referenced item
+        return referencedItem.name || 
+               referencedItem.prefix || 
+               referencedItem.address || 
+               referencedItem.rd || 
+               referencedItem.slug || 
+               String(value);
       }
-    } else {
-      console.log(`No reference items available for ${referenceTable}`);
     }
     
     // If we couldn't find a reference item, return a placeholder
-    return `${referenceTable} #${value}`;
+    // This is more user-friendly than showing the raw ID
+    return `${referenceTable.charAt(0).toUpperCase() + referenceTable.slice(1)} #${value}`;
   }
   
   return String(value);

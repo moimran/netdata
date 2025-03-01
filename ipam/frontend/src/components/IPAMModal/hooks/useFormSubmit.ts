@@ -152,8 +152,17 @@ export const useFormSubmit = ({
       // Invalidate queries based on the table name
       // This ensures all components using this data will refresh
       
-      // Always invalidate the standard table query
-      queryClient.invalidateQueries({ queryKey: ['table', tableName] });
+      // Always invalidate the standard table query with a forced refetch
+      queryClient.invalidateQueries({ 
+        queryKey: ['table', tableName],
+        refetchType: 'all' 
+      });
+      
+      // Invalidate reference data queries to ensure references are updated
+      queryClient.invalidateQueries({ 
+        queryKey: ['references'],
+        refetchType: 'all'
+      });
       
       // For specific tables, also invalidate their specialized queries
       if (tableName === 'prefixes') {
@@ -173,6 +182,9 @@ export const useFormSubmit = ({
         // Invalidate VLAN-related queries
         queryClient.invalidateQueries({ queryKey: ['vlans'] });
         queryClient.invalidateQueries({ queryKey: ['vlan_groups'] });
+      } else if (tableName === 'regions') {
+        // Invalidate regions queries
+        queryClient.invalidateQueries({ queryKey: ['regions'] });
       }
       
       // Close the modal
