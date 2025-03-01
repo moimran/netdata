@@ -21,8 +21,7 @@ import { StyledTable, TableHeader, StatusBadge, tableStyles } from './TableStyle
 import { IconEdit, IconTrash, IconPlus, IconSearch, IconFilter, IconRefresh } from '@tabler/icons-react';
 import { IPAMModal } from './IPAMModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import { API_URL, apiClient } from '../api/client';
+import { apiClient } from '../api/client';
 import { TABLE_SCHEMAS } from './IPAMTable';
 
 // Interface for prefix data

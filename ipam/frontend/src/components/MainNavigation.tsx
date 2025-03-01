@@ -1,11 +1,8 @@
-import React from 'react';
-import { Box, NavLink, Text, Divider, Group, ThemeIcon, Title } from '@mantine/core';
+import { Box, NavLink, Text, Divider, Group, ThemeIcon } from '@mantine/core';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   IconWorld,
   IconLayersIntersect,
-  IconBuilding,
-  IconMapPin,
   IconNetwork,
   IconServer,
   IconDatabase,
@@ -45,16 +42,16 @@ export function MainNavigation() {
     {
       title: 'IP Management',
       items: [
+        { icon: IconWorld, label: 'RIRs', path: '/rirs' },
+        { icon: IconDatabase, label: 'Aggregates', path: '/aggregates' },
         { icon: IconNetwork, label: 'Prefixes', path: '/prefixes' },
+        { icon: IconBorderAll, label: 'IP Ranges', path: '/ip-ranges' },
+        { icon: IconDeviceDesktopAnalytics, label: 'IP Addresses', path: '/ip-addresses' },
         { icon: IconRouter, label: 'VRFs', path: '/vrfs' },
         { icon: IconLayersIntersect, label: 'Route Targets', path: '/route-targets' },
         { icon: IconLayersIntersect, label: 'VRF Import Targets', path: '/vrf-import-targets' },
         { icon: IconLayersIntersect, label: 'VRF Export Targets', path: '/vrf-export-targets' },
-        { icon: IconWorld, label: 'RIRs', path: '/rirs' },
-        { icon: IconDatabase, label: 'Aggregates', path: '/aggregates' },
         { icon: IconShield, label: 'Roles', path: '/roles' },
-        { icon: IconBorderAll, label: 'IP Ranges', path: '/ip-ranges' },
-        { icon: IconDeviceDesktopAnalytics, label: 'IP Addresses', path: '/ip-addresses' },
         { icon: IconWifi, label: 'VLANs', path: '/vlans' },
         { icon: IconBorderAll, label: 'VLAN Groups', path: '/vlan-groups' },
         { icon: IconNetworkOff, label: 'ASNs', path: '/asns' },
