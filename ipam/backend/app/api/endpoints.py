@@ -127,3 +127,7 @@ def get_vrf_prefix_counts(session: Session = Depends(get_session)):
     
     from ..serializers import model_to_dict
     return model_to_dict(result)
+
+# Import credential endpoints
+# Note: We'll register the credential router in the main router.py file
+# to avoid circular imports

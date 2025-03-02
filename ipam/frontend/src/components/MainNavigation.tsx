@@ -27,7 +27,8 @@ import {
   IconChevronRight,
   IconBuildingSkyscraper,
   IconUsers,
-  IconWifi
+  IconWifi,
+  IconKey
 } from '@tabler/icons-react';
 
 export function MainNavigation() {
@@ -72,7 +73,8 @@ export function MainNavigation() {
       title: 'Devices',
       items: [
         { icon: IconServer, label: 'Devices', path: '/devices' },
-        { icon: IconNetwork, label: 'Interfaces', path: '/interfaces' }
+        { icon: IconNetwork, label: 'Interfaces', path: '/interfaces' },
+        { icon: IconKey, label: 'Credentials', path: '/credentials' }
       ]
     },
     {

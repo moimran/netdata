@@ -4,7 +4,8 @@ from .. import crud
 from ..models import (
     Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 
     Prefix, IPRange, IPAddress, Tenant, Device, Interface, VLAN, 
-    VLANGroup, ASN, ASNRange, RouteTarget, VRFImportTargets, VRFExportTargets
+    VLANGroup, ASN, ASNRange, RouteTarget, VRFImportTargets, VRFExportTargets,
+    Credential
 )
 
 # Create main API router
@@ -12,6 +13,7 @@ router = APIRouter(prefix="/api/v1")
 
 # Add specialized endpoints
 router.include_router(endpoints.router)
+
 
 # Add schema endpoints
 router.include_router(schema.router)
@@ -38,3 +40,4 @@ crud_router.create_crud_routes(router, "asn_ranges", crud.asn_range, ASNRange)
 crud_router.create_crud_routes(router, "route_targets", crud.route_target, RouteTarget)
 crud_router.create_crud_routes(router, "vrf_import_targets", crud.vrf_import_targets, VRFImportTargets)
 crud_router.create_crud_routes(router, "vrf_export_targets", crud.vrf_export_targets, VRFExportTargets)
+crud_router.create_crud_routes(router, "credentials", crud.credential, Credential)

@@ -28,6 +28,7 @@ from .ip_prefix import Prefix, IPRange
 from .ip_address import IPAddress
 from .device import Device
 from .interface import Interface
+from .credential import Credential
 
 __all__ = [
     # Base and Fields
@@ -69,5 +70,6 @@ __all__ = [
     "IPAddressRoleEnum",
     "IPAddress",
     "Device",
-    "Interface"
+    "Interface",
+    "Credential"
 ]

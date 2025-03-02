@@ -144,7 +144,9 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'slug', type: 'string' },
     { name: 'description', type: 'string' },
     { name: 'location_id', type: 'number', reference: 'locations' },
-    { name: 'ip_address_id', type: 'number', reference: 'ip_addresses' }
+    { name: 'ip_address_id', type: 'number', reference: 'ip_addresses' },
+    { name: 'credential_name', type: 'string', reference: 'credentials' },
+    { name: 'fallback_credential_name', type: 'string', reference: 'credentials' }
   ],
   interfaces: [
     { name: 'id', type: 'number' },
@@ -175,5 +177,12 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'name', type: 'string', required: true },
     { name: 'slug', type: 'string' },
     { name: 'description', type: 'string' }
+  ],
+  credentials: [
+    { name: 'name', type: 'string', required: true },
+    { name: 'username', type: 'string', required: true },
+    { name: 'password', type: 'string', required: true },
+    { name: 'enable_password', type: 'string' },
+    { name: 'is_default', type: 'boolean' }
   ]
 };

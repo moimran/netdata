@@ -15,7 +15,7 @@ from .utils import slugify
 from .models import (
     Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 
     Prefix, IPRange, IPAddress, Tenant, Device, Interface, VLAN, VLANGroup,
-    ASN, ASNRange, RouteTarget, VRFImportTargets, VRFExportTargets
+    ASN, ASNRange, RouteTarget, VRFImportTargets, VRFExportTargets, Credential
 )
 import logging
 
@@ -502,3 +502,40 @@ class IPAddressCRUD(CRUDBase[IPAddress]):
 # Replace the default prefix CRUD with our specialized version
 prefix = PrefixCRUD(Prefix)
 ip_address = IPAddressCRUD(IPAddress)
+
+class CredentialCRUD(CRUDBase[Credential]):
+    """
+    CRUD operations for Credentials.
+    """
+    def create(self, session: Session, obj_in: Dict[str, Any]) -> Credential:
+        """
+        Create a new credential with validation for unique name.
+        """
+        try:
+            # Create the credential using the base method
+            name_value = obj_in.get('name')
+            
+            db_obj = super().create(session, obj_in)
+            return db_obj
+        except IntegrityError as e:
+            # Rollback the session in case of error
+            session.rollback()
+            
+            # Check if it's a unique constraint violation for name
+            error_message = str(e)
+            if "uq_credential_name" in error_message:
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "detail": f"Credential with name '{name_value}' already exists. Please use a different name.",
+                        "error_type": "unique_violation",
+                        "constraint": "uq_credential_name",
+                        "name": name_value
+                    }
+                )
+            
+            # Re-raise the exception for other errors
+            raise
+
+# Create CRUD instance for credentials
+credential = CredentialCRUD(Credential)

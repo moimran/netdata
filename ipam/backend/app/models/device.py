@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from .tenant import Tenant
     from .location import Location
     from .ip_address import IPAddress
+    from .credential import Credential
 
 class Device(BaseModel, table=True):
     """
@@ -28,12 +29,23 @@ class Device(BaseModel, table=True):
     # Relationship with IPAddress
     ip_address_id: Optional[int] = Field(default=None, foreign_key="ip_addresses.id")
     
+    # Credential relationships
+    credential_name: Optional[str] = Field(default=None, foreign_key="credentials.name")
+    fallback_credential_name: Optional[str] = Field(default=None, foreign_key="credentials.name")
+    
     # Relationships
     site: Optional["Site"] = Relationship(back_populates="devices")
     tenant: Optional["Tenant"] = Relationship(back_populates="devices")
     location: Optional["Location"] = Relationship(back_populates="devices")
     interfaces: List["Interface"] = Relationship(back_populates="device")
     ip_address: Optional["IPAddress"] = Relationship()
+    
+    credential: Optional["Credential"] = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[Device.credential_name]"}
+    )
+    fallback_credential: Optional["Credential"] = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[Device.fallback_credential_name]"}
+    )
     
     # Add unique constraint for name
     __table_args__ = (
