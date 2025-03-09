@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from . import crud_router, endpoints, schema
+from . import crud_router, schema
+from . import endpoints
 from .. import crud
 from ..models import (
     Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 

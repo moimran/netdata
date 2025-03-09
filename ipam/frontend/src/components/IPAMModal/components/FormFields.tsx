@@ -41,6 +41,135 @@ export const FormField: React.FC<FormFieldProps> = ({
   if (column.reference) {
     const referenceData = getReferenceData(column.reference);
     
+    // Special handling for interface_id in IP addresses
+    if (tableName === 'ip_addresses' && column.name === 'interface_id') {
+      return (
+        <Select
+          key={column.name}
+          label="Interface"
+          placeholder="Select Interface"
+          data={formatReferenceDataForSelect(referenceData)}
+          value={formData[column.name]?.toString() || ''}
+          onChange={(value) => setFormData({ 
+            ...formData, 
+            [column.name]: value ? parseInt(value) : null 
+          })}
+          required={column.required}
+          error={validationErrors[column.name]}
+          styles={(theme) => ({
+            input: {
+              backgroundColor: theme.colors.dark[6],
+              color: theme.white,
+              '&::placeholder': {
+                color: theme.colors.gray[5]
+              }
+            },
+            label: {
+              color: theme.white
+            },
+            item: {
+              '&[data-selected]': {
+                backgroundColor: theme.colors.blue[8],
+                color: theme.white
+              },
+              '&[data-hovered]': {
+                backgroundColor: theme.colors.dark[5]
+              }
+            }
+          })}
+        />
+      );
+    }
+    
+    // Special handling for prefix_id in IP addresses
+    if (tableName === 'ip_addresses' && column.name === 'prefix_id') {
+      return (
+        <Select
+          key={column.name}
+          label="Prefix"
+          placeholder="Select Prefix"
+          data={formatReferenceDataForSelect(referenceData)}
+          value={formData[column.name]?.toString() || ''}
+          onChange={(value) => setFormData({ 
+            ...formData, 
+            [column.name]: value ? parseInt(value) : null 
+          })}
+          required={column.required}
+          error={validationErrors[column.name]}
+          styles={(theme) => ({
+            input: {
+              backgroundColor: theme.colors.dark[6],
+              color: theme.white,
+              '&::placeholder': {
+                color: theme.colors.gray[5]
+              }
+            },
+            label: {
+              color: theme.white
+            },
+            item: {
+              '&[data-selected]': {
+                backgroundColor: theme.colors.blue[8],
+                color: theme.white
+              },
+              '&[data-hovered]': {
+                backgroundColor: theme.colors.dark[5]
+              }
+            }
+          })}
+        />
+      );
+    }
+    
+    // Special handling for credential fields in devices
+    if (tableName === 'devices' && (column.name === 'credential_name' || column.name === 'fallback_credential_name')) {
+      // For credentials, we need to use the name as the value, not the ID
+      const credentialOptions = referenceData.map((item: any) => ({
+        value: item.name, // Use name as the value
+        label: item.name
+      }));
+      
+      // Add a "None" option
+      const options = [{ value: '', label: 'None' }, ...credentialOptions];
+      
+      return (
+        <Select
+          key={column.name}
+          label={column.name === 'credential_name' ? 'Credential' : 'Fallback Credential'}
+          placeholder={`Select ${column.name === 'credential_name' ? 'Credential' : 'Fallback Credential'}`}
+          data={options}
+          value={formData[column.name] || ''}
+          onChange={(value) => setFormData({ 
+            ...formData, 
+            [column.name]: value || null 
+          })}
+          required={column.required}
+          error={validationErrors[column.name]}
+          styles={(theme) => ({
+            input: {
+              backgroundColor: theme.colors.dark[6],
+              color: theme.white,
+              '&::placeholder': {
+                color: theme.colors.gray[5]
+              }
+            },
+            label: {
+              color: theme.white
+            },
+            item: {
+              '&[data-selected]': {
+                backgroundColor: theme.colors.blue[8],
+                color: theme.white
+              },
+              '&[data-hovered]': {
+                backgroundColor: theme.colors.dark[5]
+              }
+            }
+          })}
+        />
+      );
+    }
+    
     // Special handling for VLAN group selection in VLANs
     if (tableName === 'vlans' && column.name === 'group_id') {
       return (

@@ -46,6 +46,19 @@ yarn-error.log*
 .vite/
 dist/
 
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock
+.cargo-ok
+.rustc_info.json
+*.pdb
+*.rmeta
+*.rlib
+*.rmeta
+*.crate
+*.crate.lock
+
 # IDE
 .idea/
 .vscode/

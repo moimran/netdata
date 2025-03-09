@@ -234,6 +234,10 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
                       return 'Site';
                     } else if (col.name === 'role_id') {
                       return 'Role';
+                    } else if (col.name === 'interface_id') {
+                      return 'Interface';
+                    } else if (col.name === 'prefix_id') {
+                      return 'Prefix';
                     } else if (col.name.endsWith('_id')) {
                       // For other _id fields, remove the _id suffix and capitalize
                       return col.name.replace('_id', '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');

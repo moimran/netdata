@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import { WebSSHFrame } from './components/WebSSHFrame';
 import { AppShell, Title, MantineProvider, Group, Avatar, Text, Box, Burger, ScrollArea, useMantineTheme } from '@mantine/core';
 import { MainNavigation } from './components/MainNavigation';
 import { Dashboard } from './components/Dashboard';
@@ -106,6 +107,7 @@ function AppContent() {
           <Route path="/asns" element={<ASNView />} />
           <Route path="/asn-ranges" element={<ASNRangeView />} />
           <Route path="/tenants" element={<IPAMView tableName="tenants" />} />
+          <Route path="/terminal/:deviceId" element={<WebSSHFrame />} />
         </Routes>
       </AppShell.Main>
     </AppShell>

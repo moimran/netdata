@@ -20,6 +20,10 @@ class IPAddress(BaseModel, table=True):
     """
     __tablename__ = "ip_addresses"
     
+    # Override name and slug from BaseModel to make them optional
+    name: Optional[str] = Field(default="", description="Name of the IP address")
+    slug: Optional[str] = Field(default="", description="URL-friendly name")
+    
     # Basic fields
     description: Optional[str] = Field(default=None, description="Brief description")
     

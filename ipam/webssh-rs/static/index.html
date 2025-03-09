@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSSH</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        #terminal {
+            width: 100%;
+            height: 600px;
+            background-color: black;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .status-message {
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+        .error-message {
+            color: red;
+            font-weight: bold;
+        }
+        .success-message {
+            color: green;
+            font-weight: bold;
+        }
+        .info-message {
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <div id="status-container" class="status-message">
+        <p id="status-text">Initializing terminal...</p>
+    </div>
+    <div id="terminal"></div>
+
+    <script>
+        let term = null;
+        let ws = null;
+        let fitAddon = null;
+
+        // Parse URL parameters
+        function getUrlParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const pairs = queryString.split('&');
+            
+            for (let i = 0; i < pairs.length; i++) {
+                const pair = pairs[i].split('=');
+                params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+            }
+            
+            return params;
+        }
+
+        function showStatus(message, type = 'info') {
+            const statusText = document.getElementById('status-text');
+            const statusContainer = document.getElementById('status-container');
+            
+            statusText.textContent = message;
+            
+            // Remove all classes
+            statusContainer.classList.remove('error-message', 'success-message', 'info-message');
+            
+            // Add the appropriate class
+            if (type === 'error') {
+                statusContainer.classList.add('error-message');
+            } else if (type === 'success') {
+                statusContainer.classList.add('success-message');
+            } else {
+                statusContainer.classList.add('info-message');
+            }
+            
+            // Show the status container
+            statusContainer.style.display = 'block';
+        }
+
+        function hideStatus() {
+            document.getElementById('status-container').style.display = 'none';
+        }
+
+        function loadTerminal() {
+            return new Promise((resolve, reject) => {
+                try {
+                    if (!window.Terminal) {
+                        throw new Error('xterm.js not loaded');
+                    }
+                    if (!window.FitAddon) {
+                        throw new Error('xterm-addon-fit not loaded');
+                    }
+
+                    if (term) {
+                        term.dispose();
+                    }
+
+                    // Initialize terminal
+                    term = new Terminal({
+                        cursorBlink: true,
+                        fontSize: 14,
+                        fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+                        theme: {
+                            background: '#000000',
+                            foreground: '#ffffff'
+                        },
+                        disableStdin: false,
+                        allowProposedApi: true
+                    });
+
+                    fitAddon = new FitAddon.FitAddon();
+                    term.loadAddon(fitAddon);
+
+                    const terminalElement = document.getElementById('terminal');
+                    if (!terminalElement) {
+                        throw new Error('Terminal element not found');
+                    }
+
+                    term.open(terminalElement);
+                    fitAddon.fit();
+
+                    term.writeln('WebSSH Terminal Ready');
+                    term.writeln('Connecting to SSH server...');
+
+                    resolve();
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        // Initialize terminal on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await loadTerminal();
+                
+                // Get connection parameters from URL
+                const params = getUrlParams();
+                
+                if (params.hostname && params.username) {
+                    // Auto-connect with URL parameters
+                    showStatus(`Connecting to ${params.hostname}...`, 'info');
+                    
+                    const credentials = {
+                        hostname: params.hostname,
+                        port: params.port || '22',
+                        username: params.username,
+                        password: params.password || ''
+                    };
+                    
+                    console.log("Connecting with credentials:", JSON.stringify(credentials));
+                    
+                    // Add a small delay to ensure terminal is fully initialized
+                    setTimeout(() => {
+                        connect(credentials);
+                    }, 1000);
+                } else {
+                    showStatus('No connection parameters provided. Please include hostname and username in the URL.', 'error');
+                    console.log("URL parameters:", window.location.search);
+                    console.log("Parsed parameters:", JSON.stringify(params));
+                }
+            } catch (error) {
+                showStatus(`Failed to initialize terminal: ${error.message}`, 'error');
+                console.error('Terminal initialization error:', error);
+            }
+        });
+
+        window.onresize = function() {
+            if (fitAddon) {
+                fitAddon.fit();
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    const dimensions = {
+                        type: 'resize',
+                        rows: term.rows,
+                        cols: term.cols
+                    };
+                    ws.send(JSON.stringify(dimensions));
+                }
+            }
+        };
+
+        async function connect(credentials) {
+            if (!term) {
+                showStatus('Terminal not initialized', 'error');
+                return;
+            }
+
+            try {
+                if (ws) {
+                    ws.close();
+                }
+
+                term.clear();
+                term.write('Connecting to SSH server...\r\n');
+
+                const response = await fetch('/connect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(credentials),
+                });
+
+                const result = await response.json();
+                
+                if (result.success && result.session_id) {
+                    connectWebSocket(result.session_id);
+                } else {
+                    const errorMessage = result.message || 'Connection failed';
+                    term.writeln(`\r\nError: ${errorMessage}`);
+                    showStatus(errorMessage, 'error');
+                }
+            } catch (error) {
+                const errorMessage = error.message || 'Connection failed';
+                term.writeln(`\r\nError: ${errorMessage}`);
+                showStatus(errorMessage, 'error');
+                console.error('Connection error:', error);
+            }
+        }
+
+        function connectWebSocket(sessionId) {
+            if (ws) {
+                ws.close();
+            }
+
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.hostname}:${window.location.port}/ws/${sessionId}`;
+            
+            try {
+                ws = new WebSocket(wsUrl);
+
+                ws.onopen = () => {
+                    term.write('\r\nConnected to SSH server\r\n');
+                    showStatus('Connected to SSH server', 'success');
+                    setTimeout(hideStatus, 3000); // Hide status after 3 seconds
+                    
+                    // Send initial terminal size
+                    const dimensions = {
+                        type: 'resize',
+                        rows: term.rows,
+                        cols: term.cols
+                    };
+                    ws.send(JSON.stringify(dimensions));
+
+                    // Handle terminal input
+                    // We need to debounce the input to prevent multiple messages for the same input
+                    let inputQueue = [];
+                    let processingInput = false;
+                    
+                    term.onData(data => {
+                        if (ws && ws.readyState === WebSocket.OPEN) {
+                            // Add the data to the queue
+                            inputQueue.push(data);
+                            
+                            // Process the queue if not already processing
+                            if (!processingInput) {
+                                processingInput = true;
+                                processInputQueue();
+                            }
+                        }
+                    });
+                    
+                    // Process the input queue with a small delay to prevent multiple messages
+                    function processInputQueue() {
+                        if (inputQueue.length > 0) {
+                            const data = inputQueue.shift();
+                            
+                            // Send the data to the server without echoing locally
+                            ws.send(JSON.stringify({
+                                type: 'input',
+                                data: data === "\r" ? "\r\n" : data
+                            }));
+                            
+                            // We don't call term.write(data) here, which prevents local echo
+                            // The server will echo back the characters if needed
+                            
+                            // Process the next item in the queue after a small delay
+                            setTimeout(processInputQueue, 10);
+                        } else {
+                            processingInput = false;
+                        }
+                    }
+                };
+
+                ws.onmessage = (event) => {
+                    const data = event.data;
+                    if (data instanceof Blob) {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            term.write(new Uint8Array(reader.result));
+                        };
+                        reader.readAsArrayBuffer(data);
+                    } else {
+                        term.write(data);
+                    }
+                };
+
+                ws.onclose = () => {
+                    term.write('\r\n\nConnection closed\r\n');
+                    showStatus('Connection closed', 'info');
+                };
+
+                ws.onerror = (error) => {
+                    const errorMessage = 'WebSocket error occurred';
+                    term.write(`\r\n\n${errorMessage}\r\n`);
+                    showStatus(errorMessage, 'error');
+                    console.error('WebSocket error:', error);
+                };
+            } catch (error) {
+                const errorMessage = `Failed to create WebSocket connection: ${error.message}`;
+                term.write(`\r\n\n${errorMessage}\r\n`);
+                showStatus(errorMessage, 'error');
+                console.error('WebSocket creation error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -134,8 +134,8 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'vrf_id', type: 'number', reference: 'vrfs' },
     { name: 'tenant_id', type: 'number', reference: 'tenants' },
     { name: 'nat_inside_id', type: 'number', reference: 'ip_addresses' },
-    { name: 'assigned_object_type', type: 'string' },
-    { name: 'assigned_object_id', type: 'number' },
+    { name: 'interface_id', type: 'number', reference: 'interfaces' },
+    { name: 'prefix_id', type: 'number', reference: 'prefixes' },
     { name: 'description', type: 'string' }
   ],
   devices: [

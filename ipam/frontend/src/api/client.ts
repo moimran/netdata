@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Define the API URL
-export const API_URL = 'http://localhost:9001/api/v1';
+// Define the API URL - use relative path for Vite proxy
+export const API_URL = '/api/v1';
 
 // Create an axios instance with default config
 export const apiClient = axios.create({
