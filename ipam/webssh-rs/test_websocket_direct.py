@@ -10,6 +10,7 @@ This script will:
 import asyncio
 import json
 import sys
+from time import sleep
 import websockets
 import signal
 
@@ -81,9 +82,12 @@ async def test_websocket_direct():
             
             # Send test messages
             test_messages = [
-                json.dumps({"type": "input", "data": "test\n"}),
-                json.dumps({"type": "input", "data": "ls -la\n"}),
-                json.dumps({"type": "input", "data": "echo hello\n"}),
+                json.dumps({"type": "input", "data": "enable\n"}),
+                json.dumps({"type": "input", "data": "moimran@123\n"}),
+                json.dumps({"type": "input", "data": "terminal length 0\n"}),
+                json.dumps({"type": "input", "data": "terminal width 511\n"}),
+                json.dumps({"type": "input", "data": "show run\n"}),
+                json.dumps({"type": "input", "data": "show ip int br\n"}),
                 "\r",  # Raw CR
                 "\n",  # Raw LF
                 "\r\n"  # Raw CRLF
@@ -91,6 +95,7 @@ async def test_websocket_direct():
             
             for msg in test_messages:
                 print(f"\nSending message: {msg}")
+                sleep(1)
                 await ws.send(msg)
                 print("Message sent!")
                 
@@ -132,9 +137,12 @@ async def test_backend_websocket():
             
             # Send test messages
             test_messages = [
-                json.dumps({"type": "input", "data": "test\n"}),
-                json.dumps({"type": "input", "data": "ls -la\n"}),
-                json.dumps({"type": "input", "data": "echo hello\n"}),
+                json.dumps({"type": "input", "data": "enable\n"}),
+                json.dumps({"type": "input", "data": "moimran@123\n"}),
+                json.dumps({"type": "input", "data": "terminal length 0\n"}),
+                json.dumps({"type": "input", "data": "terminal width 511\n"}),
+                json.dumps({"type": "input", "data": "show run\n"}),
+                json.dumps({"type": "input", "data": "show ip int br\n"}),
                 "\r",  # Raw CR
                 "\n",  # Raw LF
                 "\r\n"  # Raw CRLF
@@ -142,6 +150,7 @@ async def test_backend_websocket():
             
             for msg in test_messages:
                 print(f"\nSending message: {msg}")
+                sleep(1)
                 await ws.send(msg)
                 print("Message sent!")
                 

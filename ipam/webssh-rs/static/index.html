@@ -19,29 +19,82 @@
             border-radius: 5px;
             margin-top: 20px;
         }
-        .status-message {
+        .form-container {
             background-color: white;
-            padding: 10px;
+            padding: 20px;
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 10px;
         }
-        .error-message {
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: monospace;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #error-message {
             color: red;
-            font-weight: bold;
-        }
-        .success-message {
-            color: green;
-            font-weight: bold;
-        }
-        .info-message {
-            color: blue;
+            margin-top: 10px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div id="status-container" class="status-message">
-        <p id="status-text">Initializing terminal...</p>
+    <div class="form-container">
+        <div class="form-group">
+            <label for="hostname">Hostname:</label>
+            <input type="text" id="hostname" required>
+        </div>
+        <div class="form-group">
+            <label for="port">Port:</label>
+            <input type="number" id="port" value="22" required>
+        </div>
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" required>
+        </div>
+        <div class="form-group">
+            <label for="auth-type">Authentication Method:</label>
+            <select id="auth-type" onchange="toggleAuthMethod()">
+                <option value="password">Password</option>
+                <option value="private-key">Private Key</option>
+            </select>
+        </div>
+        <div id="password-auth" class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password">
+        </div>
+        <div id="private-key-auth" class="form-group" style="display: none;">
+            <label for="private-key">Private Key (PEM format):</label>
+            <textarea id="private-key" rows="5" placeholder="Paste your private key here (including BEGIN and END lines)"></textarea>
+        </div>
+        <button onclick="connect()">Connect</button>
+        <div id="error-message"></div>
     </div>
     <div id="terminal"></div>
 
@@ -50,44 +103,10 @@
         let ws = null;
         let fitAddon = null;
 
-        // Parse URL parameters
-        function getUrlParams() {
-            const params = {};
-            const queryString = window.location.search.substring(1);
-            const pairs = queryString.split('&');
-            
-            for (let i = 0; i < pairs.length; i++) {
-                const pair = pairs[i].split('=');
-                params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
-            }
-            
-            return params;
-        }
-
-        function showStatus(message, type = 'info') {
-            const statusText = document.getElementById('status-text');
-            const statusContainer = document.getElementById('status-container');
-            
-            statusText.textContent = message;
-            
-            // Remove all classes
-            statusContainer.classList.remove('error-message', 'success-message', 'info-message');
-            
-            // Add the appropriate class
-            if (type === 'error') {
-                statusContainer.classList.add('error-message');
-            } else if (type === 'success') {
-                statusContainer.classList.add('success-message');
-            } else {
-                statusContainer.classList.add('info-message');
-            }
-            
-            // Show the status container
-            statusContainer.style.display = 'block';
-        }
-
-        function hideStatus() {
-            document.getElementById('status-container').style.display = 'none';
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
         }
 
         function loadTerminal() {
@@ -128,8 +147,8 @@
                     term.open(terminalElement);
                     fitAddon.fit();
 
-                    term.writeln('WebSSH Terminal Ready');
-                    term.writeln('Connecting to SSH server...');
+                    term.writeln('Welcome to WebSSH');
+                    term.writeln('Please enter your credentials and click Connect');
 
                     resolve();
                 } catch (error) {
@@ -142,34 +161,8 @@
         document.addEventListener('DOMContentLoaded', async () => {
             try {
                 await loadTerminal();
-                
-                // Get connection parameters from URL
-                const params = getUrlParams();
-                
-                if (params.hostname && params.username) {
-                    // Auto-connect with URL parameters
-                    showStatus(`Connecting to ${params.hostname}...`, 'info');
-                    
-                    const credentials = {
-                        hostname: params.hostname,
-                        port: params.port || '22',
-                        username: params.username,
-                        password: params.password || ''
-                    };
-                    
-                    console.log("Connecting with credentials:", JSON.stringify(credentials));
-                    
-                    // Add a small delay to ensure terminal is fully initialized
-                    setTimeout(() => {
-                        connect(credentials);
-                    }, 1000);
-                } else {
-                    showStatus('No connection parameters provided. Please include hostname and username in the URL.', 'error');
-                    console.log("URL parameters:", window.location.search);
-                    console.log("Parsed parameters:", JSON.stringify(params));
-                }
             } catch (error) {
-                showStatus(`Failed to initialize terminal: ${error.message}`, 'error');
+                showError(`Failed to initialize terminal: ${error.message}`);
                 console.error('Terminal initialization error:', error);
             }
         });
@@ -188,10 +181,43 @@
             }
         };
 
-        async function connect(credentials) {
+        // Toggle between password and private key authentication
+        function toggleAuthMethod() {
+            const authType = document.getElementById('auth-type').value;
+            const passwordAuth = document.getElementById('password-auth');
+            const privateKeyAuth = document.getElementById('private-key-auth');
+            
+            if (authType === 'password') {
+                passwordAuth.style.display = 'block';
+                privateKeyAuth.style.display = 'none';
+            } else {
+                passwordAuth.style.display = 'none';
+                privateKeyAuth.style.display = 'block';
+            }
+        }
+
+        async function connect() {
             if (!term) {
-                showStatus('Terminal not initialized', 'error');
+                showError('Terminal not initialized');
                 return;
+            }
+
+            const hostname = document.getElementById('hostname').value;
+            const port = parseInt(document.getElementById('port').value);
+            const username = document.getElementById('username').value;
+            const authType = document.getElementById('auth-type').value;
+            
+            // Prepare credentials based on authentication method
+            const credentials = {
+                hostname,
+                port,
+                username
+            };
+            
+            if (authType === 'password') {
+                credentials.password = document.getElementById('password').value;
+            } else {
+                credentials.private_key = document.getElementById('private-key').value;
             }
 
             try {
@@ -217,12 +243,12 @@
                 } else {
                     const errorMessage = result.message || 'Connection failed';
                     term.writeln(`\r\nError: ${errorMessage}`);
-                    showStatus(errorMessage, 'error');
+                    showError(errorMessage);
                 }
             } catch (error) {
                 const errorMessage = error.message || 'Connection failed';
                 term.writeln(`\r\nError: ${errorMessage}`);
-                showStatus(errorMessage, 'error');
+                showError(errorMessage);
                 console.error('Connection error:', error);
             }
         }
@@ -240,8 +266,7 @@
 
                 ws.onopen = () => {
                     term.write('\r\nConnected to SSH server\r\n');
-                    showStatus('Connected to SSH server', 'success');
-                    setTimeout(hideStatus, 3000); // Hide status after 3 seconds
+                    document.getElementById('error-message').style.display = 'none';
                     
                     // Send initial terminal size
                     const dimensions = {
@@ -277,7 +302,7 @@
                             // Send the data to the server without echoing locally
                             ws.send(JSON.stringify({
                                 type: 'input',
-                                data: data === "\r" ? "\r\n" : data
+                                data: data
                             }));
                             
                             // We don't call term.write(data) here, which prevents local echo
@@ -306,19 +331,18 @@
 
                 ws.onclose = () => {
                     term.write('\r\n\nConnection closed\r\n');
-                    showStatus('Connection closed', 'info');
                 };
 
                 ws.onerror = (error) => {
                     const errorMessage = 'WebSocket error occurred';
                     term.write(`\r\n\n${errorMessage}\r\n`);
-                    showStatus(errorMessage, 'error');
+                    showError(errorMessage);
                     console.error('WebSocket error:', error);
                 };
             } catch (error) {
                 const errorMessage = `Failed to create WebSocket connection: ${error.message}`;
                 term.write(`\r\n\n${errorMessage}\r\n`);
-                showStatus(errorMessage, 'error');
+                showError(errorMessage);
                 console.error('WebSocket creation error:', error);
             }
         }

@@ -250,7 +250,7 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     
     // Try both WebSocket URLs - first the proxy, then direct if needed
-    const proxyWsUrl = `${protocol}//${window.location.host}/api/v1/devices/webssh/ws/${sessionId}`;
+    const proxyWsUrl = `ws://localhost:9001/api/v1/devices/webssh/ws/${sessionId}`;
     const directWsUrl = `ws://localhost:8888/ws/${sessionId}`;
     
     console.log("Connecting to WebSocket URLs:", proxyWsUrl, "and if that fails:", directWsUrl);
@@ -388,8 +388,13 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
             } else if (jsonData.type === 'error') {
               terminal.writeln(`\r\n\x1b[31mError: ${jsonData.message}\x1b[0m`);
             } else {
-              // Unknown JSON format, write as is
-              terminal.write(data);
+              // For any other JSON format, try to extract data if present
+              if (jsonData.data) {
+                terminal.write(jsonData.data);
+              } else {
+                // If no data field, write the entire JSON as string
+                terminal.write(data);
+              }
             }
           } catch (e) {
             // Not JSON, write as plain text
@@ -400,6 +405,9 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
           console.log("Unknown data type:", typeof data);
           terminal.write(String(data));
         }
+        
+        // Force the terminal to update
+        terminal.refresh(0, terminal.rows - 1);
       };
       
       ws.onclose = () => {

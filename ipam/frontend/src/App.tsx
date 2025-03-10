@@ -1,5 +1,4 @@
 import { Routes, Route } from 'react-router-dom';
-import { WebSSHFrame } from './components/WebSSHFrame';
 import { AppShell, Title, MantineProvider, Group, Avatar, Text, Box, Burger, ScrollArea, useMantineTheme } from '@mantine/core';
 import { MainNavigation } from './components/MainNavigation';
 import { Dashboard } from './components/Dashboard';
@@ -13,6 +12,7 @@ import { ASNRangeView } from './components/ASNRangeView';
 import { VRFDetailView } from './components/VRFDetailView';
 import { DeviceView } from './components/DeviceView';
 import { CredentialView } from './components/CredentialView';
+import { TerminalPage } from './components/TerminalPage';
 import { useState } from 'react';
 import { IconNetwork } from '@tabler/icons-react';
 import type { TableName } from './types';
@@ -102,12 +102,12 @@ function AppContent() {
           <Route path="/vlans" element={<IPAMView tableName="vlans" />} />
           <Route path="/vlan-groups" element={<IPAMView tableName="vlan_groups" />} />
           <Route path="/devices" element={<DeviceView />} />
+          <Route path="/terminal/:deviceId" element={<TerminalPage />} />
           <Route path="/interfaces" element={<IPAMView tableName="interfaces" />} />
           <Route path="/credentials" element={<CredentialView />} />
           <Route path="/asns" element={<ASNView />} />
           <Route path="/asn-ranges" element={<ASNRangeView />} />
           <Route path="/tenants" element={<IPAMView tableName="tenants" />} />
-          <Route path="/terminal/:deviceId" element={<WebSSHFrame />} />
         </Routes>
       </AppShell.Main>
     </AppShell>

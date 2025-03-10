@@ -333,16 +333,13 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                                 # Extract the actual input data
                                 input_data = json_data.get('data', '')
                                 print(f"Extracted input data: {input_data}")
-                                
+
+                                send_data = {"type": "input", "data": f"{input_data}"}
                                 # Send the raw input data to the WebSSH server
-                                await ws.send(input_data)
+                                await ws.send(json.dumps(send_data))
                                 
-                                # Echo the input back to the client for local display
-                                echo_data = json.dumps({
-                                    "type": "output",
-                                    "data": input_data
-                                })
-                                await websocket.send_text(echo_data)
+                                # Don't echo the input back to the client
+                                # The server will echo back the characters if needed
                             elif json_data.get('type') == 'resize':
                                 # Forward resize events as JSON
                                 print(f"Forwarding resize event: {data}")
@@ -358,12 +355,12 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                             # Not JSON, forward as raw data
                             print(f"Forwarding raw data: {data[:100]}")
                             
-                            # For Enter key (CR or LF), make sure to send both CR and LF
-                            if data == "\r" or data == "\n":
-                                print("Detected Enter key, sending CR+LF")
-                                await ws.send("\r\n")
-                            else:
-                                await ws.send(data)
+                            # # For Enter key (CR or LF), make sure to send both CR and LF
+                            # if data == "\r" or data == "\n":
+                            #     print("Detected Enter key, sending CR+LF")
+                            #     await ws.send("\r\n")
+                            # else:
+                            await ws.send(data)
                 except WebSocketDisconnect:
                     print("Client disconnected")
                     pass
@@ -376,7 +373,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             async def forward_to_client():
                 try:
                     # Send an initial newline to trigger the prompt
-                    await ws.send("\n")
+                    # await ws.send("\n")
                     
                     while True:
                         data = await ws.recv()
@@ -388,12 +385,17 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                                 json_data = json.loads(data)
                                 print(f"Parsed JSON data: {json_data}")
                                 
-                                # Wrap the data in a JSON object with type 'output'
-                                output_data = json.dumps({
-                                    "type": "output",
-                                    "data": data
-                                })
-                                await websocket.send_text(output_data)
+                                # If the data is already in JSON format with a 'data' field, extract it
+                                if 'data' in json_data:
+                                    # Forward the JSON as is
+                                    await websocket.send_text(data)
+                                else:
+                                    # Wrap the data in a JSON object with type 'output'
+                                    output_data = json.dumps({
+                                        "type": "output",
+                                        "data": json_data
+                                    })
+                                    await websocket.send_text(output_data)
                             except json.JSONDecodeError:
                                 # Not JSON, send as text wrapped in a JSON object
                                 print(f"Sending text data: {data[:100]}")
@@ -407,11 +409,27 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                             try:
                                 text_data = data.decode('utf-8')
                                 print(f"Decoded binary data: {text_data[:100]}")
-                                output_data = json.dumps({
-                                    "type": "output",
-                                    "data": text_data
-                                })
-                                await websocket.send_text(output_data)
+                                
+                                # Try to parse the decoded text as JSON
+                                try:
+                                    json_data = json.loads(text_data)
+                                    if 'data' in json_data:
+                                        # It's already in the right format, forward as is
+                                        await websocket.send_text(text_data)
+                                    else:
+                                        # Wrap in output type
+                                        output_data = json.dumps({
+                                            "type": "output",
+                                            "data": json_data
+                                        })
+                                        await websocket.send_text(output_data)
+                                except json.JSONDecodeError:
+                                    # Not JSON, wrap in output type
+                                    output_data = json.dumps({
+                                        "type": "output",
+                                        "data": text_data
+                                    })
+                                    await websocket.send_text(output_data)
                             except UnicodeDecodeError:
                                 # Can't decode as UTF-8, send as binary
                                 print("Sending raw binary data")
