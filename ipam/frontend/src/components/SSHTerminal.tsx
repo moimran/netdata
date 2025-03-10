@@ -342,12 +342,19 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
             const data = inputQueue.shift() as string;
             
             try {
-              // Send the data to the server without echoing locally
-              // The server will echo back the characters if needed
-              ws.send(JSON.stringify({
-                type: 'input',
-                data: data === "\r" ? "\r\n" : data
-              }));
+              // Handle Enter key specially to avoid double prompts
+              if (data === "\r") {
+                ws.send(JSON.stringify({
+                  type: 'input',
+                  data: "\r"
+                }));
+              } else {
+                // Send other data normally
+                ws.send(JSON.stringify({
+                  type: 'input',
+                  data: data
+                }));
+              }
             } catch (e) {
               console.error("Error sending input:", e);
             }
@@ -440,7 +447,15 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
   };
 
   return (
-    <Box pos="relative" h={400} style={{ borderRadius: '5px', overflow: 'hidden' }}>
+    <Box 
+      pos="relative" 
+      h={400} 
+      style={{ 
+        borderRadius: '5px', 
+        overflow: 'hidden',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+      }}
+    >
       <LoadingOverlay visible={loading} />
       {error && (
         <Box p="xs" bg="red.1" c="red.8" style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>

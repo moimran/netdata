@@ -247,20 +247,100 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
     logger.info(f"WebSocket connection accepted for session {session_id}")
     
     try:
-        # First create a session by calling the connect API
+        # Get device connection details from the database
         import requests
+        from sqlmodel import Session, select
+        from app.database import get_session
+        from app.models.device import Device
+        from app.models.credential import Credential
+        from app.models.ip_address import IPAddress
         
-        logger.info("Creating a session via the connect API...")
-        response = requests.post(
-            "http://localhost:8888/connect",
-            json={
-                "hostname": "192.168.1.25",
-                "port": 22,
-                "username": "admin",
-                "password": "moimran@123"
-            },
-            headers={"Content-Type": "application/json"}
-        )
+        # Create a database session
+        db_session = next(get_session())
+        
+        # Extract device ID from session ID (if it's in the format)
+        device_id = None
+        if session_id.startswith("device-"):
+            try:
+                device_id = int(session_id.split("-")[1].split("-")[0])
+                logger.info(f"Extracted device ID {device_id} from session ID {session_id}")
+            except (IndexError, ValueError):
+                logger.warning(f"Could not extract device ID from session ID {session_id}")
+        
+        # If we couldn't extract a device ID, use a default test device
+        if not device_id:
+            logger.info("Using test session for WebSSH connection")
+            response = requests.post(
+                "http://localhost:8888/connect",
+                json={
+                    "hostname": "192.168.1.25",
+                    "port": 22,
+                    "username": "admin",
+                    "password": "moimran@123"
+                },
+                headers={"Content-Type": "application/json"}
+            )
+        else:
+            # Get the device from the database
+            logger.info(f"Getting device with ID {device_id} from database")
+            device = db_session.get(Device, device_id)
+            if not device:
+                logger.error(f"Device with ID {device_id} not found")
+                await websocket.close(code=1011, reason=f"Device with ID {device_id} not found")
+                return
+            
+            # Get the IP address
+            if not device.ip_address_id:
+                logger.error(f"Device {device.name} has no IP address assigned")
+                await websocket.close(code=1011, reason=f"Device {device.name} has no IP address assigned")
+                return
+            
+            ip_address = db_session.get(IPAddress, device.ip_address_id)
+            if not ip_address:
+                logger.error(f"IP address with ID {device.ip_address_id} not found")
+                await websocket.close(code=1011, reason=f"IP address with ID {device.ip_address_id} not found")
+                return
+            
+            # Extract just the IP address part without the subnet mask
+            ip_only = str(ip_address.address).split('/')[0]
+            
+            # Get the credential
+            credential = None
+            if device.credential_name:
+                credential = db_session.exec(
+                    select(Credential).where(Credential.name == device.credential_name)
+                ).first()
+            
+            # If no credential found, try fallback
+            if not credential and device.fallback_credential_name:
+                credential = db_session.exec(
+                    select(Credential).where(Credential.name == device.fallback_credential_name)
+                ).first()
+            
+            # If still no credential, check for a default credential
+            if not credential:
+                credential = db_session.exec(
+                    select(Credential).where(Credential.is_default == True)
+                ).first()
+            
+            if not credential:
+                logger.error(f"No credentials found for device {device.name}")
+                await websocket.close(code=1011, reason=f"No credentials found for device {device.name}")
+                return
+            
+            # Connect to the WebSSH server
+            logger.info(f"Connecting to WebSSH server for device {device.name} ({ip_only})")
+            response = requests.post(
+                "http://localhost:8888/connect",
+                json={
+                    "hostname": ip_only,
+                    "port": 22,
+                    "username": credential.username,
+                    "password": credential.password,
+                    "device_type": "router"  # Assuming network devices
+                },
+                headers={"Content-Type": "application/json"}
+            )
         
         if response.status_code != 200:
             logger.error(f"Error: API returned status code {response.status_code}")

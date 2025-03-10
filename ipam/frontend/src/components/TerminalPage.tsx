@@ -70,7 +70,15 @@ export function TerminalPage() {
           </Button>
         </Group>
         
-        <div style={{ position: 'relative', height: 600 }}>
+        <div 
+          style={{ 
+            position: 'relative', 
+            height: 600,
+            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }}
+        >
           <LoadingOverlay visible={loading} />
           <SSHTerminal 
             deviceId={parseInt(deviceId)} 

@@ -112,8 +112,46 @@ export const TabbedTerminal = forwardRef<TabbedTerminalRef, TabbedTerminalProps>
   }
 
   return (
-    <Box mt="md" ref={containerRef} tabIndex={0} style={{ outline: 'none' }}>
-      <Tabs value={activeTab} onChange={handleTabChange}>
+    <Box 
+      mt="md" 
+      ref={containerRef} 
+      tabIndex={0} 
+      style={{ 
+        outline: 'none',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+        borderRadius: '8px',
+        overflow: 'hidden'
+      }}
+    >
+      <Tabs 
+        value={activeTab} 
+        onChange={handleTabChange}
+        styles={(theme) => ({
+          root: {
+            backgroundColor: theme.colors.dark[7]
+          },
+          list: {
+            backgroundColor: '#f8f9fa',
+            borderBottom: '1px solid #e9ecef',
+            padding: '0 8px'
+          },
+          tab: {
+            fontWeight: 500,
+            padding: '12px 16px',
+            color: '#495057',
+            '&[data-active]': {
+              color: '#0d9488',
+              borderColor: '#0d9488'
+            },
+            '&:hover': {
+              backgroundColor: 'rgba(13, 148, 136, 0.05)'
+            }
+          },
+          panel: {
+            padding: 0
+          }
+        })}
+      >
         <Tabs.List>
           {sessions.map(session => (
             <Tabs.Tab 
@@ -134,7 +172,8 @@ export const TabbedTerminal = forwardRef<TabbedTerminalRef, TabbedTerminalProps>
                     height: '20px',
                     borderRadius: '50%',
                     backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                    color: '#666'
+                    color: '#666',
+                    marginLeft: '8px'
                   }}
                 >
                   ×

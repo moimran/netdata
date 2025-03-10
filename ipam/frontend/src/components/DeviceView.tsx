@@ -1,16 +1,14 @@
-import { Stack, ActionIcon, Tooltip, Button, Group } from '@mantine/core';
+import { Stack, ActionIcon, Tooltip, Group } from '@mantine/core';
 import { IPAMTable } from './IPAMTable';
 import { TabbedTerminal, TabbedTerminalRef } from './TabbedTerminal';
 import { useTabbedTerminal } from '../hooks/useTabbedTerminal';
-import { useRef, useEffect, useState } from 'react';
-import { IconTerminal2, IconExternalLink } from '@tabler/icons-react';
+import { useRef, useEffect } from 'react';
+import { IconTerminal2, IconExternalLink, IconEdit } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 
 export function DeviceView() {
   const { 
-    terminalVisible, 
-    setTerminalVisible, 
-    terminalRef, 
+    terminalVisible,
     setTerminalRef, 
     connectToDevice 
   } = useTabbedTerminal();
@@ -49,6 +47,17 @@ export function DeviceView() {
             radius="md"
           >
             <IconExternalLink size={16} />
+          </ActionIcon>
+        </Tooltip>
+        <Tooltip label="Edit device">
+          <ActionIcon
+            color="yellow"
+            onClick={() => navigate(`/devices/edit/${device.id}`)}
+            title="Edit device"
+            variant="light"
+            radius="md"
+          >
+            <IconEdit size={16} />
           </ActionIcon>
         </Tooltip>
       </Group>
