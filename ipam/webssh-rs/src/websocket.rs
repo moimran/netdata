@@ -19,6 +19,8 @@ pub struct WebSocketHandler {
     ssh_input_tx: mpsc::Sender<Bytes>,
     ssh_output_rx: mpsc::Receiver<Bytes>,
     resize_tx: Option<mpsc::Sender<(u32, u32)>>,
+    session_id: String,
+    portal_user_id: String,
 }
 
 impl WebSocketHandler {
@@ -26,12 +28,16 @@ impl WebSocketHandler {
         socket: WebSocket,
         ssh_input_tx: mpsc::Sender<Bytes>,
         ssh_output_rx: mpsc::Receiver<Bytes>,
+        session_id: String,
+        portal_user_id: String,
     ) -> Self {
         Self {
             socket,
             ssh_input_tx,
             ssh_output_rx,
             resize_tx: None,
+            session_id,
+            portal_user_id,
         }
     }
     
@@ -40,73 +46,91 @@ impl WebSocketHandler {
     }
 
     pub async fn handle(mut self) {
-        debug!("Starting WebSocket handler");
+        debug!("Starting WebSocket handler for session {} (portal user: {})",
+               self.session_id, self.portal_user_id);
         let (mut ws_sender, mut ws_receiver) = self.socket.split();
 
         // Handle incoming WebSocket messages
         let ssh_input_tx = self.ssh_input_tx.clone();
         let resize_tx = self.resize_tx.clone();
+        let session_id = self.session_id.clone();
+        let portal_user_id = self.portal_user_id.clone();
+        
         tokio::spawn(async move {
-            debug!("Starting WebSocket receiver task");
+            debug!("Starting WebSocket receiver task for session {} (portal user: {})",
+                   session_id, portal_user_id);
             while let Some(Ok(msg)) = ws_receiver.next().await {
                 match msg {
                     Message::Text(text) => {
-                        debug!("Received text message: {}", text);
+                        debug!("[Session {}] Received text message: {}", session_id, text);
                         if let Ok(cmd) = serde_json::from_str::<WSCommand>(&text) {
                             match cmd {
                                 WSCommand::Input { data } => {
-                                    debug!("Processing input command: {} bytes", data.len());
+                                    debug!("[Session {}] Processing input command: {} bytes",
+                                           session_id, data.len());
                                     if let Err(e) = ssh_input_tx.send(Bytes::from(data)).await {
-                                        error!("Failed to send SSH input: {}", e);
+                                        error!("[Session {}] Failed to send SSH input: {}",
+                                               session_id, e);
                                         break;
                                     }
                                 }
                                 WSCommand::Resize { rows, cols } => {
-                                    debug!("Processing resize command: {}x{}", cols, rows);
+                                    debug!("[Session {}] Processing resize command: {}x{}",
+                                           session_id, cols, rows);
                                     if let Some(ref resize_tx) = resize_tx {
                                         if let Err(e) = resize_tx.send((rows, cols)).await {
-                                            error!("Failed to send resize command: {}", e);
+                                            error!("[Session {}] Failed to send resize command: {}",
+                                                   session_id, e);
                                         }
                                     } else {
-                                        debug!("Resize channel not set, ignoring resize command");
+                                        debug!("[Session {}] Resize channel not set, ignoring resize command",
+                                               session_id);
                                     }
                                 }
                             }
                         } else {
-                            error!("Failed to parse WebSocket command: {}", text);
+                            error!("[Session {}] Failed to parse WebSocket command: {}",
+                                   session_id, text);
                         }
                     }
                     Message::Binary(data) => {
-                        debug!("Received binary message: {} bytes", data.len());
+                        debug!("[Session {}] Received binary message: {} bytes",
+                               session_id, data.len());
                         if let Err(e) = ssh_input_tx.send(Bytes::from(data)).await {
-                            error!("Failed to send SSH binary input: {}", e);
+                            error!("[Session {}] Failed to send SSH binary input: {}",
+                                   session_id, e);
                             break;
                         }
                     }
                     Message::Close(_) => {
-                        info!("WebSocket close message received");
+                        info!("[Session {}] WebSocket close message received", session_id);
                         break;
                     }
                     msg => {
-                        debug!("Received other message type: {:?}", msg);
+                        debug!("[Session {}] Received other message type: {:?}",
+                               session_id, msg);
                     }
                 }
             }
-            debug!("WebSocket receiver task ended");
+            debug!("[Session {}] WebSocket receiver task ended", session_id);
         });
 
         // Forward SSH output to WebSocket
-        debug!("Starting SSH output forwarder");
+        debug!("Starting SSH output forwarder for session {}", self.session_id);
         while let Some(data) = self.ssh_output_rx.recv().await {
-            debug!("Received {} bytes from SSH", data.len());
+            debug!("[Session {}] Received {} bytes from SSH", self.session_id, data.len());
             match ws_sender.send(Message::Binary(data.to_vec())).await {
-                Ok(_) => debug!("Sent {} bytes to WebSocket", data.len()),
+                Ok(_) => debug!("[Session {}] Sent {} bytes to WebSocket",
+                                self.session_id, data.len()),
                 Err(e) => {
-                    error!("Failed to send WebSocket message: {}", e);
+                    error!("[Session {}] Failed to send WebSocket message: {}",
+                           self.session_id, e);
                     break;
                 }
             }
         }
-        debug!("SSH output forwarder ended");
+        debug!("[Session {}] SSH output forwarder ended", self.session_id);
+        info!("[Session {}] WebSocket handler completed for portal user {}",
+              self.session_id, self.portal_user_id);
     }
 }

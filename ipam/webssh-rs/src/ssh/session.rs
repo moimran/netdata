@@ -10,7 +10,7 @@ use super::error::SSHError;
 use super::channel::{setup_standard_session, setup_linux_session, setup_cisco_session};
 
 /// Represents an active SSH session with a remote server
-/// 
+///
 /// This struct manages the SSH connection, authentication, and I/O operations
 /// between the web client and the SSH server.
 pub struct SSHSession {
@@ -18,6 +18,29 @@ pub struct SSHSession {
     channel: ssh2::Channel,
     resize_rx: Option<mpsc::Receiver<(u32, u32)>>,
     settings: SSHSettings,
+    // Store connection parameters for cloning
+    hostname: String,
+    port: u16,
+    username: String,
+    password: Option<String>,
+    private_key: Option<String>,
+    device_type: Option<String>,
+}
+
+// Implement Clone for SSHSession
+impl Clone for SSHSession {
+    fn clone(&self) -> Self {
+        // Create a new session with the same parameters
+        SSHSession::new(
+            &self.hostname,
+            self.port,
+            &self.username,
+            self.password.as_deref(),
+            self.private_key.as_deref(),
+            self.device_type.as_deref(),
+            &self.settings,
+        ).expect("Failed to clone SSH session")
+    }
 }
 
 impl SSHSession {
@@ -199,11 +222,18 @@ impl SSHSession {
         session.set_blocking(false);
         debug!("SSH session setup completed");
 
-        Ok(Self { 
+        Ok(Self {
             session,
             channel,
             resize_rx: None,
             settings: settings.clone(),
+            // Store parameters for cloning
+            hostname: hostname.to_string(),
+            port,
+            username: username.to_string(),
+            password: password.map(String::from),
+            private_key: private_key.map(String::from),
+            device_type: device_type_hint.map(String::from),
         })
     }
 
