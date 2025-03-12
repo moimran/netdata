@@ -2,7 +2,7 @@ from typing import Optional, List, TYPE_CHECKING
 import ipaddress
 import sqlalchemy as sa
 from sqlmodel import SQLModel, Field, Relationship, select
-from .base import BaseModel
+from .base import BaseModel, TimestampedModel
 from .ip_constants import PrefixStatusEnum, IPRangeStatusEnum
 from .fields import IPNetworkField
 from .ip_utils import (
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from .role import Role
     from .ip_address import IPAddress
 
-class Prefix(BaseModel, table=True):
+class Prefix(TimestampedModel, table=True):
     """
     A Prefix represents an IPv4 or IPv6 network, including mask length. Prefixes can
     optionally be assigned to Sites and VRFs. A Prefix must be assigned a status and
@@ -30,9 +30,10 @@ class Prefix(BaseModel, table=True):
     """
     __tablename__ = "prefixes"
     
+    # Primary key
+    id: Optional[int] = Field(default=None, primary_key=True)
+    
     # Basic fields
-    name: str = Field(default="", description="Name of the prefix")
-    slug: str = Field(default="", description="URL-friendly name")
     description: Optional[str] = Field(default=None, description="Brief description")
     
     # Fields specific to Prefix

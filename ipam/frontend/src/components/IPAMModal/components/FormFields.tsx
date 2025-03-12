@@ -1,13 +1,15 @@
-import React from 'react';
-import { 
-  TextInput, 
-  Select, 
+import React, { useEffect } from 'react';
+import {
+  TextInput,
+  Select,
   Switch,
   Textarea,
-  MantineTheme
+  MantineTheme,
+  Loader
 } from '@mantine/core';
 import { Column, FormData, ValidationErrors, ReferenceItem } from '../types';
 import { getStatusOptions, getRoleOptions, formatReferenceDataForSelect } from '../utils/options';
+import { useIPAddressPrefix } from '../hooks/useIPAddressPrefix';
 
 // Common styles to reduce duplication
 const getCommonInputStyles = (theme: MantineTheme) => ({
@@ -41,6 +43,7 @@ interface FormFieldProps {
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
   validationErrors: ValidationErrors;
+  setValidationErrors: React.Dispatch<React.SetStateAction<ValidationErrors>>;
   tableName: string;
   getReferenceData: (referenceName: string) => ReferenceItem[];
   selectedVlanGroup: any;
@@ -82,11 +85,30 @@ export const FormField: React.FC<FormFieldProps> = ({
   formData,
   setFormData,
   validationErrors,
+  setValidationErrors,
   tableName,
   getReferenceData,
   selectedVlanGroup,
   handleVlanIdChange
 }) => {
+  // Use the IP address prefix hook for automatic prefix detection
+  const { findMatchingPrefix, isLoading } = useIPAddressPrefix({
+    formData,
+    setFormData,
+    setValidationErrors
+  });
+
+  // Handle IP address changes for automatic prefix detection
+  useEffect(() => {
+    if (tableName === 'ip_addresses' && column.name === 'address' && formData.address) {
+      // Debounce the prefix lookup to avoid too many API calls
+      const timer = setTimeout(() => {
+        findMatchingPrefix(formData.address);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [tableName, column.name, formData.address, findMatchingPrefix]);
   // Skip ID field
   if (column.name === 'id') return null;
   
@@ -153,14 +175,33 @@ export const FormField: React.FC<FormFieldProps> = ({
     if (column.name in specialReferenceLabels) {
       const { label, placeholder } = specialReferenceLabels[column.name];
       
+      // Skip prefix_id for ip_addresses as we'll handle it automatically
+      if (column.name === 'prefix_id' && tableName === 'ip_addresses') {
+        return null;
+      }
+      
+      // Special handling for ip_address_id in interfaces
+      if (column.name === 'ip_address_id' && tableName === 'interfaces') {
+        return createSelectField(
+          column,
+          formData,
+          setFormData,
+          formatReferenceDataForSelect(referenceData),
+          'IP Address',
+          'Select IP Address',
+          column.required,
+          validationErrors[column.name]
+        );
+      }
+      
       return createSelectField(
-        column, 
-        formData, 
-        setFormData, 
-        formatReferenceDataForSelect(referenceData), 
-        label, 
-        placeholder, 
-        column.required, 
+        column,
+        formData,
+        setFormData,
+        formatReferenceDataForSelect(referenceData),
+        label,
+        placeholder,
+        column.required,
         validationErrors[column.name]
       );
     }
@@ -285,6 +326,25 @@ export const FormField: React.FC<FormFieldProps> = ({
         }}
         required={column.required}
         error={validationErrors[column.name]}
+        styles={getCommonInputStyles}
+      />
+    );
+  }
+  
+  // Special handling for IP address field in ip_addresses table
+  if (tableName === 'ip_addresses' && column.name === 'address') {
+    return (
+      <TextInput
+        key={column.name}
+        label="IP Address"
+        value={formData[column.name] || ''}
+        onChange={(e) => setFormData({
+          ...formData,
+          [column.name]: e.target.value
+        })}
+        required={column.required}
+        error={validationErrors[column.name] || validationErrors['prefix_id']}
+        rightSection={isLoading ? <Loader size="xs" /> : null}
         styles={getCommonInputStyles}
       />
     );

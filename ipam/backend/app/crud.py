@@ -109,7 +109,8 @@ class CRUDBase(Generic[T]):
                     cleaned_obj[key] = value
             
             # Auto-generate slug if name is provided but slug is not or is None
-            if 'name' in cleaned_obj and hasattr(self.model, 'slug'):
+            # Only if the model has both name and slug fields
+            if 'name' in cleaned_obj and hasattr(self.model, 'name') and hasattr(self.model, 'slug'):
                 if 'slug' not in cleaned_obj or cleaned_obj['slug'] is None or cleaned_obj['slug'] == '':
                     cleaned_obj['slug'] = slugify(cleaned_obj['name'])
                     
@@ -164,7 +165,8 @@ class CRUDBase(Generic[T]):
                     cleaned_obj[key] = value
             
             # Auto-update slug if name is changed but slug is not provided or is empty
-            if 'name' in cleaned_obj and hasattr(self.model, 'slug'):
+            # Only if the model has both name and slug fields
+            if 'name' in cleaned_obj and hasattr(self.model, 'name') and hasattr(self.model, 'slug'):
                 if 'slug' not in cleaned_obj:
                     # Only update slug if name has changed
                     if cleaned_obj['name'] != getattr(db_obj, 'name', None):
@@ -440,6 +442,7 @@ class PrefixCRUD(CRUDBase[Prefix]):
         # Convert to dictionaries with additional hierarchical information
         result = []
         for prefix in prefixes:
+            # Only include fields that exist in the database
             prefix_dict = {
                 "id": prefix.id,
                 "prefix": prefix.prefix,
@@ -449,7 +452,12 @@ class PrefixCRUD(CRUDBase[Prefix]):
                 "tenant_id": prefix.tenant_id,
                 "depth": prefix.depth,
                 "parent_id": prefix.parent_id,
-                "child_count": prefix.child_count
+                "child_count": prefix.child_count,
+                "description": prefix.description,
+                "is_pool": prefix.is_pool,
+                "mark_utilized": prefix.mark_utilized,
+                "vlan_id": prefix.vlan_id,
+                "role_id": prefix.role_id
             }
             result.append(prefix_dict)
         

@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING
 import sqlalchemy as sa
 from sqlmodel import SQLModel, Field, Relationship
 from .base import BaseModel
@@ -52,15 +52,14 @@ class IPAddress(BaseModel, table=True):
     
     # Foreign Keys
     prefix_id: Optional[int] = Field(default=None, foreign_key="prefixes.id")
-    interface_id: Optional[int] = Field(default=None, foreign_key="interfaces.id")
     vrf_id: Optional[int] = Field(default=None, foreign_key="vrfs.id")
     tenant_id: Optional[int] = Field(default=None, foreign_key="tenants.id")
     
     # Relationships
     prefix: Optional["Prefix"] = Relationship(back_populates="ip_addresses")
-    interface: Optional["Interface"] = Relationship(back_populates="ip_addresses")
     vrf: Optional["VRF"] = Relationship(back_populates="ip_addresses")
     tenant: Optional["Tenant"] = Relationship(back_populates="ip_addresses")
+    interfaces: List["Interface"] = Relationship(back_populates="ip_address")
     
     class Config:
         arbitrary_types_allowed = True

@@ -138,6 +138,7 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
               formData={formData}
               setFormData={setFormData}
               validationErrors={validationErrors}
+              setValidationErrors={setValidationErrors}
               tableName={tableName}
               getReferenceData={getReferenceData}
               selectedVlanGroup={selectedVlanGroup}

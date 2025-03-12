@@ -1,4 +1,4 @@
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 import sqlalchemy as sa
 from sqlmodel import SQLModel, Field, Relationship
 from .base import BaseModel
@@ -19,10 +19,11 @@ class Interface(BaseModel, table=True):
     
     # Foreign Keys
     device_id: int = Field(foreign_key="devices.id")
+    ip_address_id: Optional[int] = Field(default=None, foreign_key="ip_addresses.id")
     
     # Relationships
     device: "Device" = Relationship(back_populates="interfaces")
-    ip_addresses: List["IPAddress"] = Relationship(back_populates="interface")
+    ip_address: Optional["IPAddress"] = Relationship(back_populates="interfaces")
 
     # Add unique constraint for name
     __table_args__ = (

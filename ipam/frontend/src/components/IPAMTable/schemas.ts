@@ -101,8 +101,6 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   ],
   prefixes: [
     { name: 'id', type: 'number' },
-    { name: 'name', type: 'string' },
-    { name: 'slug', type: 'string' },
     { name: 'prefix', type: 'string', required: true },
     { name: 'vrf_id', type: 'number', reference: 'vrfs' },
     { name: 'site_id', type: 'number', reference: 'sites' },
@@ -134,7 +132,6 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'vrf_id', type: 'number', reference: 'vrfs' },
     { name: 'tenant_id', type: 'number', reference: 'tenants' },
     { name: 'nat_inside_id', type: 'number', reference: 'ip_addresses' },
-    { name: 'interface_id', type: 'number', reference: 'interfaces' },
     { name: 'prefix_id', type: 'number', reference: 'prefixes' },
     { name: 'description', type: 'string' }
   ],
@@ -153,7 +150,8 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'name', type: 'string', required: true },
     { name: 'slug', type: 'string' },
     { name: 'description', type: 'string' },
-    { name: 'device_id', type: 'number', reference: 'devices' }
+    { name: 'device_id', type: 'number', reference: 'devices' },
+    { name: 'ip_address_id', type: 'number', reference: 'ip_addresses' }
   ],
   asns: [
     { name: 'id', type: 'number' },
