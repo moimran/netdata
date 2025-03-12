@@ -3,10 +3,38 @@ import {
   TextInput, 
   Select, 
   Switch,
-  Textarea
+  Textarea,
+  MantineTheme
 } from '@mantine/core';
 import { Column, FormData, ValidationErrors, ReferenceItem } from '../types';
 import { getStatusOptions, getRoleOptions, formatReferenceDataForSelect } from '../utils/options';
+
+// Common styles to reduce duplication
+const getCommonInputStyles = (theme: MantineTheme) => ({
+  input: {
+    backgroundColor: theme.colors.dark[6],
+    color: theme.white,
+    '&::placeholder': {
+      color: theme.colors.gray[5]
+    }
+  },
+  label: {
+    color: theme.white
+  }
+});
+
+const getCommonSelectStyles = (theme: MantineTheme) => ({
+  ...getCommonInputStyles(theme),
+  item: {
+    '&[data-selected]': {
+      backgroundColor: theme.colors.blue[8],
+      color: theme.white
+    },
+    '&[data-hovered]': {
+      backgroundColor: theme.colors.dark[5]
+    }
+  }
+});
 
 interface FormFieldProps {
   column: Column;
@@ -18,6 +46,36 @@ interface FormFieldProps {
   selectedVlanGroup: any;
   handleVlanIdChange: (newVid: number) => void;
 }
+
+// Helper function for creating Select fields with consistent styling
+const createSelectField = (
+  column: Column, 
+  formData: FormData, 
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>, 
+  data: any[], 
+  label: string, 
+  placeholder: string, 
+  required: boolean = column.required, 
+  error: string | undefined = undefined,
+  useIntegerValue: boolean = true
+) => {
+  return (
+    <Select
+      key={column.name}
+      label={label}
+      placeholder={placeholder}
+      data={data}
+      value={useIntegerValue ? formData[column.name]?.toString() || '' : formData[column.name] || ''}
+      onChange={(value) => setFormData({ 
+        ...formData, 
+        [column.name]: useIntegerValue ? (value ? parseInt(value) : null) : (value || null)
+      })}
+      required={required}
+      error={error || undefined}
+      styles={getCommonSelectStyles}
+    />
+  );
+};
 
 export const FormField: React.FC<FormFieldProps> = ({
   column,
@@ -41,85 +99,28 @@ export const FormField: React.FC<FormFieldProps> = ({
   if (column.reference) {
     const referenceData = getReferenceData(column.reference);
     
-    // Special handling for interface_id in IP addresses
-    if (tableName === 'ip_addresses' && column.name === 'interface_id') {
-      return (
-        <Select
-          key={column.name}
-          label="Interface"
-          placeholder="Select Interface"
-          data={formatReferenceDataForSelect(referenceData)}
-          value={formData[column.name]?.toString() || ''}
-          onChange={(value) => setFormData({ 
-            ...formData, 
-            [column.name]: value ? parseInt(value) : null 
-          })}
-          required={column.required}
-          error={validationErrors[column.name]}
-          styles={(theme) => ({
-            input: {
-              backgroundColor: theme.colors.dark[6],
-              color: theme.white,
-              '&::placeholder': {
-                color: theme.colors.gray[5]
-              }
-            },
-            label: {
-              color: theme.white
-            },
-            item: {
-              '&[data-selected]': {
-                backgroundColor: theme.colors.blue[8],
-                color: theme.white
-              },
-              '&[data-hovered]': {
-                backgroundColor: theme.colors.dark[5]
-              }
-            }
-          })}
-        />
-      );
-    }
-    
-    // Special handling for prefix_id in IP addresses
-    if (tableName === 'ip_addresses' && column.name === 'prefix_id') {
-      return (
-        <Select
-          key={column.name}
-          label="Prefix"
-          placeholder="Select Prefix"
-          data={formatReferenceDataForSelect(referenceData)}
-          value={formData[column.name]?.toString() || ''}
-          onChange={(value) => setFormData({ 
-            ...formData, 
-            [column.name]: value ? parseInt(value) : null 
-          })}
-          required={column.required}
-          error={validationErrors[column.name]}
-          styles={(theme) => ({
-            input: {
-              backgroundColor: theme.colors.dark[6],
-              color: theme.white,
-              '&::placeholder': {
-                color: theme.colors.gray[5]
-              }
-            },
-            label: {
-              color: theme.white
-            },
-            item: {
-              '&[data-selected]': {
-                backgroundColor: theme.colors.blue[8],
-                color: theme.white
-              },
-              '&[data-hovered]': {
-                backgroundColor: theme.colors.dark[5]
-              }
-            }
-          })}
-        />
-      );
-    }
+    // Map of special references to their human-readable labels
+    const specialReferenceLabels: Record<string, { label: string, placeholder: string }> = {
+      'interface_id': { label: 'Interface', placeholder: 'Select Interface' },
+      'region_id': { label: 'Region', placeholder: 'Select Region' },
+      'location_id': { label: 'Location', placeholder: 'Select Location' },
+      'site_group_id': { label: 'Site Group', placeholder: 'Select Site Group' },
+      'prefix_id': { label: 'Prefix', placeholder: 'Select Prefix' },
+      'group_id': { label: 'VLAN Group', placeholder: 'Select VLAN Group' },
+      'vrf_id': { label: 'VRF', placeholder: 'Select VRF' },
+      'vlan_id': { label: 'VLAN', placeholder: 'Select VLAN' },
+      'tenant_id': { label: 'Tenant', placeholder: 'Select Tenant' },
+      'role_id': { label: 'Role', placeholder: 'Select Role' },
+      'parent_id': { 
+        label: tableName === 'locations' ? 'Parent Location' : 
+               tableName === 'regions' ? 'Parent Region' : 
+               'Parent',
+        placeholder: tableName === 'locations' ? 'Select Parent Location' : 
+                     tableName === 'regions' ? 'Select Parent Region' : 
+                     'Select Parent'
+      },
+      'site_id': { label: 'Site', placeholder: 'Select Site' }
+    };
     
     // Special handling for credential fields in devices
     if (tableName === 'devices' && (column.name === 'credential_name' || column.name === 'fallback_credential_name')) {
@@ -132,193 +133,78 @@ export const FormField: React.FC<FormFieldProps> = ({
       // Add a "None" option
       const options = [{ value: '', label: 'None' }, ...credentialOptions];
       
-      return (
-        <Select
-          key={column.name}
-          label={column.name === 'credential_name' ? 'Credential' : 'Fallback Credential'}
-          placeholder={`Select ${column.name === 'credential_name' ? 'Credential' : 'Fallback Credential'}`}
-          data={options}
-          value={formData[column.name] || ''}
-          onChange={(value) => setFormData({ 
-            ...formData, 
-            [column.name]: value || null 
-          })}
-          required={column.required}
-          error={validationErrors[column.name]}
-          styles={(theme) => ({
-            input: {
-              backgroundColor: theme.colors.dark[6],
-              color: theme.white,
-              '&::placeholder': {
-                color: theme.colors.gray[5]
-              }
-            },
-            label: {
-              color: theme.white
-            },
-            item: {
-              '&[data-selected]': {
-                backgroundColor: theme.colors.blue[8],
-                color: theme.white
-              },
-              '&[data-hovered]': {
-                backgroundColor: theme.colors.dark[5]
-              }
-            }
-          })}
-        />
+      const label = column.name === 'credential_name' ? 'Credential' : 'Fallback Credential';
+      const placeholder = `Select ${label}`;
+      
+      return createSelectField(
+        column, 
+        formData, 
+        setFormData, 
+        options, 
+        label, 
+        placeholder, 
+        column.required, 
+        validationErrors[column.name],
+        false
       );
     }
     
-    // Special handling for VLAN group selection in VLANs
-    if (tableName === 'vlans' && column.name === 'group_id') {
-      return (
-        <Select
-          key={column.name}
-          label="VLAN Group"
-          placeholder="Select VLAN Group"
-          data={formatReferenceDataForSelect(referenceData)}
-          value={formData[column.name]?.toString() || ''}
-          onChange={(value) => {
-            // Update the form data
-            setFormData({ 
-              ...formData, 
-              [column.name]: value ? parseInt(value) : null 
-            });
-          }}
-          required={column.required}
-          error={validationErrors[column.name]}
-          styles={(theme) => ({
-            input: {
-              backgroundColor: theme.colors.dark[6],
-              color: theme.white,
-              '&::placeholder': {
-                color: theme.colors.gray[5]
-              }
-            },
-            label: {
-              color: theme.white
-            },
-            item: {
-              '&[data-selected]': {
-                backgroundColor: theme.colors.blue[8],
-                color: theme.white
-              },
-              '&[data-hovered]': {
-                backgroundColor: theme.colors.dark[5]
-              }
-            }
-          })}
-        />
+    // Special handling for reference fields using the mapping
+    if (column.name in specialReferenceLabels) {
+      const { label, placeholder } = specialReferenceLabels[column.name];
+      
+      return createSelectField(
+        column, 
+        formData, 
+        setFormData, 
+        formatReferenceDataForSelect(referenceData), 
+        label, 
+        placeholder, 
+        column.required, 
+        validationErrors[column.name]
       );
     }
     
-    return (
-      <Select
-        key={column.name}
-        label={column.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-        placeholder={`Select ${column.reference}`}
-        data={formatReferenceDataForSelect(referenceData)}
-        value={formData[column.name]?.toString() || ''}
-        onChange={(value) => setFormData({ 
-          ...formData, 
-          [column.name]: value ? parseInt(value) : null 
-        })}
-        required={column.required}
-        error={validationErrors[column.name]}
-        styles={(theme) => ({
-          input: {
-            backgroundColor: theme.colors.dark[6],
-            color: theme.white,
-            '&::placeholder': {
-              color: theme.colors.gray[5]
-            }
-          },
-          label: {
-            color: theme.white
-          },
-          item: {
-            '&[data-selected]': {
-              backgroundColor: theme.colors.blue[8],
-              color: theme.white
-            },
-            '&[data-hovered]': {
-              backgroundColor: theme.colors.dark[5]
-            }
-          }
-        })}
-      />
+    // Default handling for other reference fields
+    return createSelectField(
+      column, 
+      formData, 
+      setFormData, 
+      formatReferenceDataForSelect(referenceData), 
+      column.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), 
+      `Select ${column.reference}`, 
+      column.required, 
+      validationErrors[column.name]
     );
   }
 
   // Handle status fields
   if (column.name === 'status') {
-    return (
-      <Select
-        key={column.name}
-        label="Status"
-        data={getStatusOptions(tableName)}
-        value={formData[column.name] || 'active'}
-        onChange={(value) => setFormData({ 
-          ...formData, 
-          [column.name]: value || 'active' 
-        })}
-        required={column.required}
-        error={validationErrors[column.name]}
-        styles={(theme) => ({
-          input: {
-            backgroundColor: theme.colors.dark[6],
-            color: theme.white
-          },
-          label: {
-            color: theme.white
-          },
-          item: {
-            '&[data-selected]': {
-              backgroundColor: theme.colors.blue[8],
-              color: theme.white
-            },
-            '&[data-hovered]': {
-              backgroundColor: theme.colors.dark[5]
-            }
-          }
-        })}
-      />
+    return createSelectField(
+      column, 
+      formData, 
+      setFormData, 
+      getStatusOptions(tableName), 
+      'Status', 
+      'Select Status', 
+      column.required, 
+      validationErrors[column.name],
+      false
     );
   }
 
   // Handle role field for IP addresses
   if (column.name === 'role' && tableName === 'ip_addresses') {
-    return (
-      <Select
-        key={column.name}
-        label="Role"
-        data={getRoleOptions()}
-        value={formData[column.name] || ''}
-        onChange={(value) => setFormData({ 
-          ...formData, 
-          [column.name]: value || null 
-        })}
-        error={validationErrors[column.name]}
-        styles={(theme) => ({
-          input: {
-            backgroundColor: theme.colors.dark[6],
-            color: theme.white
-          },
-          label: {
-            color: theme.white
-          },
-          item: {
-            '&[data-selected]': {
-              backgroundColor: theme.colors.blue[8],
-              color: theme.white
-            },
-            '&[data-hovered]': {
-              backgroundColor: theme.colors.dark[5]
-            }
-          }
-        })}
-      />
+    return createSelectField(
+      column, 
+      formData, 
+      setFormData, 
+      getRoleOptions(), 
+      'Role', 
+      'Select Role', 
+      column.required, 
+      validationErrors[column.name],
+      false
     );
   }
 
@@ -355,18 +241,7 @@ export const FormField: React.FC<FormFieldProps> = ({
           [column.name]: e.target.value 
         })}
         error={validationErrors[column.name]}
-        styles={(theme) => ({
-          input: {
-            backgroundColor: theme.colors.dark[6],
-            color: theme.white,
-            '&::placeholder': {
-              color: theme.colors.gray[5]
-            }
-          },
-          label: {
-            color: theme.white
-          }
-        })}
+        styles={getCommonInputStyles}
       />
     );
   }
@@ -384,18 +259,7 @@ export const FormField: React.FC<FormFieldProps> = ({
         })}
         required={column.required}
         error={validationErrors[column.name]}
-        styles={(theme) => ({
-          input: {
-            backgroundColor: theme.colors.dark[6],
-            color: theme.white,
-            '&::placeholder': {
-              color: theme.colors.gray[5]
-            }
-          },
-          label: {
-            color: theme.white
-          }
-        })}
+        styles={getCommonInputStyles}
       />
     );
   }
@@ -421,18 +285,7 @@ export const FormField: React.FC<FormFieldProps> = ({
         }}
         required={column.required}
         error={validationErrors[column.name]}
-        styles={(theme) => ({
-          input: {
-            backgroundColor: theme.colors.dark[6],
-            color: theme.white,
-            '&::placeholder': {
-              color: theme.colors.gray[5]
-            }
-          },
-          label: {
-            color: theme.white
-          }
-        })}
+        styles={getCommonInputStyles}
       />
     );
   }
@@ -449,18 +302,7 @@ export const FormField: React.FC<FormFieldProps> = ({
       })}
       required={column.required}
       error={validationErrors[column.name]}
-      styles={(theme) => ({
-        input: {
-          backgroundColor: theme.colors.dark[6],
-          color: theme.white,
-          '&::placeholder': {
-            color: theme.colors.gray[5]
-          }
-        },
-        label: {
-          color: theme.white
-        }
-      })}
+      styles={getCommonInputStyles}
     />
   );
 };
@@ -484,18 +326,7 @@ export const VlanIdRangesField: React.FC<VlanIdRangesFieldProps> = ({
       value={vlanIdRanges}
       onChange={(e) => setVlanIdRanges(e.target.value)}
       error={validationErrors.vlanIdRanges}
-      styles={(theme) => ({
-        input: {
-          backgroundColor: theme.colors.dark[6],
-          color: theme.white,
-          '&::placeholder': {
-            color: theme.colors.gray[5]
-          }
-        },
-        label: {
-          color: theme.white
-        }
-      })}
+      styles={getCommonInputStyles}
     />
   );
 };

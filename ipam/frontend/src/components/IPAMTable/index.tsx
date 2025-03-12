@@ -238,7 +238,13 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
                       return 'Interface';
                     } else if (col.name === 'prefix_id') {
                       return 'Prefix';
-                    } else if (col.name.endsWith('_id')) {
+                    } 
+                    else if (tableName === 'locations' && col.name === 'name') {
+                      return 'Location';
+                    } else if (tableName === 'locations' && col.name === 'parent_id') {
+                      return 'Parent Location';
+                    
+                    }else if (col.name.endsWith('_id')) {
                       // For other _id fields, remove the _id suffix and capitalize
                       return col.name.replace('_id', '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
                     }
