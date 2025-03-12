@@ -6,7 +6,6 @@ import logging
 import threading
 import time
 import signal
-import sys
 
 from .database import engine
 from .middleware import LoggingMiddleware
