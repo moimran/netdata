@@ -121,7 +121,7 @@ def find_prefix(request: PrefixLookupRequest, session: Session = Depends(get_ses
     try:
         ip = request.ip
         vrf_id = request.vrf_id
-        
+        logger.info(f"Finding prefix for IP address {ip} in VRF {vrf_id}")
         # Parse the IP address
         try:
             # Remove mask if present
@@ -171,7 +171,7 @@ def find_prefix(request: PrefixLookupRequest, session: Session = Depends(get_ses
         
         return {
             "prefix_id": best_prefix.id,
-            "prefix": best_prefix.prefix,
+            "prefix": str(best_prefix.prefix),
             "vrf_id": best_prefix.vrf_id
         }
     except HTTPException:

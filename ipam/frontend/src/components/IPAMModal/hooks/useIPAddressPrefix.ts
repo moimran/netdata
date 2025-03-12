@@ -30,7 +30,7 @@ export const useIPAddressPrefix = ({
       });
 
       // Call the API to find the matching prefix
-      const response = await apiClient.post('/prefixes/find-prefix', {
+      const response = await apiClient.post('/find-prefix', {
         ip: ipAddress,
         vrf_id: formData.vrf_id
       });

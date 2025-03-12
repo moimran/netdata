@@ -1,8 +1,8 @@
 import React from 'react';
-import { 
-  Modal, 
-  Stack, 
-  LoadingOverlay, 
+import {
+  Modal,
+  Stack,
+  LoadingOverlay,
   Group,
   Button,
   Alert
@@ -12,6 +12,7 @@ import { IPAMModalProps } from './types';
 import { useFormData } from './hooks/useFormData';
 import { useReferenceData } from './hooks/useReferenceData';
 import { useFormSubmit } from './hooks/useFormSubmit';
+import { useIPAddressPrefix } from './hooks/useIPAddressPrefix';
 import { FormField, VlanIdRangesField } from './components/FormFields';
 
 export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalProps) {
@@ -50,6 +51,13 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
     item
   });
 
+  // Use the IP address prefix hook for automatic prefix detection
+  const { findMatchingPrefix, isLoading: isPrefixLoading } = useIPAddressPrefix({
+    formData,
+    setFormData,
+    setValidationErrors
+  });
+
   const mutation = useFormSubmit({
     tableName,
     item,
@@ -58,7 +66,7 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
     setLoading
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
@@ -69,6 +77,36 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
       setValidationErrors(errors);
       setLoading(false);
       return;
+    }
+    
+    // For IP addresses, find the matching prefix before submission
+    if (tableName === 'ip_addresses' && formData.address) {
+      try {
+        // Find the matching prefix
+        const prefixResult = await findMatchingPrefix(formData.address);
+        
+        if (!prefixResult) {
+          // If no prefix was found, show an error and stop submission
+          setValidationErrors(prev => ({
+            ...prev,
+            prefix_id: 'Please add related prefix for this IP address',
+            general: 'No matching prefix found for this IP address. Please add a prefix first.'
+          }));
+          setLoading(false);
+          return;
+        }
+        
+        // If we got here, the prefix was found and formData.prefix_id has been updated
+      } catch (error) {
+        // Handle any errors from the prefix lookup
+        console.error('Error finding prefix:', error);
+        setValidationErrors(prev => ({
+          ...prev,
+          general: 'Error finding prefix for this IP address. Please try again.'
+        }));
+        setLoading(false);
+        return;
+      }
     }
     
     // Prepare data for submission
@@ -106,7 +144,7 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
     >
       <form onSubmit={handleSubmit}>
         <Stack pos="relative" gap="md">
-          <LoadingOverlay visible={isLoading || mutation.isPending || loading} />
+          <LoadingOverlay visible={isLoading || mutation.isPending || loading || isPrefixLoading} />
           
           {validationErrors['general'] && (
             <Alert 
@@ -150,7 +188,7 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
             <Button variant="outline" onClick={onHide} color="gray">
               Cancel
             </Button>
-            <Button type="submit" loading={mutation.isPending || loading}>
+            <Button type="submit" loading={mutation.isPending || loading || isPrefixLoading}>
               {item ? 'Update' : 'Create'}
             </Button>
           </Group>

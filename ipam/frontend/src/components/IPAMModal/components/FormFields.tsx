@@ -98,17 +98,8 @@ export const FormField: React.FC<FormFieldProps> = ({
     setValidationErrors
   });
 
-  // Handle IP address changes for automatic prefix detection
-  useEffect(() => {
-    if (tableName === 'ip_addresses' && column.name === 'address' && formData.address) {
-      // Debounce the prefix lookup to avoid too many API calls
-      const timer = setTimeout(() => {
-        findMatchingPrefix(formData.address);
-      }, 500);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [tableName, column.name, formData.address, findMatchingPrefix]);
+  // We no longer need this effect as we'll trigger the prefix lookup on blur
+  // instead of on every keystroke
   // Skip ID field
   if (column.name === 'id') return null;
   

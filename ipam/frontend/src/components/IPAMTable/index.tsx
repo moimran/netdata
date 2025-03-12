@@ -326,6 +326,7 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
       </Card>
 
       <IPAMModal
+        key={`${tableName}-modal-${selectedItem ? selectedItem.id : 'new'}-${showModal}`}
         show={showModal}
         onHide={handleModalClose}
         tableName={tableName}
