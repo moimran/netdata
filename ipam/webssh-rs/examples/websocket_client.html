@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSSH-RS WebSocket Client</title>
+    <style>
+        body {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .terminal {
+            background-color: #000;
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .status.connected {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .status.disconnected {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .status.connecting {
+            background-color: #fcf8e3;
+            color: #8a6d3b;
+        }
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -15px;
+            margin-left: -15px;
+        }
+        .col {
+            flex-basis: 0;
+            flex-grow: 1;
+            max-width: 100%;
+            padding-right: 15px;
+            padding-left: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WebSSH-RS WebSocket Client</h1>
+        
+        <div class="row">
+            <div class="col">
+                <h2>Connection Settings</h2>
+                <div class="form-group">
+                    <label for="hostname">Hostname</label>
+                    <input type="text" id="hostname" placeholder="Enter hostname or IP address" value="192.168.1.1">
+                </div>
+                <div class="form-group">
+                    <label for="port">Port</label>
+                    <input type="number" id="port" placeholder="Enter port" value="22">
+                </div>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter username" value="admin">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter password" value="password">
+                </div>
+                <div class="form-group">
+                    <label for="device-type">Device Type</label>
+                    <select id="device-type">
+                        <option value="router">Router</option>
+                        <option value="switch">Switch</option>
+                        <option value="firewall">Firewall</option>
+                        <option value="server">Server</option>
+                        <option value="generic" selected>Generic</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button id="connect-btn">Connect</button>
+                    <button id="disconnect-btn" disabled>Disconnect</button>
+                </div>
+                <div id="status" class="status disconnected">Disconnected</div>
+            </div>
+            
+            <div class="col">
+                <h2>Terminal</h2>
+                <div id="terminal" class="terminal"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const hostnameInput = document.getElementById('hostname');
+        const portInput = document.getElementById('port');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const deviceTypeSelect = document.getElementById('device-type');
+        const connectBtn = document.getElementById('connect-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const statusDiv = document.getElementById('status');
+        const terminalDiv = document.getElementById('terminal');
+
+        // WebSocket connection
+        let ws = null;
+        let sessionId = null;
+        let connected = false;
+
+        // API endpoint (adjust as needed)
+        const API_ENDPOINT = 'http://localhost:8000';
+        const WS_ENDPOINT = 'ws://localhost:8000';
+
+        // Connect to SSH server
+        connectBtn.addEventListener('click', async () => {
+            if (connected) return;
+
+            // Update UI
+            setStatus('connecting', 'Connecting...');
+            connectBtn.disabled = true;
+
+            try {
+                // Get connection details
+                const hostname = hostnameInput.value;
+                const port = parseInt(portInput.value);
+                const username = usernameInput.value;
+                const password = passwordInput.value;
+                const deviceType = deviceTypeSelect.value;
+
+                // Connect to SSH server
+                const response = await fetch(`${API_ENDPOINT}/connect`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        hostname,
+                        port,
+                        username,
+                        password,
+                        device_type: deviceType,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+
+                // Store session ID
+                sessionId = data.session_id;
+
+                // Connect to WebSocket
+                connectWebSocket();
+
+            } catch (error) {
+                console.error('Connection error:', error);
+                setStatus('disconnected', `Connection failed: ${error.message}`);
+                connectBtn.disabled = false;
+            }
+        });
+
+        // Disconnect from SSH server
+        disconnectBtn.addEventListener('click', async () => {
+            if (!connected) return;
+
+            try {
+                // Close WebSocket
+                if (ws) {
+                    ws.close();
+                }
+
+                // Disconnect from SSH server
+                if (sessionId) {
+                    await fetch(`${API_ENDPOINT}/disconnect/${sessionId}`, {
+                        method: 'POST',
+                    });
+                }
+
+                // Update UI
+                setStatus('disconnected', 'Disconnected');
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                connected = false;
+                sessionId = null;
+
+            } catch (error) {
+                console.error('Disconnection error:', error);
+            }
+        });
+
+        // Connect to WebSocket
+        function connectWebSocket() {
+            if (!sessionId) return;
+
+            // Create WebSocket connection
+            ws = new WebSocket(`${WS_ENDPOINT}/ws/${sessionId}`);
+
+            // WebSocket event handlers
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                setStatus('connected', 'Connected');
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                connected = true;
+
+                // Send terminal size
+                sendTerminalSize();
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'output') {
+                    // Display output
+                    appendToTerminal(data.data);
+                } else if (data.type === 'error') {
+                    // Display error
+                    appendToTerminal(`\x1b[31mError: ${data.message}\x1b[0m\n`);
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected');
+                setStatus('disconnected', 'Disconnected');
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                connected = false;
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                setStatus('disconnected', 'WebSocket error');
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                connected = false;
+            };
+        }
+
+        // Send terminal size
+        function sendTerminalSize() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+            // Calculate terminal size (approximate)
+            const cols = Math.floor(terminalDiv.clientWidth / 8);
+            const rows = Math.floor(terminalDiv.clientHeight / 20);
+
+            // Send resize message
+            ws.send(JSON.stringify({
+                type: 'resize',
+                cols,
+                rows,
+            }));
+        }
+
+        // Append text to terminal
+        function appendToTerminal(text) {
+            terminalDiv.textContent += text;
+            terminalDiv.scrollTop = terminalDiv.scrollHeight;
+        }
+
+        // Set status
+        function setStatus(type, message) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+
+        // Handle terminal input
+        terminalDiv.addEventListener('keydown', (event) => {
+            if (!connected) return;
+
+            // Prevent default behavior for some keys
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(event.key)) {
+                event.preventDefault();
+            }
+
+            // Send input
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                let data = null;
+
+                // Handle special keys
+                switch (event.key) {
+                    case 'Enter':
+                        data = '\r';
+                        break;
+                    case 'Backspace':
+                        data = '\b';
+                        break;
+                    case 'Tab':
+                        data = '\t';
+                        break;
+                    case 'Escape':
+                        data = '\x1b';
+                        break;
+                    case 'ArrowUp':
+                        data = '\x1b[A';
+                        break;
+                    case 'ArrowDown':
+                        data = '\x1b[B';
+                        break;
+                    case 'ArrowRight':
+                        data = '\x1b[C';
+                        break;
+                    case 'ArrowLeft':
+                        data = '\x1b[D';
+                        break;
+                    default:
+                        // Regular key
+                        if (event.key.length === 1) {
+                            data = event.key;
+                        }
+                        break;
+                }
+
+                // Send input
+                if (data) {
+                    ws.send(JSON.stringify({
+                        type: 'input',
+                        data,
+                    }));
+                }
+            }
+        });
+
+        // Make terminal focusable
+        terminalDiv.tabIndex = 0;
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (connected) {
+                sendTerminalSize();
+            }
+        });
+    </script>
+</body>
+</html>

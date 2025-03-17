@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from .credential import router as credential_router
 from .device import router as device_router
 from .prefix import router as prefix_router
+from .webssh import router as webssh_router
 
 router = APIRouter()
 
@@ -9,3 +10,4 @@ router = APIRouter()
 router.include_router(credential_router, tags=["Credentials"])
 router.include_router(device_router, tags=["Devices"])
 router.include_router(prefix_router, tags=["Prefixes"])
+router.include_router(webssh_router, tags=["WebSSH"])

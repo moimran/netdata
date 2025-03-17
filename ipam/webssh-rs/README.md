@@ -1,72 +1,177 @@
 # WebSSH-RS
 
-A web-based SSH client written in Rust, using the ssh2 crate for SSH connections and Axum for the web server. This is a Rust implementation of the original Python WebSSH project.
+Python bindings for SSH functionality, built with Rust and PyO3.
+
+## Overview
+
+WebSSH-RS provides high-performance SSH client functionality for Python applications through Rust bindings. It leverages the security and performance of Rust's SSH2 implementation while providing a Pythonic API.
 
 ## Features
 
-- SSH password authentication support (including empty password)
-- SSH public-key authentication support (RSA, DSA, ECDSA, Ed25519 keys)
-- Encrypted keys support
-- Fullscreen terminal support
-- Resizable terminal window
-- Auto-detect SSH server's default encoding
-- Modern browser support (Chrome, Firefox, Safari, Edge, Opera)
+- Secure SSH connections with password or key-based authentication
+- Terminal session management
+- Data streaming with efficient buffer handling
+- Terminal resizing support
+- Timeout controls for operations
+- Thread-safe implementation
+- Python exception mapping
 
-## Requirements
+## Installation
 
-- Rust 1.70 or higher
-- OpenSSL development libraries
-
-## Quick Start
-
-1. Install the required dependencies:
-   ```bash
-   # Ubuntu/Debian
-   sudo apt-get install pkg-config libssl-dev
-
-   # Fedora/RHEL
-   sudo dnf install pkg-config openssl-devel
-   ```
-
-2. Build and run the application:
-   ```bash
-   cargo build --release
-   cargo run --release
-   ```
-
-3. Open your browser and navigate to `http://127.0.0.1:8888`
-
-4. Enter your SSH server details and connect
-
-## Server Options
+### From PyPI
 
 ```bash
-# Start server with custom address and port
-webssh-rs --address 0.0.0.0 --port 8000
-
-# Start with TLS (HTTPS)
-webssh-rs --tls --cert /path/to/cert.pem --key /path/to/key.pem
-
-# Set logging level
-webssh-rs --log-level debug
+pip install webssh-rs
 ```
 
-## Browser Support
+### From Source
 
-The web interface uses xterm.js for terminal emulation and supports all modern browsers including:
-- Chrome/Chromium
-- Firefox
-- Safari
-- Edge
-- Opera
+```bash
+# Clone the repository
+git clone https://github.com/example/webssh-rs
+cd webssh-rs
 
-## Security
+# Install development dependencies
+pip install maturin
 
-- All passwords and sensitive data are only stored in memory during the session
-- TLS support for secure HTTPS connections
-- No permanent storage of credentials
-- Proper handling of SSH host key verification
+# Build and install
+maturin develop
+```
+
+## Usage
+
+### Basic Connection
+
+```python
+import webssh_rs
+
+# Create an SSH session
+session = webssh_rs.SSHSession(
+    hostname="192.168.1.1",
+    port=22,
+    username="admin",
+    password="password123"
+)
+
+# Connect to the server
+session.connect()
+
+# Send data
+session.send_data("ls -la\n")
+
+# Receive data with timeout
+while True:
+    data = session.receive_data(timeout_ms=1000)
+    if not data:
+        break
+    print(data.decode(), end="")
+
+# Disconnect
+session.disconnect()
+```
+
+### Using with FastAPI WebSockets
+
+```python
+from fastapi import FastAPI, WebSocket
+import webssh_rs
+import asyncio
+
+app = FastAPI()
+
+@app.websocket("/ssh/{session_id}")
+async def websocket_endpoint(websocket: WebSocket, session_id: str):
+    await websocket.accept()
+    
+    # Get or create SSH session
+    ssh_session = get_ssh_session(session_id)
+    
+    # Set up background task for receiving SSH data
+    receive_task = asyncio.create_task(receive_ssh_data(ssh_session, websocket))
+    
+    try:
+        # Handle WebSocket messages
+        while True:
+            data = await websocket.receive_json()
+            
+            if data["type"] == "input":
+                ssh_session.send_data(data["data"].encode())
+            elif data["type"] == "resize":
+                ssh_session.resize_terminal(data["rows"], data["cols"])
+    except Exception:
+        # Clean up on disconnect
+        receive_task.cancel()
+        ssh_session.disconnect()
+
+async def receive_ssh_data(ssh_session, websocket):
+    while True:
+        data = ssh_session.receive_data(timeout_ms=100)
+        if data:
+            await websocket.send_json({
+                "type": "output",
+                "data": data.decode()
+            })
+        await asyncio.sleep(0.01)
+```
+
+## API Reference
+
+### SSHSession
+
+```python
+class SSHSession:
+    def __init__(self, hostname, port, username, password=None, private_key=None, device_type=None):
+        """Initialize SSH session with connection parameters"""
+        
+    def connect(self):
+        """Establish SSH connection"""
+        
+    def disconnect(self):
+        """Close SSH connection"""
+        
+    def send_data(self, data):
+        """Send data to SSH session"""
+        
+    def receive_data(self, timeout_ms=None):
+        """Receive data from SSH session"""
+        
+    def resize_terminal(self, rows, cols):
+        """Resize terminal dimensions"""
+        
+    def get_info(self):
+        """Get session information"""
+        
+    def is_connected(self):
+        """Check if the session is connected"""
+```
+
+## Error Handling
+
+WebSSH-RS maps Rust errors to Python exceptions:
+
+- `SSHError`: Base exception for all SSH-related errors
+- `ConnectionError`: Raised when connection fails
+- `TimeoutError`: Raised when an operation times out
+- `ValueError`: Raised for invalid parameters
+
+Example:
+
+```python
+try:
+    session = webssh_rs.SSHSession(hostname="192.168.1.1", port=22, username="admin")
+    session.connect()
+except ConnectionError as e:
+    print(f"Failed to connect: {e}")
+except Exception as e:
+    print(f"Error: {e}")
+```
+
+## Performance Considerations
+
+- The library uses a thread pool to handle SSH operations without blocking the Python GIL
+- For high-throughput applications, consider adjusting buffer sizes and timeout values
+- When used with asyncio, ensure proper task management to avoid resource leaks
 
 ## License
 
-This project is licensed under the same terms as the original Python WebSSH project.
+MIT License

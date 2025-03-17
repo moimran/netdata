@@ -164,10 +164,16 @@ def find_prefix(request: PrefixLookupRequest, session: Session = Depends(get_ses
                 continue
         
         if not best_prefix:
-            raise HTTPException(
-                status_code=404,
-                detail="Please add related prefix for this ip address"
-            )
+            if vrf_id:
+                raise HTTPException(
+                    status_code=404,
+                    detail= f"No prefix found for this ip address {ip} in VRF {vrf_id}"
+                )
+            else:
+                raise HTTPException(
+                    status_code=404,
+                    detail= f"Please add related prefix for this ip address {ip}"
+                )
         
         return {
             "prefix_id": best_prefix.id,

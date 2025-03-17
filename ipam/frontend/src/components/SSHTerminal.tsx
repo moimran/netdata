@@ -250,7 +250,7 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     
     // Try both WebSocket URLs - first the proxy, then direct if needed
-    const proxyWsUrl = `ws://localhost:9001/api/v1/devices/webssh/ws/${sessionId}`;
+    const proxyWsUrl = `ws://localhost:8000/api/v1/devices/webssh/ws/${sessionId}`;
     const directWsUrl = `ws://localhost:8888/ws/${sessionId}`;
     
     console.log("Connecting to WebSocket URLs:", proxyWsUrl, "and if that fails:", directWsUrl);
