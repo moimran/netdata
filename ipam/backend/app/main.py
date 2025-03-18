@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from sqlmodel import SQLModel
@@ -6,13 +6,14 @@ import logging
 import threading
 import time
 import signal
+import asyncio
 
 from .database import engine
 from .middleware import LoggingMiddleware
 from .exception_handlers import validation_exception_handler, general_exception_handler
 from .utils import CustomJSONResponse
+from .utils.shared_state import active_sessions, WEBSSH_MODULE_AVAILABLE, webssh_rs, receive_ssh_data
 from .api import router
-from .utils.webssh_server import start_server, is_server_running, stop_server
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -46,77 +47,121 @@ app.include_router(router)
 # Create tables
 SQLModel.metadata.create_all(engine)
 
-# Start WebSSH server in a separate thread
-def start_webssh_server_thread():
-    # Wait a bit for the main server to start
-    time.sleep(2)
-    
-    # Check if the server is already running
-    if not is_server_running():
-        logger.info("Starting WebSSH server automatically...")
-        try:
-            result = start_server()
-            logger.info(f"WebSSH server start result: {result}")
-        except Exception as e:
-            logger.error(f"Error starting WebSSH server: {e}")
-    else:
-        logger.info("WebSSH server is already running")
-
-# Store the original signal handlers
-original_sigint_handler = signal.getsignal(signal.SIGINT)
-original_sigterm_handler = signal.getsignal(signal.SIGTERM)
-
 # Flag to track if shutdown has been initiated
 shutdown_initiated = False
 
-# Signal handler to stop the WebSSH server when the backend server is stopped
-def signal_handler(sig, frame):
-    global shutdown_initiated
-    
-    # Prevent multiple shutdown attempts
-    if shutdown_initiated:
-        return
-    
-    shutdown_initiated = True
-    
-    logger.info("Shutting down backend server...")
-    logger.info("Stopping WebSSH server...")
-    try:
-        stop_result = stop_server()
-        logger.info(f"WebSSH server stop result: {stop_result}")
-    except Exception as e:
-        logger.error(f"Error stopping WebSSH server: {e}")
-    
-    # Call the original signal handler to let the server shut down normally
-    if sig == signal.SIGINT and original_sigint_handler:
-        if callable(original_sigint_handler):
-            original_sigint_handler(sig, frame)
-    elif sig == signal.SIGTERM and original_sigterm_handler:
-        if callable(original_sigterm_handler):
-            original_sigterm_handler(sig, frame)
-
-# Register signal handlers
-signal.signal(signal.SIGINT, signal_handler)  # Ctrl+C
-signal.signal(signal.SIGTERM, signal_handler)  # Termination signal
+# Add startup event handler to FastAPI
+@app.on_event("startup")
+async def startup_event():
+    logger.info("FastAPI startup event triggered")
+    logger.info("SSH terminal functionality is ready")
 
 # Add shutdown event handler to FastAPI
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("FastAPI shutdown event triggered")
-    if not shutdown_initiated:
-        logger.info("Stopping WebSSH server from shutdown event...")
+    
+    # Close all active SSH sessions
+    for session_id, (ssh_session, task) in list(active_sessions.items()):
         try:
-            stop_result = stop_server()
-            logger.info(f"WebSSH server stop result: {stop_result}")
+            logger.info(f"Closing SSH session {session_id}")
+            ssh_session.close()
         except Exception as e:
-            logger.error(f"Error stopping WebSSH server: {e}")
-
-# Start the WebSSH server in a background thread
-webssh_thread = threading.Thread(target=start_webssh_server_thread)
-webssh_thread.daemon = True  # Make the thread a daemon so it exits when the main process exits
-webssh_thread.start()
+            logger.error(f"Error closing SSH session {session_id}: {e}")
 
 # Add a simple test endpoint at the root
 @app.get("/")
 async def root():
     return {"message": "Welcome to the IPAM API"}
+
+
+@app.websocket("/ws/{session_id}")
+async def websocket_endpoint(websocket: WebSocket, session_id: str):
+    """WebSocket endpoint for SSH sessions"""
+    await websocket.accept()
+    logger.info(f"WebSocket connection accepted for session {session_id}")
+    
+    # Check if webssh_rs module is available
+    if not WEBSSH_MODULE_AVAILABLE:
+        logger.error("webssh_rs module not available")
+        await websocket.send_json({
+            "type": "error",
+            "message": "SSH terminal functionality is not available"
+        })
+        await websocket.close(code=1013, reason="SSH terminal functionality is not available")
+        return
+    
+    # Get SSH session from active_sessions
+    if session_id not in active_sessions:
+        logger.error(f"Session {session_id} not found")
+        await websocket.send_json({
+            "type": "error",
+            "message": "Session not found"
+        })
+        await websocket.close(code=1008, reason="Session not found")
+        return
+    
+    # Get the SSH session and existing task
+    ssh_session, existing_task = active_sessions[session_id]
+    
+    # Cancel existing task if it exists
+    if existing_task and not existing_task.done():
+        logger.info(f"Cancelling existing task for session {session_id}")
+        existing_task.cancel()
+        try:
+            await existing_task
+        except asyncio.CancelledError:
+            pass
+    
+    # Create task to receive SSH data
+    receive_task = asyncio.create_task(
+        receive_ssh_data(ssh_session, websocket, session_id)
+    )
+    
+    # Update session with new task
+    active_sessions[session_id] = (ssh_session, receive_task)
+    
+    try:
+        # Handle WebSocket messages
+        while True:
+            message = await websocket.receive_json()
+            logger.info(f"Received message from client: {message}")
+            
+            if message["type"] == "input":
+                # Log the input data for debugging
+                logger.info(f"Received input from client: {message['data']!r}")
+                
+                # Handle Enter key specially
+                if message["data"] == "\r":
+                    # Send carriage return and newline
+                    ssh_session.send_data("\r\n".encode())
+                else:
+                    # Send data to SSH session
+                    ssh_session.send_data(message["data"].encode())
+            elif message["type"] == "resize":
+                # Resize terminal
+                logger.info(f"Resizing terminal to {message['rows']}x{message['cols']}")
+                ssh_session.resize_terminal(message["rows"], message["cols"])
+    except WebSocketDisconnect:
+        logger.info(f"WebSocket disconnected for session {session_id}")
+    except Exception as e:
+        logger.error(f"Error in websocket_endpoint: {e}")
+        try:
+            await websocket.send_json({
+                "type": "error",
+                "message": f"Error: {str(e)}"
+            })
+        except:
+            pass
+    finally:
+        # Cancel receive task
+        if not receive_task.done():
+            receive_task.cancel()
+            try:
+                await receive_task
+            except asyncio.CancelledError:
+                pass
+        logger.info(f"WebSocket connection closed for session {session_id}")
+
+# receive_ssh_data function is now imported from shared_state
+

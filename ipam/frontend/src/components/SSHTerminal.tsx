@@ -210,8 +210,10 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
             terminal.writeln(`\r\n\x1b[33mEstablishing WebSocket connection...\x1b[0m`);
           }
           
-          // Connect to the WebSocket
-          connectWebSocket(sessionId);
+          // Connect to the WebSocket using the URL from the response
+          const websocketUrl = connectResponse.data.websocket_url;
+          console.log("Using WebSocket URL from response:", websocketUrl);
+          connectWebSocket(sessionId, websocketUrl);
           
         } catch (err) {
           console.error("Error connecting to WebSSH server:", err);
@@ -243,63 +245,30 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
   }, [deviceId, terminal, onError]);
 
   // Connect WebSocket
-  const connectWebSocket = (sessionId: string) => {
-    if (!terminal) return;
-    
-    // Use the backend proxy WebSocket endpoint
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    
-    // Try both WebSocket URLs - first the proxy, then direct if needed
-    const proxyWsUrl = `ws://localhost:8000/api/v1/devices/webssh/ws/${sessionId}`;
-    const directWsUrl = `ws://localhost:8888/ws/${sessionId}`;
-    
-    console.log("Connecting to WebSocket URLs:", proxyWsUrl, "and if that fails:", directWsUrl);
-    
-    if (terminal) {
-      terminal.writeln(`\r\n\x1b[90m> Connecting to WebSocket: ${proxyWsUrl}\x1b[0m`);
-      terminal.writeln(`\r\n\x1b[90m> Fallback WebSocket: ${directWsUrl}\x1b[0m`);
+  const connectWebSocket = (sessionId: string, websocketUrl?: string) => {
+      if (!terminal) return;
       
-      // Debug messages in console only
-      console.log("Terminal is ready to receive data");
-      console.log("If you don't see a prompt, there might be an issue with the WebSocket connection");
-    }
-    
-    // Try to connect to the proxy WebSocket first
-    let wsUrl = proxyWsUrl;
-    let tryFallback = true;
+      // Use the WebSocket URL from the parameter or fallback to default
+      const wsUrl = websocketUrl || `ws://localhost:8000/ws/${sessionId}`;
+      
+      console.log("Connecting to WebSocket URL:", wsUrl);
+      
+      if (terminal) {
+          terminal.writeln(`\r\n\x1b[90m> Connecting to WebSocket: ${wsUrl}\x1b[0m`);
+          
+          // Debug messages in console only
+          console.log("Terminal is ready to receive data");
+          console.log("If you don't see a prompt, there might be an issue with the WebSocket connection");
+      }
     
     try {
-      const ws = new WebSocket(wsUrl);
-      
-      // Set a timeout to try the fallback URL if the connection doesn't open quickly
-      const fallbackTimeout = setTimeout(() => {
-        if (ws.readyState !== WebSocket.OPEN && tryFallback) {
-          tryFallback = false; // Prevent multiple fallback attempts
-          terminal.writeln(`\r\n\x1b[33m[DEBUG] Proxy WebSocket connection timed out, trying direct connection...\x1b[0m`);
-          
-          try {
-            // Try to connect directly to the WebSSH server
-            const directWs = new WebSocket(directWsUrl);
-            
-            // Copy all the event handlers to the new WebSocket
-            directWs.onopen = ws.onopen;
-            directWs.onmessage = ws.onmessage;
-            directWs.onclose = ws.onclose;
-            directWs.onerror = ws.onerror;
-            
-            // Update the WebSocket reference
-            setWebsocket(directWs);
-          } catch (e) {
-            terminal.writeln(`\r\n\x1b[31m[ERROR] Failed to connect to fallback WebSocket: ${e}\x1b[0m`);
-          }
-        }
-      }, 3000); // 3 second timeout
-      
-      // Clear the timeout if the connection opens successfully
-      ws.addEventListener('open', () => {
-        clearTimeout(fallbackTimeout);
-        tryFallback = false;
-      });
+        const ws = new WebSocket(wsUrl);
+        
+        // Set up event listener for connection open
+        ws.addEventListener('open', () => {
+          console.log("WebSocket connection opened successfully");
+          terminal.writeln(`\r\n\x1b[32mWebSocket connection established!\x1b[0m`);
+        });
       
       ws.onopen = () => {
         terminal.writeln(`\r\n\x1b[32mWebSocket connection established!\x1b[0m`);
@@ -323,6 +292,7 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
         // Handle terminal input
         terminal.onData((data: string) => {
           if (ws && ws.readyState === WebSocket.OPEN) {
+            console.log("Terminal input:", data);
             console.log("Terminal input:", data, data.split('').map(c => c.charCodeAt(0)));
             
             // Add the data to the queue

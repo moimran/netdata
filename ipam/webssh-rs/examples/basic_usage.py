@@ -60,8 +60,8 @@ def sync_example(args):
         logger.info("Connected successfully")
         
         # Get session info
-        info = session.get_info()
-        logger.info(f"Session info: {info}")
+        # info = session.get_info()
+        # logger.info(f"Session info: {info}")
         
         if args.command:
             # Execute command
@@ -134,8 +134,8 @@ async def async_example(args):
         logger.info("Connected successfully")
         
         # Get session info
-        info = session.get_info()
-        logger.info(f"Session info: {info}")
+        # info = session.get_info()
+        # logger.info(f"Session info: {info}")
         
         if args.command:
             # Execute command
@@ -202,7 +202,7 @@ def device_example(args):
     logger.info("Using device connection API")
     
     # Create device connection
-    device = webssh_rs.DeviceConnection(
+    device = webssh_rs.SSHSession(
         hostname=args.hostname,
         port=args.port,
         username=args.username,
@@ -218,8 +218,8 @@ def device_example(args):
         logger.info("Connected successfully")
         
         # Get device info
-        info = device.get_info()
-        logger.info(f"Device info: {info}")
+        # info = device.get_info()
+        # logger.info(f"Device info: {info}")
         
         if args.command:
             # Execute command
@@ -288,14 +288,16 @@ def main():
     # Set log level
     if args.debug:
         logging.getLogger().setLevel(logging.DEBUG)
+
+    device_example(args)
     
     # Run example
-    if getattr(args, "async"):
-        asyncio.run(async_example(args))
-    elif args.device_type != "generic":
-        device_example(args)
-    else:
-        sync_example(args)
+    # if getattr(args, "async"):
+    #     asyncio.run(async_example(args))
+    # elif args.device_type != "generic":
+    #     device_example(args)
+    # else:
+    #     sync_example(args)
 
 if __name__ == "__main__":
     main()

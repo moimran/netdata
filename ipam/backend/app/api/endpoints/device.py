@@ -7,6 +7,7 @@ from app.database import get_session
 from app.models.device import Device
 from app.models.credential import Credential
 from app.models.ip_address import IPAddress
+from app.utils.shared_state import active_sessions, WEBSSH_MODULE_AVAILABLE, webssh_rs, receive_ssh_data
 
 router = APIRouter()
 
@@ -73,44 +74,73 @@ def get_device_connection_details(device_id: int, session: Session = Depends(get
         enable_password=credential.enable_password
     )
 
-@router.post("/devices/webssh/start")
-def start_webssh_server():
+# Terminal server endpoints
+@router.post("/devices/terminal/start")
+def start_terminal_server():
     """
-    Start the WebSSH server if it's not already running.
+    Start the terminal server if it's not already running.
+    This server handles SSH connections to network devices.
     """
     from app.utils.webssh_server import start_server
     return start_server()
 
-@router.get("/devices/webssh/status")
-def get_webssh_server_status():
+@router.get("/devices/terminal/status")
+def get_terminal_server_status():
     """
-    Get the status of the WebSSH server.
+    Get the status of the terminal server.
     """
     from app.utils.webssh_server import get_server_status
     return get_server_status()
 
-@router.post("/devices/webssh/stop")
-def stop_webssh_server():
+@router.post("/devices/terminal/stop")
+def stop_terminal_server():
     """
-    Stop the WebSSH server if it's running.
+    Stop the terminal server if it's running.
     """
     from app.utils.webssh_server import stop_server
     return stop_server()
 
-class SSHConnectRequest(BaseModel):
-    """Request model for SSH connection"""
+class TerminalConnectRequest(BaseModel):
+    """Request model for terminal connection to a device"""
     hostname: str
     port: int = 22
     username: str
     password: str
     device_type: Optional[str] = None
 
+@router.post("/devices/terminal/connect")
+def connect_to_device_terminal(request: TerminalConnectRequest):
+    """
+    Proxy endpoint to connect to a device terminal.
+    This establishes an SSH connection to the device and returns a session ID
+    that can be used to connect to the terminal via WebSocket.
+    """
+    import logging
+    from pathlib import Path
+    
+    logger = logging.getLogger(__name__)
+    
+    return _handle_terminal_connection(request, logger)
+
+# Legacy WebSSH endpoints for backward compatibility
+@router.post("/devices/webssh/start")
+def start_webssh_server_legacy():
+    """Legacy endpoint for backward compatibility"""
+    return start_terminal_server()
+
+@router.get("/devices/webssh/status")
+def get_webssh_server_status_legacy():
+    """Legacy endpoint for backward compatibility"""
+    return get_terminal_server_status()
+
+@router.post("/devices/webssh/stop")
+def stop_webssh_server_legacy():
+    """Legacy endpoint for backward compatibility"""
+    return stop_terminal_server()
+
 @router.post("/devices/webssh/connect")
-def connect_to_webssh(request: SSHConnectRequest):
-    """
-    Proxy endpoint to connect to the WebSSH server.
-    This avoids CORS issues when connecting directly from the frontend.
-    """
+def connect_to_webssh_legacy(request: TerminalConnectRequest):
+    """Legacy endpoint for backward compatibility"""
     import requests
     import logging
     import subprocess
@@ -120,114 +150,116 @@ def connect_to_webssh(request: SSHConnectRequest):
     
     logger = logging.getLogger(__name__)
     
+    return _handle_terminal_connection(request, logger)
+
+# Helper function for terminal connection handling
+def _handle_terminal_connection(request, logger):
+    import uuid
     try:
-        # Prepare request data
-        request_data = {
-            "hostname": request.hostname,
-            "port": request.port,
-            "username": request.username,
-            "password": request.password,
-            "device_type": request.device_type
-        }
+        logger.debug(f"Connecting to terminal server with hostname: {request.hostname}, port: {request.port}, username: {request.username}")
         
-        logger.debug(f"Connecting to WebSSH server with hostname: {request.hostname}, port: {request.port}, username: {request.username}")
+        if not request.hostname or not request.username:
+            return {
+                "success": False,
+                "message": "Hostname and username are required"
+            }
         
-        # First try the API endpoint
+        # Check if webssh_rs module is available
+        if not WEBSSH_MODULE_AVAILABLE:
+            logger.error("webssh_rs module not available")
+            return {
+                "success": False,
+                "message": "SSH terminal functionality is not available"
+            }
+        
+        # Create SSH session
         try:
-            # Connect to the WebSSH server using the new API endpoint
-            response = requests.post(
-                "http://localhost:8888/api/connect",
-                json=request_data,
-                timeout=5.0,
-                headers={"Content-Type": "application/json"}
+            # Log connection attempt
+            logger.info(f"Creating SSH session for {request.username}@{request.hostname}:{request.port}")
+            
+            # Create SSH session using webssh_rs
+            ssh_session = webssh_rs.SSHSession(
+                hostname=request.hostname,
+                port=request.port,
+                username=request.username,
+                password=request.password,
+                private_key="",
+                device_type=request.device_type
             )
             
-            # Log response status
-            logger.debug(f"WebSSH server API response status: {response.status_code}")
+            # Connect to SSH server
+            ssh_session.connect()
             
-            # Check if the response is valid JSON
-            try:
-                response_data = response.json()
-                logger.debug(f"WebSSH server API response: {response_data}")
-                
-                # If we got a valid response, return it
-                if response_data.get("success", False):
-                    return response_data
-            except ValueError:
-                logger.warning(f"Invalid JSON response from WebSSH API endpoint: {response.text}")
-                # Continue to fallback method
-        except requests.RequestException as e:
-            logger.warning(f"API endpoint request failed, trying fallback: {str(e)}")
-            # Continue to fallback method
-        
-        # Fallback: Try the original /connect endpoint
-        logger.debug("Trying fallback to /connect endpoint")
-        try:
-            response = requests.post(
-                "http://localhost:8888/connect",
-                json=request_data,
-                timeout=5.0,
-                headers={"Content-Type": "application/json"}
-            )
+            # Generate session ID
+            session_id = f"{request.hostname}-{uuid.uuid4()}"
+            logger.info(f"Created session ID: {session_id}")
             
-            # Log response status
-            logger.debug(f"WebSSH server fallback response status: {response.status_code}")
+            # Store session in the global active_sessions dictionary
+            active_sessions[session_id] = (ssh_session, None)
             
-            # Check if the response is valid JSON
-            try:
-                response_data = response.json()
-                logger.debug(f"WebSSH server fallback response: {response_data}")
-                
-                # Return the response from the WebSSH server
-                return response_data
-            except ValueError as e:
-                logger.error(f"Invalid JSON response from WebSSH fallback endpoint: {response.text}")
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Invalid response from WebSSH server: {str(e)}"
-                )
-        except requests.RequestException as e:
-            logger.error(f"Fallback request error: {str(e)}")
-            # Continue to direct connection method
-        
-        # Last resort: Create a direct SSH connection
-        logger.debug("Trying direct SSH connection")
-        
-        # Generate a session ID
-        session_id = f"{request.hostname}-{uuid.uuid4()}"
-        
-        # Return a simulated successful response
-        return {
-            "success": True,
-            "message": "Connected successfully (direct connection)",
-            "session_id": session_id,
-            "websocket_url": f"ws://localhost:8888/ws/{session_id}"
-        }
-        
+            # Get the server address from the request
+            server_host = "localhost"
+            server_port = 8000  # FastAPI default port
+            
+            # Create the WebSocket URL
+            websocket_url = f"ws://{server_host}:{server_port}/ws/{session_id}"
+            
+            result = {
+                "success": True,
+                "message": "Connected successfully (direct connection)",
+                "session_id": session_id,
+                "websocket_url": websocket_url
+            }
+            
+            logger.info(f"Connection successful: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"Failed to create SSH session: {e}")
+            return {
+                "success": False,
+                "message": f"Failed to connect: {str(e)}",
+                "session_id": None
+            }
     except Exception as e:
-        # Handle other errors
-        logger.error(f"Unexpected error in WebSSH connection: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500, 
-            detail=f"Unexpected error: {str(e)}"
-        )
+        logger.error(f"Error connecting to SSH server: {e}")
+        return {
+            "success": False,
+            "message": f"Error connecting to SSH server: {str(e)}"
+        }
+
 
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 
+@router.websocket("/devices/terminal/ws/{session_id}")
+async def device_terminal_websocket(websocket: WebSocket, session_id: str):
+    """
+    WebSocket endpoint for device terminal connections.
+    This provides a bidirectional communication channel between the frontend terminal
+    and the device SSH session.
+    """
+    await _handle_terminal_websocket(websocket, session_id)
+
+# Legacy WebSocket endpoint for backward compatibility
 @router.websocket("/devices/webssh/ws/{session_id}")
-async def websocket_endpoint(websocket: WebSocket, session_id: str):
+async def webssh_websocket_legacy(websocket: WebSocket, session_id: str):
     """
-    WebSocket proxy endpoint to connect to the WebSSH server.
-    This avoids CORS issues when connecting directly from the frontend.
+    Legacy WebSocket endpoint for backward compatibility.
     """
-    import websockets
+    await _handle_terminal_websocket(websocket, session_id)
+
+async def _handle_terminal_websocket(websocket: WebSocket, session_id: str):
+    """
+    Helper function to handle terminal WebSocket connections.
+    This function now redirects to the main WebSocket endpoint in main.py
+    """
     import logging
     import sys
     import json
+    import asyncio
     
     # Set up logging
-    logger = logging.getLogger("webssh_proxy")
+    logger = logging.getLogger("device_terminal")
     logger.setLevel(logging.DEBUG)
     
     # Create console handler
@@ -241,302 +273,85 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
     # Add handler to logger
     logger.addHandler(handler)
     
-    logger.info(f"WebSocket connection request for session {session_id}")
+    logger.info(f"Terminal WebSocket connection request for session {session_id}")
     
+    # Accept the WebSocket connection
     await websocket.accept()
-    logger.info(f"WebSocket connection accepted for session {session_id}")
+    logger.info(f"Terminal WebSocket connection accepted for session {session_id}")
     
     try:
-        # Get device connection details from the database
-        import requests
-        from sqlmodel import Session, select
-        from app.database import get_session
-        from app.models.device import Device
-        from app.models.credential import Credential
-        from app.models.ip_address import IPAddress
+        # Check if the session exists in active_sessions
+        if session_id not in active_sessions:
+            logger.error(f"Session {session_id} not found in active_sessions")
+            await websocket.send_json({
+                "type": "error",
+                "message": "Session not found"
+            })
+            await websocket.close(code=1008, reason="Session not found")
+            return
         
-        # Create a database session
-        db_session = next(get_session())
+        # Get the SSH session
+        ssh_session, existing_task = active_sessions[session_id]
         
-        # Extract device ID from session ID (if it's in the format)
-        device_id = None
-        if session_id.startswith("device-"):
+        # Cancel existing task if it exists
+        if existing_task and not existing_task.done():
+            logger.info(f"Cancelling existing task for session {session_id}")
+            existing_task.cancel()
             try:
-                device_id = int(session_id.split("-")[1].split("-")[0])
-                logger.info(f"Extracted device ID {device_id} from session ID {session_id}")
-            except (IndexError, ValueError):
-                logger.warning(f"Could not extract device ID from session ID {session_id}")
+                await existing_task
+            except asyncio.CancelledError:
+                pass
         
-        # If we couldn't extract a device ID, use a default test device
-        if not device_id:
-            logger.info("Using test session for WebSSH connection")
-            response = requests.post(
-                "http://localhost:8888/connect",
-                json={
-                    "hostname": "192.168.1.25",
-                    "port": 22,
-                    "username": "admin",
-                    "password": "moimran@123"
-                },
-                headers={"Content-Type": "application/json"}
-            )
-        else:
-            # Get the device from the database
-            logger.info(f"Getting device with ID {device_id} from database")
-            device = db_session.get(Device, device_id)
-            if not device:
-                logger.error(f"Device with ID {device_id} not found")
-                await websocket.close(code=1011, reason=f"Device with ID {device_id} not found")
-                return
-            
-            # Get the IP address
-            if not device.ip_address_id:
-                logger.error(f"Device {device.name} has no IP address assigned")
-                await websocket.close(code=1011, reason=f"Device {device.name} has no IP address assigned")
-                return
-            
-            ip_address = db_session.get(IPAddress, device.ip_address_id)
-            if not ip_address:
-                logger.error(f"IP address with ID {device.ip_address_id} not found")
-                await websocket.close(code=1011, reason=f"IP address with ID {device.ip_address_id} not found")
-                return
-            
-            # Extract just the IP address part without the subnet mask
-            ip_only = str(ip_address.address).split('/')[0]
-            
-            # Get the credential
-            credential = None
-            if device.credential_name:
-                credential = db_session.exec(
-                    select(Credential).where(Credential.name == device.credential_name)
-                ).first()
-            
-            # If no credential found, try fallback
-            if not credential and device.fallback_credential_name:
-                credential = db_session.exec(
-                    select(Credential).where(Credential.name == device.fallback_credential_name)
-                ).first()
-            
-            # If still no credential, check for a default credential
-            if not credential:
-                credential = db_session.exec(
-                    select(Credential).where(Credential.is_default == True)
-                ).first()
-            
-            if not credential:
-                logger.error(f"No credentials found for device {device.name}")
-                await websocket.close(code=1011, reason=f"No credentials found for device {device.name}")
-                return
-            
-            # Connect to the WebSSH server
-            logger.info(f"Connecting to WebSSH server for device {device.name} ({ip_only})")
-            response = requests.post(
-                "http://localhost:8888/connect",
-                json={
-                    "hostname": ip_only,
-                    "port": 22,
-                    "username": credential.username,
-                    "password": credential.password,
-                    "device_type": "router"  # Assuming network devices
-                },
-                headers={"Content-Type": "application/json"}
-            )
+        # Create task to receive SSH data
+        receive_task = asyncio.create_task(
+            receive_ssh_data(ssh_session, websocket, session_id)
+        )
         
-        if response.status_code != 200:
-            logger.error(f"Error: API returned status code {response.status_code}")
-            logger.error(f"Response: {response.text}")
-            await websocket.close(code=1011, reason=f"Failed to connect to WebSSH server: API error")
-            return
+        # Update session with new task
+        active_sessions[session_id] = (ssh_session, receive_task)
         
-        # Parse the response
         try:
-            data = response.json()
-            logger.info(f"API response: {json.dumps(data, indent=2)}")
-            
-            if not data.get("success", False):
-                logger.error(f"Error: Connection failed - {data.get('message', 'Unknown error')}")
-                await websocket.close(code=1011, reason=f"Failed to connect to WebSSH server: {data.get('message', 'Unknown error')}")
-                return
-            
-            real_session_id = data.get("session_id")
-            if not real_session_id:
-                logger.error("Error: No session ID in response")
-                await websocket.close(code=1011, reason=f"Failed to connect to WebSSH server: No session ID")
-                return
-            
-            logger.info(f"Connection successful! Session ID: {real_session_id}")
-            
-        except ValueError:
-            logger.error(f"Error: Invalid JSON response - {response.text}")
-            await websocket.close(code=1011, reason=f"Failed to connect to WebSSH server: Invalid JSON response")
-            return
-        
-        # Connect to the WebSocket using the session ID from the API
-        websocket_url = data.get("websocket_url", f"ws://localhost:8888/ws/{real_session_id}")
-        logger.info(f"Connecting to WebSSH server WebSocket: {websocket_url}")
-        async with websockets.connect(websocket_url) as ws:
-            logger.info(f"Connected to WebSSH server WebSocket for session {session_id}")
-            
-            # Create tasks for bidirectional communication
-            import asyncio
-            
-            # Forward messages from client to WebSSH server
-            async def forward_to_server():
-                try:
-                    logger.info("Starting forward_to_server task")
-                    logger.info("Waiting for input from client...")
-                    print("=" * 50)
-                    print("WAITING FOR CLIENT INPUT - TYPE SOMETHING IN THE TERMINAL")
-                    print("=" * 50)
+            # Handle WebSocket messages
+            while True:
+                message = await websocket.receive_json()
+                logger.info(f"Received message from client: {message}")
+                
+                if message["type"] == "input":
+                    # Log the input data for debugging
+                    logger.info(f"Received input from client: {message['data']!r}")
                     
-                    while True:
-                        # Wait for data from the client
-                        logger.info("Waiting to receive data from client...")
-                        data = await websocket.receive_text()
-                        
-                        # Log the received data in multiple formats for debugging
-                        logger.info(f"RECEIVED DATA FROM CLIENT: '{data}'")
-                        print(f"RECEIVED FROM CLIENT: '{data}'")
-                        
-                        # Log character codes for debugging
-                        char_codes = [ord(c) for c in data]
-                        logger.info(f"Character codes: {char_codes}")
-                        print(f"Character codes: {char_codes}")
-                        
-                        # Try to parse as JSON
-                        # First try to parse as JSON
-                        try:
-                            json_data = json.loads(data)
-                            print(f"Parsed client JSON data: {json_data}")
-                            
-                            if json_data.get('type') == 'input':
-                                # Extract the actual input data
-                                input_data = json_data.get('data', '')
-                                print(f"Extracted input data: {input_data}")
-
-                                send_data = {"type": "input", "data": f"{input_data}"}
-                                # Send the raw input data to the WebSSH server
-                                await ws.send(json.dumps(send_data))
-                                
-                                # Don't echo the input back to the client
-                                # The server will echo back the characters if needed
-                            elif json_data.get('type') == 'resize':
-                                # Forward resize events as JSON
-                                print(f"Forwarding resize event: {data}")
-                                await ws.send(data)
-                            elif json_data.get('type') == 'test':
-                                # Just log test messages, don't forward them
-                                print(f"Received test message: {json_data.get('message', '')}")
-                            else:
-                                # Unknown JSON format, forward as is
-                                print(f"Forwarding unknown JSON format: {data[:100]}")
-                                await ws.send(data)
-                        except json.JSONDecodeError:
-                            # Not JSON, forward as raw data
-                            print(f"Forwarding raw data: {data[:100]}")
-                            
-                            # # For Enter key (CR or LF), make sure to send both CR and LF
-                            # if data == "\r" or data == "\n":
-                            #     print("Detected Enter key, sending CR+LF")
-                            #     await ws.send("\r\n")
-                            # else:
-                            await ws.send(data)
-                except WebSocketDisconnect:
-                    print("Client disconnected")
-                    pass
-                except Exception as e:
-                    print(f"Error forwarding to server: {e}")
-                    import traceback
-                    print(traceback.format_exc())
-            
-            # Forward messages from WebSSH server to client
-            async def forward_to_client():
+                    # Handle Enter key specially
+                    if message["data"] == "\r":
+                        # Send carriage return and newline
+                        ssh_session.send_data("\r\n".encode())
+                    else:
+                        # Send data to SSH session
+                        ssh_session.send_data(message["data"].encode())
+                elif message["type"] == "resize":
+                    # Resize terminal
+                    logger.info(f"Resizing terminal to {message['rows']}x{message['cols']}")
+                    ssh_session.resize_terminal(message["rows"], message["cols"])
+        except WebSocketDisconnect:
+            logger.info(f"WebSocket disconnected for session {session_id}")
+        except Exception as e:
+            logger.error(f"Error in websocket_endpoint: {e}")
+            try:
+                await websocket.send_json({
+                    "type": "error",
+                    "message": f"Error: {str(e)}"
+                })
+            except:
+                pass
+        finally:
+            # Cancel receive task
+            if not receive_task.done():
+                receive_task.cancel()
                 try:
-                    # Send an initial newline to trigger the prompt
-                    # await ws.send("\n")
-                    
-                    while True:
-                        data = await ws.recv()
-                        print(f"Received data from WebSSH server: {type(data)}, {data[:100] if isinstance(data, str) else 'binary data'}")
-                        
-                        if isinstance(data, str):
-                            # Try to parse as JSON
-                            try:
-                                json_data = json.loads(data)
-                                print(f"Parsed JSON data: {json_data}")
-                                
-                                # If the data is already in JSON format with a 'data' field, extract it
-                                if 'data' in json_data:
-                                    # Forward the JSON as is
-                                    await websocket.send_text(data)
-                                else:
-                                    # Wrap the data in a JSON object with type 'output'
-                                    output_data = json.dumps({
-                                        "type": "output",
-                                        "data": json_data
-                                    })
-                                    await websocket.send_text(output_data)
-                            except json.JSONDecodeError:
-                                # Not JSON, send as text wrapped in a JSON object
-                                print(f"Sending text data: {data[:100]}")
-                                output_data = json.dumps({
-                                    "type": "output",
-                                    "data": data
-                                })
-                                await websocket.send_text(output_data)
-                        else:
-                            # Binary data - convert to text if possible
-                            try:
-                                text_data = data.decode('utf-8')
-                                print(f"Decoded binary data: {text_data[:100]}")
-                                
-                                # Try to parse the decoded text as JSON
-                                try:
-                                    json_data = json.loads(text_data)
-                                    if 'data' in json_data:
-                                        # It's already in the right format, forward as is
-                                        await websocket.send_text(text_data)
-                                    else:
-                                        # Wrap in output type
-                                        output_data = json.dumps({
-                                            "type": "output",
-                                            "data": json_data
-                                        })
-                                        await websocket.send_text(output_data)
-                                except json.JSONDecodeError:
-                                    # Not JSON, wrap in output type
-                                    output_data = json.dumps({
-                                        "type": "output",
-                                        "data": text_data
-                                    })
-                                    await websocket.send_text(output_data)
-                            except UnicodeDecodeError:
-                                # Can't decode as UTF-8, send as binary
-                                print("Sending raw binary data")
-                                await websocket.send_bytes(data)
-                except websockets.exceptions.ConnectionClosed:
-                    print("WebSSH server connection closed")
+                    await receive_task
+                except asyncio.CancelledError:
                     pass
-                except Exception as e:
-                    print(f"Error forwarding to client: {e}")
-                    import traceback
-                    print(traceback.format_exc())
-            
-            # Run both tasks concurrently
-            forward_client_task = asyncio.create_task(forward_to_client())
-            forward_server_task = asyncio.create_task(forward_to_server())
-            
-            # Wait for either task to complete
-            done, pending = await asyncio.wait(
-                [forward_client_task, forward_server_task],
-                return_when=asyncio.FIRST_COMPLETED
-            )
-            
-            # Cancel the pending task
-            for task in pending:
-                task.cancel()
+            logger.info(f"WebSocket connection closed for session {session_id}")
     
-    except websockets.exceptions.InvalidStatusCode as e:
-        await websocket.close(code=1008, reason=f"Failed to connect to WebSSH server: {e}")
     except Exception as e:
+        logger.error(f"Unexpected error in _handle_terminal_websocket: {e}")
         await websocket.close(code=1011, reason=f"Unexpected error: {e}")
