@@ -313,17 +313,29 @@
                 ws.send(JSON.stringify(dimensions));
                 
                 // Apply fit again after connection to ensure correct size
+                // But don't reset the terminal as that would clear the login banner
                 setTimeout(() => {
                     if (fitAddon) {
+                        // Store current dimensions before fitting
+                        const prevRows = term.rows;
+                        const prevCols = term.cols;
+                        
+                        // Apply fit
                         fitAddon.fit();
-                        // Send updated terminal size to server again
-                        ws.send(JSON.stringify({
-                            type: 'resize',
-                            cols: term.cols,
-                            rows: term.rows
-                        }));
+                        
+                        // Only send resize if dimensions actually changed
+                        if (prevRows !== term.rows || prevCols !== term.cols) {
+                            ws.send(JSON.stringify({
+                                type: 'resize',
+                                cols: term.cols,
+                                rows: term.rows
+                            }));
+                        }
                     }
                 }, 500);
+                
+                // Focus the terminal so user can start typing immediately
+                term.focus();
                 
                 // Handle terminal input with debouncing
                 let inputQueue = [];
@@ -420,14 +432,18 @@
                 });
                 
                 // Initialize terminal with proper settings for escape sequences
+                // We'll do this only once before the connection is established
                 function initializeTerminal() {
-                    // Clear the terminal first to remove any artifacts
-                    term.clear();
-                    
-                    // Send sequences to reset terminal state
-                    term.write('\u001bc'); // Full terminal reset (RIS - Reset to Initial State)
-                    term.write('\u001b[0m'); // Reset all attributes
-                    term.write('\u001b[?25h'); // Show cursor
+                    // Only clear and reset the terminal BEFORE connection, not after
+                    if (!ws || ws.readyState !== WebSocket.OPEN) {
+                        // Clear the terminal first to remove any artifacts
+                        term.clear();
+                        
+                        // Send sequences to reset terminal state
+                        term.write('\u001bc'); // Full terminal reset (RIS - Reset to Initial State)
+                        term.write('\u001b[0m'); // Reset all attributes
+                        term.write('\u001b[?25h'); // Show cursor
+                    }
                     
                     // Focus the terminal
                     term.focus();
@@ -437,8 +453,11 @@
                     console.log('Terminal initialized and ready for input');
                 }
                 
-                // Call the initialization after a longer delay to ensure everything is ready
-                setTimeout(initializeTerminal, 1000);
+                // Call the initialization immediately to prepare the terminal
+                initializeTerminal();
+                
+                // We don't need to call it again after connection is established
+                // This prevents clearing the screen after login
                 
                 // Set up a connection health check
                 // This will help detect and recover from stuck sessions
