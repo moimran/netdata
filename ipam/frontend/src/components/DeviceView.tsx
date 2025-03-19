@@ -1,11 +1,12 @@
 import { Stack, ActionIcon, Tooltip, Group } from '@mantine/core';
-import { IPAMTable } from './IPAMTable';
-import { IconExternalLink, IconEdit } from '@tabler/icons-react';
-import { useNavigate } from 'react-router-dom';
+import { IPAMTable, TABLE_SCHEMAS } from './IPAMTable';
+import { IPAMModal } from './IPAMModal';
+import { IconExternalLink, IconEdit, IconTrash } from '@tabler/icons-react';
+import { useState } from 'react';
 
 export function DeviceView() {
-
-  const navigate = useNavigate();
+  const [selectedDevice, setSelectedDevice] = useState<any>(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Custom actions renderer for the device table
   const renderDeviceActions = (device: any) => {
@@ -68,8 +69,11 @@ export function DeviceView() {
         </Tooltip>
         <Tooltip label="Edit device">
           <ActionIcon
-            color="yellow"
-            onClick={() => navigate(`/devices/edit/${device.id}`)}
+            color="blue"
+            onClick={() => {
+              setSelectedDevice(device);
+              setShowModal(true);
+            }}
             title="Edit device"
             variant="light"
             radius="md"
@@ -77,8 +81,44 @@ export function DeviceView() {
             <IconEdit size={16} />
           </ActionIcon>
         </Tooltip>
+        <Tooltip label="Delete device">
+          <ActionIcon
+            color="red"
+            onClick={() => {
+              if (window.confirm(`Are you sure you want to delete the device ${device.name}?`)) {
+                fetch(`/api/v1/devices/${device.id}`, {
+                  method: 'DELETE',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  }
+                })
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error('Failed to delete device');
+                  }
+                  // Refresh the table
+                  window.location.reload();
+                })
+                .catch(error => {
+                  console.error('Error deleting device:', error);
+                  alert(`Failed to delete device: ${error.message || 'Unknown error'}`);
+                });
+              }
+            }}
+            title="Delete device"
+            variant="light"
+            radius="md"
+          >
+            <IconTrash size={16} />
+          </ActionIcon>
+        </Tooltip>
       </Group>
     );
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    setSelectedDevice(null);
   };
 
   return (
@@ -86,7 +126,16 @@ export function DeviceView() {
       {/* Device table */}
       <IPAMTable 
         tableName="devices" 
-        customActionsRenderer={renderDeviceActions} 
+        customActionsRenderer={renderDeviceActions}
+      />
+      
+      {/* Edit device modal */}
+      <IPAMModal
+        show={showModal}
+        onHide={handleModalClose}
+        tableName="devices"
+        schema={TABLE_SCHEMAS.devices}
+        item={selectedDevice}
       />
       
       {/* Terminal functionality now handled by webssh-rs */}
