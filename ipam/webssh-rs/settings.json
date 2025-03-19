@@ -17,11 +17,11 @@
       "mac_server_to_client": "hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha1-etm@openssh.com,hmac-sha2-256,hmac-sha2-512,hmac-sha1"
     },
     "terminal": {
-      "standard_terminal_type": "xterm",
+      "standard_terminal_type": "xterm-256color",
       "linux_terminal_type": "vt100",
       "fallback_terminal_type": "dumb",
-      "default_cols": 80,
-      "default_rows": 24
+      "default_cols": 132,
+      "default_rows": 40
     }
   },
   "server": {

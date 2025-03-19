@@ -172,13 +172,70 @@ impl SSHSession {
         debug!("Configured client->server encryption methods: {}", settings.crypto.encryption_client_to_server);
         debug!("Configured server->client encryption methods: {}", settings.crypto.encryption_server_to_client);
         
-        // Perform handshake with detailed error handling
-        match session.handshake() {
-            Ok(_) => debug!("SSH handshake completed successfully"),
-            Err(e) => {
-                error!("SSH handshake failed: {}", e);
-                error!("This could be due to incompatible encryption algorithms or network issues");
-                return Err(e.into());
+        // Implement retry mechanism for handshake with banner issues
+        let mut retry_count = 0;
+        let max_retries = 3;
+        
+        loop {
+            match session.handshake() {
+                Ok(_) => {
+                    if retry_count > 0 {
+                        debug!("SSH handshake completed successfully after {} retries", retry_count);
+                    } else {
+                        debug!("SSH handshake completed successfully");
+                    }
+                    break;
+                },
+                Err(e) => {
+                    // Check if this is a banner-related error
+                    let is_banner_error = e.code() == ssh2::ErrorCode::Session(-13) && 
+                                          e.message().contains("banner");
+                    
+                    if is_banner_error && retry_count < max_retries {
+                        retry_count += 1;
+                        error!("SSH handshake failed due to banner issue (attempt {}/{}): {}", 
+                               retry_count, max_retries, e);
+                        
+                        // For Cisco XR devices that have banner issues, we'll retry after a short delay
+                        debug!("Retrying handshake after banner issue...");
+                        std::thread::sleep(std::time::Duration::from_millis(500));
+                        
+                        // Create a new session for the retry
+                        drop(session);
+                        session = Session::new()
+                            .map_err(|_| SSHError::Connection(
+                                std::io::Error::new(std::io::ErrorKind::Other, "Failed to create SSH session")
+                            ))?;
+                        
+                        // Reconnect TCP
+                        let tcp = TcpStream::connect((hostname, port))?;
+                        tcp.set_read_timeout(Some(Duration::from_secs(settings.connection.read_timeout_seconds)))?;
+                        tcp.set_write_timeout(Some(Duration::from_secs(settings.connection.write_timeout_seconds)))?;
+                        
+                        session.set_tcp_stream(tcp);
+                        session.set_timeout((settings.connection.timeout_seconds * 1000) as u32);
+                        session.set_compress(settings.connection.compress);
+                        
+                        // Reconfigure SSH algorithms
+                        session.method_pref(ssh2::MethodType::Kex, &settings.crypto.kex_algorithms)?;
+                        session.method_pref(ssh2::MethodType::HostKey, &settings.crypto.host_key_algorithms)?;
+                        session.method_pref(ssh2::MethodType::CryptCs, &settings.crypto.encryption_client_to_server)?;
+                        session.method_pref(ssh2::MethodType::CryptSc, &settings.crypto.encryption_server_to_client)?;
+                        session.method_pref(ssh2::MethodType::MacCs, &settings.crypto.mac_client_to_server)?;
+                        session.method_pref(ssh2::MethodType::MacSc, &settings.crypto.mac_server_to_client)?;
+                        
+                        continue;
+                    } else {
+                        // For non-banner errors or if we've exhausted retries
+                        if is_banner_error {
+                            error!("SSH handshake failed due to banner issue after {} retries: {}", max_retries, e);
+                        } else {
+                            error!("SSH handshake failed: {}", e);
+                        }
+                        error!("This could be due to incompatible encryption algorithms or network issues");
+                        return Err(e.into());
+                    }
+                }
             }
         }
 
@@ -186,10 +243,85 @@ impl SSHSession {
         session.set_blocking(true);
         session.set_keepalive(true, settings.connection.keepalive_seconds as u32);
 
-        // Authenticate
+        // Authenticate with retry mechanism
         if let Some(password) = password {
             info!("Authenticating with password for user {}", username);
-            session.userauth_password(username, password)?;
+            
+            // Implement retry for password authentication
+            let mut auth_retry_count = 0;
+            let max_auth_retries = 3;
+            let mut auth_success = false;
+            
+            while auth_retry_count < max_auth_retries && !auth_success {
+                match session.userauth_password(username, password) {
+                    Ok(_) => {
+                        auth_success = true;
+                        if auth_retry_count > 0 {
+                            debug!("Password authentication succeeded after {} retries", auth_retry_count);
+                        } else {
+                            debug!("Password authentication succeeded");
+                        }
+                    },
+                    Err(e) => {
+                        auth_retry_count += 1;
+                        error!("Password authentication failed (attempt {}/{}): {}", 
+                               auth_retry_count, max_auth_retries, e);
+                        
+                        if auth_retry_count < max_auth_retries {
+                            debug!("Retrying password authentication after failure...");
+                            std::thread::sleep(std::time::Duration::from_millis(500));
+                            
+                            // For certain authentication errors, we may need to recreate the session
+                            if e.code() == ssh2::ErrorCode::Session(-43) { // Waiting for password response
+                                debug!("Recreating SSH session after authentication error");
+                                
+                                // Create a new session for the retry
+                                drop(session);
+                                session = Session::new()
+                                    .map_err(|_| SSHError::Connection(
+                                        std::io::Error::new(std::io::ErrorKind::Other, "Failed to create SSH session")
+                                    ))?;
+                                
+                                // Reconnect TCP
+                                let tcp = TcpStream::connect((hostname, port))?;
+                                tcp.set_read_timeout(Some(Duration::from_secs(settings.connection.read_timeout_seconds)))?;
+                                tcp.set_write_timeout(Some(Duration::from_secs(settings.connection.write_timeout_seconds)))?;
+                                
+                                session.set_tcp_stream(tcp);
+                                session.set_timeout((settings.connection.timeout_seconds * 1000) as u32);
+                                session.set_compress(settings.connection.compress);
+                                session.set_blocking(true);
+                                session.set_keepalive(true, settings.connection.keepalive_seconds as u32);
+                                
+                                // Reconfigure SSH algorithms
+                                session.method_pref(ssh2::MethodType::Kex, &settings.crypto.kex_algorithms)?;
+                                session.method_pref(ssh2::MethodType::HostKey, &settings.crypto.host_key_algorithms)?;
+                                session.method_pref(ssh2::MethodType::CryptCs, &settings.crypto.encryption_client_to_server)?;
+                                session.method_pref(ssh2::MethodType::CryptSc, &settings.crypto.encryption_server_to_client)?;
+                                session.method_pref(ssh2::MethodType::MacCs, &settings.crypto.mac_client_to_server)?;
+                                session.method_pref(ssh2::MethodType::MacSc, &settings.crypto.mac_server_to_client)?;
+                                
+                                // Perform handshake again
+                                debug!("Performing handshake after session recreation");
+                                match session.handshake() {
+                                    Ok(_) => debug!("SSH handshake completed successfully after session recreation"),
+                                    Err(handshake_err) => {
+                                        error!("SSH handshake failed after session recreation: {}", handshake_err);
+                                        return Err(handshake_err.into());
+                                    }
+                                }
+                            }
+                            continue;
+                        } else {
+                            return Err(SSHError::Authentication(format!("Password authentication failed after {} attempts: {}", max_auth_retries, e)));
+                        }
+                    }
+                }
+            }
+            
+            if !auth_success {
+                return Err(SSHError::Authentication(format!("Password authentication failed after {} attempts", max_auth_retries)));
+            }
         } else if let Some(key_data) = private_key {
             info!("Authenticating with private key for user {}", username);
             
@@ -302,6 +434,9 @@ impl SSHSession {
 
     /// Resizes the PTY to the specified dimensions
     ///
+    /// This function resizes the PTY and also sends SIGWINCH signal to the remote
+    /// process to ensure that terminal-based applications like 'top' refresh correctly.
+    ///
     /// # Arguments
     /// * `rows` - Number of rows in the terminal
     /// * `cols` - Number of columns in the terminal
@@ -310,7 +445,37 @@ impl SSHSession {
     /// * `Result<(), SSHError>` - Success or an error
     pub fn resize_pty(&mut self, rows: u32, cols: u32) -> Result<(), SSHError> {
         debug!("Resizing PTY to {}x{}", cols, rows);
-        self.channel.request_pty_size(cols as u32, rows as u32, None, None)?;
+        
+        // Ensure dimensions are reasonable
+        let rows = std::cmp::max(rows, 24); // Minimum 24 rows
+        let cols = std::cmp::max(cols, 80); // Minimum 80 columns
+        
+        // Request PTY size change
+        self.channel.request_pty_size(cols, rows, None, None)?;
+        
+        // For commands like 'top', we need to send a refresh signal
+        // We'll do this by sending a sequence of commands that force a refresh
+        // This is especially important for full-screen applications
+        
+        // Wait a moment for the resize to take effect
+        std::thread::sleep(std::time::Duration::from_millis(50));
+        
+        // For Linux-based systems, we can try to send SIGWINCH
+        // This is done by sending a special escape sequence that triggers a refresh
+        if let Ok(_) = self.channel.write(b"\x1b[7t") { // Save cursor position
+            // Small delay to ensure command is processed
+            std::thread::sleep(std::time::Duration::from_millis(10));
+            
+            // Send a sequence that forces a redraw
+            let _ = self.channel.write(b"\x1b[?25l\x1b[?25h"); // Hide then show cursor
+            
+            // Restore cursor position
+            let _ = self.channel.write(b"\x1b[8t");
+            
+            // Flush the channel to ensure commands are sent
+            let _ = self.channel.flush();
+        }
+        
         Ok(())
     }
 
@@ -396,7 +561,14 @@ impl SSHSession {
                             debug!("Sent {} bytes to WebSocket", n);
                         }
                     } else if self.channel.eof() {
-                        info!("SSH channel closed");
+                        info!("SSH channel EOF detected");
+                        // Set shutdown flag to ensure all tasks terminate cleanly
+                        shutdown_flag.store(true, Ordering::SeqCst);
+                        
+                        // Send a final message to indicate connection closure
+                        let closure_message = "\r\n[SSH connection closed]\r\n";
+                        let _ = output_tx.blocking_send(Bytes::from(closure_message.as_bytes().to_vec()));
+                        
                         break;
                     }
                 }
@@ -427,8 +599,20 @@ impl SSHSession {
                         break;
                     }
                     Err(e) => {
-                        error!("SSH write error: {}", e);
-                        return Err(SSHError::Connection(e));
+                        // Check if this is a channel closed error
+                        let is_channel_closed = e.kind() == std::io::ErrorKind::BrokenPipe ||
+                                               e.kind() == std::io::ErrorKind::ConnectionReset ||
+                                               e.to_string().contains("closed");
+                            
+                        if is_channel_closed {
+                            error!("SSH channel closed unexpectedly: {}", e);
+                            // Set shutdown flag to true to terminate all tasks
+                            shutdown_flag.store(true, Ordering::SeqCst);
+                            break;
+                        } else {
+                            error!("SSH write error: {}", e);
+                            return Err(SSHError::Connection(e));
+                        }
                     }
                 }
             }
@@ -441,26 +625,84 @@ impl SSHSession {
         Ok(())
     }
     
-    /// Cleans control sequences from terminal output
+    /// Processes terminal output to handle ANSI escape sequences properly
     ///
-    /// This function removes ANSI escape sequences and other terminal control
-    /// codes that might interfere with the web terminal display.
+    /// This function preserves all ANSI escape sequences that are needed for proper
+    /// terminal display, including cursor visibility, screen clearing, and positioning.
+    /// This is critical for commands like 'top' and for proper shell prompt display.
     ///
     /// # Arguments
     /// * `input` - The raw terminal output
     ///
     /// # Returns
-    /// * `Vec<u8>` - The cleaned output
+    /// * `Vec<u8>` - The processed output
     fn clean_control_sequences(input: &[u8]) -> Vec<u8> {
+        // For SSH terminal output, we now preserve ALL escape sequences
+        // This ensures proper display of banners, prompts, and commands
+        return input.to_vec();
+        
+        // The following code is kept for reference but is no longer used
+        // as we're now passing through all control sequences unchanged
+        /*
         let mut output = Vec::with_capacity(input.len());
         let mut i = 0;
         
         while i < input.len() {
+            // Check for escape sequence
+            if i + 1 < input.len() && input[i] == 0x1b {
+                // Always preserve cursor visibility sequences (ESC[?25h and ESC[?25l)
+                if i + 5 < input.len() && 
+                   input[i+1] == b'[' && 
+                   input[i+2] == b'?' && 
+                   input[i+3] == b'2' && 
+                   input[i+4] == b'5' && 
+                   (input[i+5] == b'h' || input[i+5] == b'l') {
+                    // Add the entire cursor visibility sequence
+                    for j in 0..6 {
+                        output.push(input[i+j]);
+                    }
+                    i += 6;
+                    continue;
+                }
+                
+                // Always preserve terminal initialization sequences (ESC[8t)
+                if i + 3 < input.len() && 
+                   input[i+1] == b'[' && 
+                   input[i+2] == b'8' && 
+                   input[i+3] == b't' {
+                    // Add the entire sequence
+                    for j in 0..4 {
+                        output.push(input[i+j]);
+                    }
+                    i += 4;
+                    continue;
+                }
+                
+                // Handle window operation sequences (ESC]..BEL or ESC]..ST)
+                if i + 2 < input.len() && input[i+1] == b']' {
+                    // Skip over window operation sequence
+                    i += 2; // Skip ESC]
+                    
+                    // Find the end of the sequence (BEL or ST)
+                    while i < input.len() {
+                        if input[i] == 0x07 { // BEL
+                            i += 1;
+                            break;
+                        } else if i + 1 < input.len() && input[i] == 0x1b && input[i+1] == b'\\' { // ST
+                            i += 2;
+                            break;
+                        }
+                        i += 1;
+                    }
+                    continue;
+                }
+            }
+            
+            // Handle terminal size reporting sequences (like ;37;295t)
             if input[i] == b';' {
-                // Check if this is part of a terminal code sequence (like ;37;295t)
                 let mut is_terminal_code = false;
                 let mut j = i + 1;
-                while j < input.len() && j < i + 10 {  // Look ahead up to 10 chars
+                while j < input.len() && j < i + 10 { // Look ahead up to 10 chars
                     if input[j] == b't' {
                         is_terminal_code = true;
                         break;
@@ -472,38 +714,17 @@ impl SSHSession {
                     while i < input.len() && input[i] != b't' {
                         i += 1;
                     }
-                    i += 1;  // Skip the 't'
+                    i += 1; // Skip the 't'
                     continue;
                 }
             }
-
-            if input[i] == 0x1b {  // ESC
-                // Skip escape sequence
-                i += 1;
-                if i < input.len() && input[i] == b'[' {
-                    i += 1;
-                    while i < input.len() {
-                        let c = input[i];
-                        if (c >= b'A' && c <= b'Z') || (c >= b'a' && c <= b'z') || c == b'@' {
-                            i += 1;
-                            break;
-                        }
-                        i += 1;
-                    }
-                }
-            } else {
-                output.push(input[i]);
-                i += 1;
-            }
-        }
-        
-        // Clean up any remaining terminal codes at the end
-        if let Some(pos) = output.iter().rposition(|&x| x == b';') {
-            if output[pos..].iter().any(|&x| x == b't') {
-                output.truncate(pos);
-            }
+            
+            // Preserve all other characters and control sequences
+            output.push(input[i]);
+            i += 1;
         }
         
         output
+        */
     }
 }

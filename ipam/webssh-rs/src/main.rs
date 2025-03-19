@@ -342,8 +342,16 @@ async fn ws_handler(
         info!("Available sessions: {}", sessions.join(", "));
         error!("Session {} not found", clean_session_id);
         
-        // Return an error response with more information
-        format!("Session '{}' not found. Please ensure you have a valid session ID.", clean_session_id).into_response()
+        // Create a JSON error response with more information
+        let error_response = serde_json::json!({
+            "error": "session_not_found",
+            "message": format!("Session '{}' not found. The SSH connection may have failed or the session expired.", clean_session_id),
+            "session_id": clean_session_id,
+            "available_sessions": sessions.len()
+        });
+        
+        // Return a structured error response
+        (axum::http::StatusCode::NOT_FOUND, Json(error_response)).into_response()
     }
 }
 
@@ -389,11 +397,19 @@ async fn handle_socket(
     // Start WebSocket handler
     ws_handler.handle().await;
     
-    // Update last activity timestamp when the connection ends
+    // Clean up the session when the WebSocket connection ends
     let mut registry = state.session_registry.lock().await;
-    if let Some(session_info) = registry.get_session(&session_id) {
-        info!("WebSocket connection ended for session {} (portal user: {})",
-              session_id, portal_user_id);
+    info!("WebSocket connection ended for session {} (portal user: {})",
+          session_id, portal_user_id);
+    
+    // Log that we're closing the SSH connection due to WebSocket close
+    debug!("Closing SSH connection for session {} because WebSocket close message received", session_id);
+    
+    // Remove the session from the registry and close the SSH connection
+    if registry.remove_session(&session_id) {
+        info!("SSH session removed and closed for session {}", session_id);
+    } else {
+        debug!("Session {} not found in registry during cleanup", session_id);
     }
 }
 
