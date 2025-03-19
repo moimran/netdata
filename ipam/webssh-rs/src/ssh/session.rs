@@ -450,31 +450,16 @@ impl SSHSession {
         let rows = std::cmp::max(rows, 24); // Minimum 24 rows
         let cols = std::cmp::max(cols, 80); // Minimum 80 columns
         
-        // Request PTY size change
+        // Request PTY size change - this is the only thing we really need to do
+        // The SSH server will handle sending SIGWINCH to the processes
         self.channel.request_pty_size(cols, rows, None, None)?;
         
-        // For commands like 'top', we need to send a refresh signal
-        // We'll do this by sending a sequence of commands that force a refresh
-        // This is especially important for full-screen applications
+        // We don't need to send any special escape sequences
+        // Those were causing disconnection issues with some SSH servers
+        // Just let the server handle the resize notification
         
-        // Wait a moment for the resize to take effect
-        std::thread::sleep(std::time::Duration::from_millis(50));
-        
-        // For Linux-based systems, we can try to send SIGWINCH
-        // This is done by sending a special escape sequence that triggers a refresh
-        if let Ok(_) = self.channel.write(b"\x1b[7t") { // Save cursor position
-            // Small delay to ensure command is processed
-            std::thread::sleep(std::time::Duration::from_millis(10));
-            
-            // Send a sequence that forces a redraw
-            let _ = self.channel.write(b"\x1b[?25l\x1b[?25h"); // Hide then show cursor
-            
-            // Restore cursor position
-            let _ = self.channel.write(b"\x1b[8t");
-            
-            // Flush the channel to ensure commands are sent
-            let _ = self.channel.flush();
-        }
+        // A small delay to ensure the resize takes effect
+        std::thread::sleep(std::time::Duration::from_millis(10));
         
         Ok(())
     }
@@ -637,94 +622,8 @@ impl SSHSession {
     /// # Returns
     /// * `Vec<u8>` - The processed output
     fn clean_control_sequences(input: &[u8]) -> Vec<u8> {
-        // For SSH terminal output, we now preserve ALL escape sequences
-        // This ensures proper display of banners, prompts, and commands
-        return input.to_vec();
-        
-        // The following code is kept for reference but is no longer used
-        // as we're now passing through all control sequences unchanged
-        /*
-        let mut output = Vec::with_capacity(input.len());
-        let mut i = 0;
-        
-        while i < input.len() {
-            // Check for escape sequence
-            if i + 1 < input.len() && input[i] == 0x1b {
-                // Always preserve cursor visibility sequences (ESC[?25h and ESC[?25l)
-                if i + 5 < input.len() && 
-                   input[i+1] == b'[' && 
-                   input[i+2] == b'?' && 
-                   input[i+3] == b'2' && 
-                   input[i+4] == b'5' && 
-                   (input[i+5] == b'h' || input[i+5] == b'l') {
-                    // Add the entire cursor visibility sequence
-                    for j in 0..6 {
-                        output.push(input[i+j]);
-                    }
-                    i += 6;
-                    continue;
-                }
-                
-                // Always preserve terminal initialization sequences (ESC[8t)
-                if i + 3 < input.len() && 
-                   input[i+1] == b'[' && 
-                   input[i+2] == b'8' && 
-                   input[i+3] == b't' {
-                    // Add the entire sequence
-                    for j in 0..4 {
-                        output.push(input[i+j]);
-                    }
-                    i += 4;
-                    continue;
-                }
-                
-                // Handle window operation sequences (ESC]..BEL or ESC]..ST)
-                if i + 2 < input.len() && input[i+1] == b']' {
-                    // Skip over window operation sequence
-                    i += 2; // Skip ESC]
-                    
-                    // Find the end of the sequence (BEL or ST)
-                    while i < input.len() {
-                        if input[i] == 0x07 { // BEL
-                            i += 1;
-                            break;
-                        } else if i + 1 < input.len() && input[i] == 0x1b && input[i+1] == b'\\' { // ST
-                            i += 2;
-                            break;
-                        }
-                        i += 1;
-                    }
-                    continue;
-                }
-            }
-            
-            // Handle terminal size reporting sequences (like ;37;295t)
-            if input[i] == b';' {
-                let mut is_terminal_code = false;
-                let mut j = i + 1;
-                while j < input.len() && j < i + 10 { // Look ahead up to 10 chars
-                    if input[j] == b't' {
-                        is_terminal_code = true;
-                        break;
-                    }
-                    j += 1;
-                }
-                if is_terminal_code {
-                    // Skip until we find 't'
-                    while i < input.len() && input[i] != b't' {
-                        i += 1;
-                    }
-                    i += 1; // Skip the 't'
-                    continue;
-                }
-            }
-            
-            // Preserve all other characters and control sequences
-            output.push(input[i]);
-            i += 1;
-        }
-        
-        output
-        */
+        // For SSH terminal output, we simply pass through all data unchanged
+        // This ensures proper display of banners, prompts, and commands like 'top'
+        input.to_vec()
     }
 }

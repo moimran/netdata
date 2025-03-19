@@ -99,39 +99,21 @@
             // Initialize terminal with improved settings for command output
             term = new Terminal({
                 cursorBlink: true,
-                fontSize: 14,
-                fontFamily: 'monospace',
-                theme: {
-                    background: '#000',
-                    foreground: '#fff',
-                    cursor: '#fff',
-                    cursorAccent: '#000',
-                    selection: 'rgba(255, 255, 255, 0.3)'
-                },
-                convertEol: true,
-                scrollback: 5000,
-                allowProposedApi: true,
-                cols: 132,
-                rows: 40,
-                windowsMode: false,
-                screenReaderMode: false,
-                altClickMovesCursor: true,
-                macOptionIsMeta: true,
-                macOptionClickForcesSelection: true,
-                rendererType: 'canvas', // Using canvas renderer for better compatibility
-                allowTransparency: false,
-                fastScrollModifier: 'alt',
-                fastScrollSensitivity: 5,
-                cursorStyle: 'block',
-                cursorWidth: 1,
+                scrollback: 1000,
                 tabStopWidth: 8,
-                drawBoldTextInBrightColors: true,
-                letterSpacing: 0,
-                lineHeight: 1,
                 bellStyle: 'sound',
-                fontWeight: 'normal',
-                fontWeightBold: 'bold',
-                minimumContrastRatio: 1
+                fontFamily: 'monospace',
+                fontSize: 14,
+                theme: {
+                    background: '#000000',
+                    foreground: '#ffffff'
+                },
+                allowTransparency: false,
+                disableStdin: false,
+                cursorStyle: 'block',
+                convertEol: true,
+                rendererType: 'canvas',
+                allowProposedApi: true
             });
             
             // Create and load addons
@@ -455,8 +437,8 @@
                     console.log('Terminal initialized and ready for input');
                 }
                 
-                // Call the initialization after a short delay
-                setTimeout(initializeTerminal, 500);
+                // Call the initialization after a longer delay to ensure everything is ready
+                setTimeout(initializeTerminal, 1000);
                 
                 // Set up a connection health check
                 // This will help detect and recover from stuck sessions
@@ -737,20 +719,40 @@
             }
         }
         
-        // Handle window resize
+        // Handle window resize with debounce to prevent too many resize events
+        let resizeTimeout;
         window.onresize = function() {
-            if (fitAddon) {
-                fitAddon.fit();
-                
-                if (ws && ws.readyState === WebSocket.OPEN) {
-                    const dimensions = {
-                        type: 'resize',
-                        rows: term.rows,
-                        cols: term.cols
-                    };
-                    ws.send(JSON.stringify(dimensions));
-                }
+            // Clear any existing timeout to debounce the resize event
+            if (resizeTimeout) {
+                clearTimeout(resizeTimeout);
             }
+            
+            // Set a timeout to actually perform the resize after a short delay
+            // This prevents sending too many resize events in rapid succession
+            resizeTimeout = setTimeout(function() {
+                if (fitAddon) {
+                    // Store previous dimensions
+                    const prevRows = term.rows;
+                    const prevCols = term.cols;
+                    
+                    // Fit the terminal to the container
+                    fitAddon.fit();
+                    
+                    // Only send resize command if dimensions actually changed
+                    // This prevents unnecessary resize commands
+                    if (prevRows !== term.rows || prevCols !== term.cols) {
+                        if (ws && ws.readyState === WebSocket.OPEN) {
+                            console.log(`Terminal resized from ${prevCols}x${prevRows} to ${term.cols}x${term.rows}`);
+                            const dimensions = {
+                                type: 'resize',
+                                rows: term.rows,
+                                cols: term.cols
+                            };
+                            ws.send(JSON.stringify(dimensions));
+                        }
+                    }
+                }
+            }, 250); // 250ms debounce time
         };
         
         // Initialize on page load
