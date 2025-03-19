@@ -94,6 +94,11 @@ impl SessionRegistry {
         session_id
     }
     
+    /// Gets a list of all session IDs in the registry
+    pub fn get_all_sessions(&self) -> Vec<String> {
+        self.sessions.keys().cloned().collect()
+    }
+    
     /// Gets a session by ID
     pub fn get_session(&mut self, session_id: &str) -> Option<&mut SessionInfo> {
         if let Some(session_info) = self.sessions.get_mut(session_id) {
@@ -147,9 +152,16 @@ impl SessionRegistry {
         }
     }
     
-    /// Removes a session from the registry
+    /// Removes a session from the registry and closes the SSH connection
     pub fn remove_session(&mut self, session_id: &str) -> bool {
-        if let Some(session_info) = self.sessions.remove(session_id) {
+        if let Some(mut session_info) = self.sessions.remove(session_id) {
+            // Close the SSH session first
+            info!("Closing SSH connection for session {}", session_id);
+            match session_info.ssh_session.close() {
+                Ok(_) => info!("Successfully closed SSH connection for session {}", session_id),
+                Err(e) => error!("Error closing SSH connection for session {}: {}", session_id, e),
+            }
+            
             // Remove from portal user sessions map
             if let Some(user_sessions) = self.portal_user_sessions.get_mut(&session_info.portal_user_id) {
                 user_sessions.remove(session_id);
@@ -174,9 +186,10 @@ impl SessionRegistry {
             );
             self.composite_key_sessions.remove(&composite_key);
             
-            info!("Removed session {}", session_id);
+            info!("Removed session {} from registry", session_id);
             true
         } else {
+            info!("Session {} not found in registry", session_id);
             false
         }
     }

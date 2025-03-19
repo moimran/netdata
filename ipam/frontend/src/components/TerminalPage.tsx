@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Paper, Title, Button, Group, LoadingOverlay } from '@mantine/core';
 import { IconArrowLeft } from '@tabler/icons-react';
 import { SSHTerminal } from './SSHTerminal';
@@ -7,9 +7,13 @@ import { SSHTerminal } from './SSHTerminal';
 export function TerminalPage() {
   const { deviceId } = useParams<{ deviceId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [deviceName, setDeviceName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Extract session ID from URL query parameters
+  const sessionId = new URLSearchParams(location.search).get('session');
 
   useEffect(() => {
     async function fetchDeviceName() {
@@ -83,6 +87,7 @@ export function TerminalPage() {
           <SSHTerminal 
             deviceId={parseInt(deviceId)} 
             deviceName={deviceName}
+            sessionId={sessionId || undefined}
             onError={handleError}
           />
         </div>

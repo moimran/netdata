@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WebSSH</title>
+    <title>IPAM Terminal</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
@@ -9,21 +9,60 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
+            padding: 0;
+            background-color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background-color: #343a40;
+            color: #fff;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #4f5962;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .connection-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .info-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        .info-value {
+            font-weight: bold;
+        }
+        .terminal-container {
+            flex: 1;
             padding: 20px;
-            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
         }
         #terminal {
             width: 100%;
-            height: 600px;
+            flex: 1;
             background-color: black;
             border-radius: 5px;
-            margin-top: 20px;
+            overflow: hidden;
         }
         .form-container {
             background-color: white;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
         .form-group {
             margin-bottom: 15px;
@@ -47,7 +86,7 @@
             min-height: 100px;
         }
         button {
-            background-color: #4CAF50;
+            background-color: #007bff;
             color: white;
             padding: 10px 15px;
             border: none;
@@ -55,17 +94,21 @@
             cursor: pointer;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #0069d9;
         }
         #error-message {
             color: red;
             margin-top: 10px;
             display: none;
         }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="form-container">
+    <!-- Connection form (hidden when connected via API) -->
+    <div id="login-form" class="form-container">
         <div class="form-group">
             <label for="hostname">Hostname:</label>
             <input type="text" id="hostname" required>
@@ -96,12 +139,38 @@
         <button onclick="connect()">Connect</button>
         <div id="error-message"></div>
     </div>
-    <div id="terminal"></div>
+    
+    <!-- Terminal interface -->
+    <div id="terminal-interface" class="hidden">
+        <div class="header">
+            <h1>IPAM Terminal</h1>
+            <div class="connection-info">
+                <div class="info-item">
+                    <span class="info-label">Device</span>
+                    <span id="device-hostname" class="info-value">Not connected</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Username</span>
+                    <span id="connection-username" class="info-value">Not connected</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Session ID</span>
+                    <span id="session-id" class="info-value">Not connected</span>
+                </div>
+                <button id="disconnect-button" onclick="disconnectSession()">Disconnect</button>
+            </div>
+        </div>
+        <div class="terminal-container">
+            <div id="terminal"></div>
+        </div>
+    </div>
 
     <script>
         let term = null;
         let ws = null;
         let fitAddon = null;
+        let currentSessionId = null;
+        let isApiConnection = false;
 
         function showError(message) {
             const errorDiv = document.getElementById('error-message');
@@ -147,8 +216,64 @@
                     term.open(terminalElement);
                     fitAddon.fit();
 
-                    term.writeln('Welcome to WebSSH');
-                    term.writeln('Please enter your credentials and click Connect');
+                    // Check if we're connecting via API (URL has session_id parameter)
+                    const urlParams = new URLSearchParams(window.location.search);
+                    console.log('URL parameters:', window.location.search);
+                    
+                    // Extract session ID from URL parameters
+                    // First check for session_id parameter directly
+                    let sessionId = urlParams.get('session_id');
+                    console.log('Session ID from URL parameter:', sessionId);
+                    
+                    // If not found, try to extract it from the websocket_url parameter
+                    if (!sessionId) {
+                        const wsUrl = urlParams.get('websocket_url');
+                        console.log('WebSocket URL from parameter:', wsUrl);
+                        
+                        if (wsUrl) {
+                            // Extract session ID from websocket URL (format: ws://host:port/ws/session_id)
+                            const wsUrlParts = wsUrl.split('/');
+                            console.log('WebSocket URL parts:', wsUrlParts);
+                            
+                            if (wsUrlParts.length > 0) {
+                                sessionId = wsUrlParts[wsUrlParts.length - 1];
+                                console.log('Extracted session ID from WebSocket URL:', sessionId);
+                            }
+                        }
+                    }
+                    
+                    // Clean up the session ID - remove any additional URL parameters
+                    if (sessionId && sessionId.includes('&')) {
+                        sessionId = sessionId.split('&')[0];
+                        console.log('Cleaned session ID (removed URL parameters):', sessionId);
+                    }
+                    
+                    // If still no session ID, try to create a connection first
+                    if (!sessionId) {
+                        console.log('No session ID found in URL, will attempt to create one');
+                    }
+                    
+                    const deviceId = urlParams.get('device_id');
+                    const hostname = urlParams.get('hostname');
+                    const username = urlParams.get('username');
+                    
+                    if (sessionId) {
+                        isApiConnection = true;
+                        document.getElementById('login-form').classList.add('hidden');
+                        document.getElementById('terminal-interface').classList.remove('hidden');
+                        
+                        // Update the connection info
+                        document.getElementById('device-hostname').textContent = hostname || 'Unknown';
+                        document.getElementById('connection-username').textContent = username || 'Unknown';
+                        document.getElementById('session-id').textContent = sessionId;
+                        
+                        // Check if session exists before connecting
+                        term.writeln('Checking session status...');
+                        checkSessionAndConnect(sessionId);
+                    } else {
+                        term.writeln('Welcome to IPAM Terminal');
+                        term.writeln('Please enter your credentials and click Connect');
+                    }
 
                     resolve();
                 } catch (error) {
@@ -195,6 +320,61 @@
                 privateKeyAuth.style.display = 'block';
             }
         }
+        
+        // Disconnect from the current session
+        function disconnectSession() {
+            // Get the current session ID
+            const sessionIdElement = document.getElementById('session-id');
+            const sessionId = sessionIdElement ? sessionIdElement.textContent.trim() : null;
+            
+            // Close the WebSocket connection
+            if (ws) {
+                ws.close();
+            }
+            
+            // If we have a session ID, call the terminate endpoint to clean up the SSH session
+            if (sessionId) {
+                // Clean up the session ID - remove any additional URL parameters
+                let cleanSessionId = sessionId;
+                if (cleanSessionId.includes('&')) {
+                    cleanSessionId = cleanSessionId.split('&')[0];
+                }
+                
+                console.log(`Terminating session: ${cleanSessionId}`);
+                term.writeln(`Terminating session ${cleanSessionId}...`);
+                
+                // Call the terminate endpoint
+                fetch(`/api/session/${cleanSessionId}/terminate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Session termination response:', data);
+                    term.writeln(data.message);
+                })
+                .catch(error => {
+                    console.error('Error terminating session:', error);
+                    term.writeln(`Error terminating session: ${error.message}`);
+                });
+            }
+            
+            // If this was an API connection, close the window
+            if (isApiConnection) {
+                window.close();
+            } else {
+                // Otherwise, show the login form again
+                document.getElementById('terminal-interface').classList.add('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
+                
+                // Reset the terminal
+                term.clear();
+                term.writeln('Disconnected from session');
+                term.writeln('Please enter your credentials and click Connect');
+            }
+        }
 
         async function connect() {
             if (!term) {
@@ -239,6 +419,19 @@
                 const result = await response.json();
                 
                 if (result.success && result.session_id) {
+                    // Update the UI to show the terminal interface
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('terminal-interface').classList.remove('hidden');
+                    
+                    // Update the connection info
+                    document.getElementById('device-hostname').textContent = hostname;
+                    document.getElementById('connection-username').textContent = username;
+                    document.getElementById('session-id').textContent = result.session_id;
+                    
+                    // Store the session ID
+                    currentSessionId = result.session_id;
+                    
+                    // Connect to the WebSocket
                     connectWebSocket(result.session_id);
                 } else {
                     const errorMessage = result.message || 'Connection failed';
@@ -253,13 +446,98 @@
             }
         }
 
+        // Function to check session status and connect when ready
+        function checkSessionAndConnect(sessionId) {
+            const maxAttempts = 60; // 1 minute with 1-second intervals
+            let attempts = 0;
+            
+            // Clean up the session ID for status checking
+            let cleanSessionId = sessionId.trim();
+            if (cleanSessionId.includes('&')) {
+                cleanSessionId = cleanSessionId.split('&')[0];
+                console.log(`Cleaned session ID for status check: ${cleanSessionId}`);
+            }
+            
+            term.writeln(`Waiting for session ${cleanSessionId} to be ready...`);
+            term.writeln('This may take a few seconds...');
+            
+            // Show a spinner or progress indicator
+            let spinnerChars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+            let spinnerIndex = 0;
+            
+            function updateSpinner() {
+                term.write('\r' + spinnerChars[spinnerIndex] + ' Polling session status...');
+                spinnerIndex = (spinnerIndex + 1) % spinnerChars.length;
+            }
+            
+            // Start the spinner
+            const spinnerId = setInterval(updateSpinner, 100);
+            
+            // Function to poll session status
+            function pollSessionStatus() {
+                attempts++;
+                
+                // Make a request to check session status
+                fetch(`/api/session/${cleanSessionId}/status`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Session status response:', data);
+                        
+                        if (data.exists && data.ready) {
+                            // Session is ready, stop polling and connect
+                            clearInterval(pollId);
+                            clearInterval(spinnerId);
+                            term.writeln('\r\nSession is ready! Connecting...');
+                            connectWebSocket(sessionId);
+                        } else {
+                            // Session not ready yet, continue polling if attempts remain
+                            if (attempts >= maxAttempts) {
+                                clearInterval(pollId);
+                                clearInterval(spinnerId);
+                                term.writeln('\r\nTimeout waiting for session to be ready. Please refresh the page to try again.');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking session status:', error);
+                        clearInterval(pollId);
+                        clearInterval(spinnerId);
+                        term.writeln(`\r\nError checking session status: ${error.message}`);
+                    });
+            }
+            
+            // Start polling
+            const pollId = setInterval(pollSessionStatus, 1000);
+            // Immediately do first poll
+            pollSessionStatus();
+        }
+        
         function connectWebSocket(sessionId) {
             if (ws) {
                 ws.close();
             }
 
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${protocol}//${window.location.hostname}:${window.location.port}/ws/${sessionId}`;
+            
+            // Log the session ID for debugging
+            console.log(`Connecting to WebSocket with session ID: ${sessionId}`);
+            
+            // Ensure the session ID is properly formatted (no spaces, URL-safe, no additional parameters)
+            let cleanSessionId = sessionId.trim();
+            
+            // Remove any URL parameters that might be attached to the session ID
+            if (cleanSessionId.includes('&')) {
+                cleanSessionId = cleanSessionId.split('&')[0];
+                console.log(`Cleaned session ID for WebSocket connection: ${cleanSessionId}`);
+            }
+            
+            // Create the WebSocket URL
+            const wsUrl = `${protocol}//${window.location.hostname}:${window.location.port}/ws/${cleanSessionId}`;
             
             try {
                 ws = new WebSocket(wsUrl);
@@ -325,12 +603,36 @@
                         };
                         reader.readAsArrayBuffer(data);
                     } else {
-                        term.write(data);
+                        try {
+                            // Check if it's a JSON message
+                            const jsonData = JSON.parse(data);
+                            if (jsonData.type === 'status' && jsonData.status === 'disconnected') {
+                                // Handle disconnection status
+                                term.write('\r\n\nDisconnected from device\r\n');
+                                if (isApiConnection) {
+                                    // Show a message that the window can be closed
+                                    term.write('\r\nYou can close this window or click Disconnect to return to IPAM\r\n');
+                                }
+                            } else {
+                                // For other JSON messages, just display them as text
+                                term.write(JSON.stringify(jsonData));
+                            }
+                        } catch (e) {
+                            // Not JSON, just write the data
+                            term.write(data);
+                        }
                     }
                 };
 
                 ws.onclose = () => {
                     term.write('\r\n\nConnection closed\r\n');
+                    
+                    // If this was an API connection, don't automatically return to the login form
+                    if (!isApiConnection) {
+                        // For manual connections, show the login form again
+                        document.getElementById('terminal-interface').classList.add('hidden');
+                        document.getElementById('login-form').classList.remove('hidden');
+                    }
                 };
 
                 ws.onerror = (error) => {

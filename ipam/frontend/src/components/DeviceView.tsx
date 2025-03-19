@@ -1,25 +1,9 @@
 import { Stack, ActionIcon, Tooltip, Group } from '@mantine/core';
 import { IPAMTable } from './IPAMTable';
-import { TabbedTerminal, TabbedTerminalRef } from './TabbedTerminal';
-import { useTabbedTerminal } from '../hooks/useTabbedTerminal';
-import { useRef, useEffect } from 'react';
-import { IconTerminal2, IconExternalLink, IconEdit } from '@tabler/icons-react';
+import { IconExternalLink, IconEdit } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 
 export function DeviceView() {
-  const { 
-    terminalVisible,
-    setTerminalRef, 
-    connectToDevice 
-  } = useTabbedTerminal();
-
-  // Create a ref to store the terminal component's addSession method
-  const terminalComponentRef = useRef<TabbedTerminalRef>(null);
-
-  // Set the terminal ref when the component mounts
-  useEffect(() => {
-    setTerminalRef(terminalComponentRef.current);
-  }, [setTerminalRef]);
 
   const navigate = useNavigate();
 
@@ -27,22 +11,55 @@ export function DeviceView() {
   const renderDeviceActions = (device: any) => {
     return (
       <Group gap="xs">
-        <Tooltip label="Connect in tab">
-          <ActionIcon
-            color="blue"
-            onClick={() => connectToDevice(device.id, device.name)}
-            title="Connect in tab"
-            variant="light"
-            radius="md"
-          >
-            <IconTerminal2 size={16} />
-          </ActionIcon>
-        </Tooltip>
-        <Tooltip label="Connect in new window">
+        <Tooltip label="Connect to device">
           <ActionIcon
             color="green"
-            onClick={() => navigate(`/terminal/${device.id}`)}
-            title="Connect in new window"
+            onClick={async () => {
+              try {
+                // Generate a random UUID for the session
+                const sessionId = crypto.randomUUID();
+                
+                // Call the backend API to get connection details and establish the session
+                const response = await fetch(`/api/v1/devices/connect`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    device_id: device.id,
+                    session_id: sessionId
+                  })
+                });
+                
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(errorData.detail || 'Failed to connect to device');
+                }
+                
+                const data = await response.json();
+                console.log('Connection response:', data);
+                
+                // Open the WebSSH interface using the URL from the response
+                if (data.websocket_url) {
+                  window.open(
+                    data.websocket_url,
+                    '_blank',
+                    'noopener=yes,noreferrer=yes'
+                  );
+                } else {
+                  // Fallback if no websocket_url is provided
+                  window.open(
+                    `http://localhost:8022/?device_id=${device.id}&session_id=${data.session_id || sessionId}`,
+                    '_blank',
+                    'noopener=yes,noreferrer=yes'
+                  );
+                }
+              } catch (error: any) {
+                console.error('Error connecting to device:', error);
+                alert(`Failed to connect to device: ${error.message || 'Unknown error'}`);
+              }
+            }}
+            title="Connect to device"
             variant="light"
             radius="md"
           >
@@ -72,11 +89,7 @@ export function DeviceView() {
         customActionsRenderer={renderDeviceActions} 
       />
       
-      {/* Terminal with tabs */}
-      <TabbedTerminal 
-        visible={terminalVisible} 
-        ref={terminalComponentRef}
-      />
+      {/* Terminal functionality now handled by webssh-rs */}
     </Stack>
   );
 }

@@ -31,7 +31,7 @@ use tracing_subscriber::FmtSubscriber;
 
 use crate::{settings::Settings, ssh::SSHSession, websocket::WebSocketHandler, session::SessionRegistry};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct SSHCredentials {
     hostname: String,
     port: u16,
@@ -41,6 +41,9 @@ struct SSHCredentials {
     device_type: Option<String>, // Optional field to explicitly specify device type
     auth_type: Option<String>,   // Optional field to specify auth type (password or private-key)
     portal_user_id: Option<String>, // Added field for portal user identification
+    enable_password: Option<String>, // Added field for enable password for network devices
+    device_name: Option<String>, // Added field for friendly device name display
+    session_id: Option<String>,  // Added field for session ID from backend
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -118,12 +121,21 @@ async fn main() {
         .route("/connect", post(connect_handler))
         .route("/api/connect", post(api_connect_handler))
         .route("/api/sessions", post(session_status_handler))
+        .route("/api/session/:session_id/status", get(session_status_single_handler))
+        .route("/api/session/:session_id/terminate", post(session_terminate_handler))
         .nest_service("/static", ServeDir::new("static"))
         .layer(cors)
         .with_state(state);
 
-    // Start server
-    let addr = format!("{}:{}", settings.server.address, settings.server.port);
+    // Get server address and port from environment variables if available
+    let address = std::env::var("WEBSSH_SERVER_ADDRESS")
+        .unwrap_or_else(|_| settings.server.address.clone());
+    let port = std::env::var("WEBSSH_SERVER_PORT")
+        .unwrap_or_else(|_| settings.server.port.to_string())
+        .parse::<u16>()
+        .unwrap_or(settings.server.port);
+    
+    let addr = format!("{0}:{1}", address, port);
     info!("Starting server on {}", addr);
     
     // For now, we'll just use the non-TLS server
@@ -133,11 +145,22 @@ async fn main() {
         info!("Starting non-TLS server on {}", addr);
     }
     
+    // Log the available routes
+    info!("Available routes:");
+    info!("  GET  / - HTML interface");
+    info!("  GET  /ws/:session_id - WebSocket endpoint");
+    info!("  POST /connect - Connect endpoint");
+    info!("  POST /api/connect - API connect endpoint");
+    info!("  POST /api/session/:session_id/terminate - Terminate session endpoint");
+    
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
 
 async fn index_handler() -> impl IntoResponse {
+    // We're using the static HTML file with client-side JavaScript that will parse URL parameters
+    // The JavaScript in the HTML will handle the session_id and other parameters
+    info!("Serving index.html with client-side parameter handling");
     Html(include_str!("../static/index.html"))
 }
 
@@ -216,11 +239,17 @@ async fn connect_handler(
     }
 }
 
-// New API endpoint for simplified connection
+// Enhanced API endpoint for backend integration with improved security
 async fn api_connect_handler(
     State(state): State<AppState>,
     Json(credentials): Json<SSHCredentials>,
 ) -> Json<ConnectResponse> {
+    // Log the connection attempt with limited information (no passwords)
+    info!("API connection request for hostname: {}, username: {}, device_name: {}", 
+          credentials.hostname, 
+          credentials.username, 
+          credentials.device_name.as_deref().unwrap_or("Unknown"));
+    
     // Set default port if not provided
     let port = if credentials.port == 0 { 22 } else { credentials.port };
     
@@ -229,6 +258,16 @@ async fn api_connect_handler(
         Some("private-key") => (None, credentials.private_key.clone()),
         _ => (credentials.password.clone(), None), // Default to password auth
     };
+    
+    // Generate a unique session ID if not provided
+    let session_id = credentials.session_id.clone().unwrap_or_else(|| {
+        uuid::Uuid::new_v4().to_string()
+    });
+    
+    // Use the device name as portal_user_id if not provided
+    let portal_user_id = credentials.portal_user_id.clone().unwrap_or_else(|| {
+        credentials.device_name.clone().unwrap_or_else(|| format!("device-{}", uuid::Uuid::new_v4()))
+    });
     
     // Create a new credentials object with the processed values
     let processed_credentials = SSHCredentials {
@@ -239,11 +278,29 @@ async fn api_connect_handler(
         private_key,
         device_type: credentials.device_type.clone(),
         auth_type: credentials.auth_type.clone(),
-        portal_user_id: credentials.portal_user_id.clone(),
+        portal_user_id: Some(portal_user_id),
+        enable_password: credentials.enable_password.clone(),
+        device_name: credentials.device_name.clone(),
+        session_id: Some(session_id),
     };
     
     // Use the existing connect_handler logic
-    connect_handler(State(state), Json(processed_credentials)).await
+    let mut response = connect_handler(State(state), Json(processed_credentials.clone())).await;
+    
+    // Enhance the response with additional information for the frontend
+    if let Some(websocket_url) = &response.websocket_url {
+        // Create a URL with query parameters for the frontend
+        let device_name = processed_credentials.device_name.unwrap_or_else(|| processed_credentials.hostname.clone());
+        let enhanced_url = format!("{}&hostname={}&username={}&device_name={}", 
+                                 websocket_url,
+                                 urlencoding::encode(&processed_credentials.hostname),
+                                 urlencoding::encode(&processed_credentials.username),
+                                 urlencoding::encode(&device_name));
+        
+        response.websocket_url = Some(enhanced_url);
+    }
+    
+    response
 }
 
 async fn ws_handler(
@@ -251,10 +308,19 @@ async fn ws_handler(
     axum::extract::Path(session_id): axum::extract::Path<String>,
     State(state): State<AppState>,
 ) -> Response {
-    let mut registry = state.session_registry.lock().await;
+    // Log the session ID being requested
+    info!("WebSocket connection request for session ID: {}", session_id);
     
-    if let Some(session_info) = registry.get_session(&session_id) {
+    // Trim any whitespace from the session ID
+    let clean_session_id = session_id.trim().to_string();
+    
+    // Check if the session exists in the registry
+    let mut registry = state.session_registry.lock().await;
+    let session_exists = registry.get_session(&clean_session_id).is_some();
+    
+    if session_exists {
         // Get session info
+        let session_info = registry.get_session(&clean_session_id).unwrap();
         let portal_user_id = session_info.portal_user_id.clone();
         let device_id = session_info.device_id.clone();
         let ssh_username = session_info.ssh_username.clone();
@@ -266,13 +332,18 @@ async fn ws_handler(
         drop(registry);
         
         info!("Starting WebSocket connection for session {} (portal user: {}, device: {}, SSH user: {})",
-              session_id, portal_user_id, device_id, ssh_username);
+              clean_session_id, portal_user_id, device_id, ssh_username);
         
         // Upgrade the connection with the cloned session
-        ws.on_upgrade(move |socket| handle_socket(socket, session, session_id, portal_user_id, state))
+        ws.on_upgrade(move |socket| handle_socket(socket, session, clean_session_id, portal_user_id, state))
     } else {
-        error!("Session {} not found", session_id);
-        "Session not found".into_response()
+        // Log all available sessions for debugging
+        let sessions = registry.get_all_sessions();
+        info!("Available sessions: {}", sessions.join(", "));
+        error!("Session {} not found", clean_session_id);
+        
+        // Return an error response with more information
+        format!("Session '{}' not found. Please ensure you have a valid session ID.", clean_session_id).into_response()
     }
 }
 
@@ -332,6 +403,19 @@ struct SessionStatusRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+struct SessionStatusSingleResponse {
+    exists: bool,
+    ready: bool,
+    message: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct SessionTerminateResponse {
+    success: bool,
+    message: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 struct SessionStatusResponse {
     active_sessions: usize,
     sessions: Vec<SessionInfo>,
@@ -346,6 +430,7 @@ struct SessionInfo {
     last_activity: String,
 }
 
+/// Handler for checking the status of all sessions
 async fn session_status_handler(
     State(state): State<AppState>,
     Json(request): Json<SessionStatusRequest>,
@@ -399,4 +484,84 @@ async fn session_status_handler(
         active_sessions: sessions_info.len(),
         sessions: sessions_info,
     })
+}
+
+/// Handler for terminating a session by ID
+async fn session_terminate_handler(
+    axum::extract::Path(session_id): axum::extract::Path<String>,
+    State(state): State<AppState>,
+) -> Json<SessionTerminateResponse> {
+    // Log the session ID being terminated
+    info!("Terminating session ID: {}", session_id);
+    
+    // Trim any whitespace from the session ID
+    let clean_session_id = session_id.trim().to_string();
+    
+    // Get a lock on the session registry
+    let mut registry = state.session_registry.lock().await;
+    
+    // Check if the session exists
+    if let Some(session) = registry.get_session(&clean_session_id) {
+        // Log session details before termination
+        info!("Terminating session for portal user {}, device {}, SSH user {}", 
+              session.portal_user_id, session.device_id, session.ssh_username);
+        
+        // Remove the session from the registry
+        registry.remove_session(&clean_session_id);
+        
+        info!("Session {} successfully terminated", clean_session_id);
+        Json(SessionTerminateResponse {
+            success: true,
+            message: format!("Session '{}' successfully terminated", clean_session_id),
+        })
+    } else {
+        // Session not found
+        info!("Session {} not found for termination", clean_session_id);
+        Json(SessionTerminateResponse {
+            success: false,
+            message: format!("Session '{}' not found", clean_session_id),
+        })
+    }
+}
+
+/// Handler for checking the status of a single session by ID
+async fn session_status_single_handler(
+    axum::extract::Path(session_id): axum::extract::Path<String>,
+    State(state): State<AppState>,
+) -> Json<SessionStatusSingleResponse> {
+    // Log the session ID being checked
+    info!("Checking status for session ID: {}", session_id);
+    
+    // Trim any whitespace from the session ID
+    let clean_session_id = session_id.trim().to_string();
+    
+    // Check if the session exists in the registry
+    let mut registry = state.session_registry.lock().await;
+    let session_exists = registry.get_session(&clean_session_id).is_some();
+    
+    if session_exists {
+        info!("Session {} exists and is ready", clean_session_id);
+        Json(SessionStatusSingleResponse {
+            exists: true,
+            ready: true,
+            message: "Session is ready for connection".to_string(),
+        })
+    } else {
+        // Check if the session ID contains connection information
+        // Format: portal-{portal_user_id}-device-{device_id}-ssh-{ssh_username}-{uuid}
+        let parts: Vec<&str> = clean_session_id.split('-').collect();
+        
+        // Log all available sessions for debugging
+        let sessions = registry.get_all_sessions();
+        info!("Available sessions: {}", sessions.join(", "));
+        info!("Session {} does not exist", clean_session_id);
+        
+        // For now, just return that the session doesn't exist
+        // The frontend will continue polling until it times out or the session is created
+        Json(SessionStatusSingleResponse {
+            exists: false,
+            ready: false,
+            message: format!("Session '{}' not found. Waiting for it to be created...", clean_session_id),
+        })
+    }
 }

@@ -7,6 +7,7 @@ import 'xterm/css/xterm.css';
 interface SSHTerminalProps {
   deviceId: number;
   deviceName: string;
+  sessionId?: string;
   onError?: (error: string) => void;
 }
 
@@ -17,14 +18,14 @@ interface DeviceDetails {
   enable_password?: string;
 }
 
-export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps) {
+export function SSHTerminal({ deviceId, deviceName, sessionId: providedSessionId, onError }: SSHTerminalProps) {
   const terminalRef = useRef<HTMLDivElement>(null);
   const [terminal, setTerminal] = useState<Terminal | null>(null);
   const [fitAddon, setFitAddon] = useState<FitAddon | null>(null);
   const [websocket, setWebsocket] = useState<WebSocket | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(providedSessionId || null);
   const [deviceDetails, setDeviceDetails] = useState<DeviceDetails | null>(null);
 
   // Initialize terminal
@@ -141,7 +142,22 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
       try {
         setLoading(true);
         setError(null);
-
+        
+        // If we have a provided session ID, connect directly to webssh-rs
+        if (providedSessionId) {
+          if (terminal) {
+            terminal.writeln(`\r\n\x1b[1;33m=== SSH Connection Details ===\x1b[0m`);
+            terminal.writeln(`\r\n\x1b[1;36mDevice:\x1b[0m ${deviceName}`);
+            terminal.writeln(`\x1b[1;36mSession ID:\x1b[0m ${providedSessionId}`);
+            terminal.writeln(`\r\n\x1b[1;33mConnecting directly to webssh-rs server...\x1b[0m`);
+            
+            // Connect directly to the webssh-rs WebSocket
+            connectWebSocket(providedSessionId);
+          }
+          return;
+        }
+        
+        // If no session ID provided, continue with the original flow
         // Import the API client
         const { apiClient } = await import('../api/client');
 
@@ -177,6 +193,7 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
           // Connect to the WebSSH server via the backend proxy
           if (terminal) {
             terminal.writeln(`\r\n\x1b[90m> Sending connection request to backend proxy...\x1b[0m`);
+            terminal.writeln(`\r\n\x1b[1;33m=== device id ${deviceId} ===\x1b[0m`);
           }
           
           const connectResponse = await apiClient.post('/devices/webssh/connect', {
@@ -184,7 +201,8 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
             port: 22,
             username: deviceInfo.username,
             password: deviceInfo.password,
-            device_type: 'router' // Assuming network devices
+            device_type: 'router', // Assuming network devices
+            device_id : deviceId,
           });
           
           // Check if the connection was successful
@@ -197,21 +215,21 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
           }
           
           // Get the session ID
-          const sessionId = connectResponse.data.session_id;
-          console.log("WebSSH connection successful, session ID:", sessionId);
+          const newSessionId = connectResponse.data.session_id;
+          console.log("WebSSH connection successful, session ID:", newSessionId);
           
           // Store the session ID
-          setSessionId(sessionId);
+          setSessionId(newSessionId);
           
           // Display session information
           if (terminal) {
             terminal.writeln(`\r\n\x1b[32mConnection established successfully!\x1b[0m`);
-            terminal.writeln(`\x1b[90mSession ID: ${sessionId}\x1b[0m`);
+            terminal.writeln(`\x1b[90mSession ID: ${newSessionId}\x1b[0m`);
             terminal.writeln(`\r\n\x1b[33mEstablishing WebSocket connection...\x1b[0m`);
           }
           
           // Connect to the WebSocket
-          connectWebSocket(sessionId);
+          connectWebSocket(newSessionId);
           
         } catch (err) {
           console.error("Error connecting to WebSSH server:", err);
@@ -246,18 +264,13 @@ export function SSHTerminal({ deviceId, deviceName, onError }: SSHTerminalProps)
   const connectWebSocket = (sessionId: string) => {
     if (!terminal) return;
     
-    // Use the backend proxy WebSocket endpoint
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    // Connect directly to the webssh-rs WebSocket server
+    const websshRsUrl = `ws://localhost:8022/ws/${sessionId}?device_id=${deviceId}`;
     
-    // Try both WebSocket URLs - first the proxy, then direct if needed
-    const proxyWsUrl = `ws://localhost:9001/api/v1/devices/webssh/ws/${sessionId}`;
-    const directWsUrl = `ws://localhost:8888/ws/${sessionId}`;
-    
-    console.log("Connecting to WebSocket URLs:", proxyWsUrl, "and if that fails:", directWsUrl);
+    console.log("Connecting to webssh-rs WebSocket URL:", websshRsUrl);
     
     if (terminal) {
-      terminal.writeln(`\r\n\x1b[90m> Connecting to WebSocket: ${proxyWsUrl}\x1b[0m`);
-      terminal.writeln(`\r\n\x1b[90m> Fallback WebSocket: ${directWsUrl}\x1b[0m`);
+      terminal.writeln(`\r\n\x1b[90m> Connecting to WebSocket: ${websshRsUrl}\x1b[0m`);
       
       // Debug messages in console only
       console.log("Terminal is ready to receive data");

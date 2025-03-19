@@ -3,8 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from sqlmodel import SQLModel
 import logging
-import threading
-import time
 import signal
 
 from .database import engine
@@ -12,7 +10,6 @@ from .middleware import LoggingMiddleware
 from .exception_handlers import validation_exception_handler, general_exception_handler
 from .utils import CustomJSONResponse
 from .api import router
-from .utils.webssh_server import start_server, is_server_running, stop_server
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -46,7 +43,9 @@ app.include_router(router)
 # Create tables
 SQLModel.metadata.create_all(engine)
 
-# Start WebSSH server in a separate thread
+# WebSSH server should be started manually
+# The following function has been commented out to prevent automatic starting
+'''
 def start_webssh_server_thread():
     # Wait a bit for the main server to start
     time.sleep(2)
@@ -61,6 +60,7 @@ def start_webssh_server_thread():
             logger.error(f"Error starting WebSSH server: {e}")
     else:
         logger.info("WebSSH server is already running")
+'''
 
 # Store the original signal handlers
 original_sigint_handler = signal.getsignal(signal.SIGINT)
@@ -69,7 +69,7 @@ original_sigterm_handler = signal.getsignal(signal.SIGTERM)
 # Flag to track if shutdown has been initiated
 shutdown_initiated = False
 
-# Signal handler to stop the WebSSH server when the backend server is stopped
+# Signal handler for graceful shutdown
 def signal_handler(sig, frame):
     global shutdown_initiated
     
@@ -80,12 +80,13 @@ def signal_handler(sig, frame):
     shutdown_initiated = True
     
     logger.info("Shutting down backend server...")
-    logger.info("Stopping WebSSH server...")
-    try:
-        stop_result = stop_server()
-        logger.info(f"WebSSH server stop result: {stop_result}")
-    except Exception as e:
-        logger.error(f"Error stopping WebSSH server: {e}")
+    # WebSSH server should be stopped manually
+    # The following code has been removed:
+    # try:
+    #     stop_result = stop_server()
+    #     logger.info(f"WebSSH server stop result: {stop_result}")
+    # except Exception as e:
+    #     logger.error(f"Error stopping WebSSH server: {e}")
     
     # Call the original signal handler to let the server shut down normally
     if sig == signal.SIGINT and original_sigint_handler:
@@ -103,18 +104,24 @@ signal.signal(signal.SIGTERM, signal_handler)  # Termination signal
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("FastAPI shutdown event triggered")
-    if not shutdown_initiated:
-        logger.info("Stopping WebSSH server from shutdown event...")
-        try:
-            stop_result = stop_server()
-            logger.info(f"WebSSH server stop result: {stop_result}")
-        except Exception as e:
-            logger.error(f"Error stopping WebSSH server: {e}")
+    # WebSSH server should be stopped manually
+    # The following code has been removed:
+    # if not shutdown_initiated:
+    #     logger.info("Stopping WebSSH server from shutdown event...")
+    #     try:
+    #         stop_result = stop_server()
+    #         logger.info(f"WebSSH server stop result: {stop_result}")
+    #     except Exception as e:
+    #         logger.error(f"Error stopping WebSSH server: {e}")
 
+# WebSSH server should be started manually
+# The following code has been removed to prevent automatic starting
+'''
 # Start the WebSSH server in a background thread
 webssh_thread = threading.Thread(target=start_webssh_server_thread)
 webssh_thread.daemon = True  # Make the thread a daemon so it exits when the main process exits
 webssh_thread.start()
+'''
 
 # Add a simple test endpoint at the root
 @app.get("/")

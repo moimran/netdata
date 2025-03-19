@@ -13,10 +13,14 @@ use super::channel::{setup_standard_session, setup_linux_session, setup_cisco_se
 ///
 /// This struct manages the SSH connection, authentication, and I/O operations
 /// between the web client and the SSH server.
+use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
+
 pub struct SSHSession {
     session: Session,
     channel: ssh2::Channel,
     resize_rx: Option<mpsc::Receiver<(u32, u32)>>,
+    // Thread-safe flag to signal shutdown
+    shutdown_flag: Arc<AtomicBool>,
     settings: SSHSettings,
     // Store connection parameters for cloning
     hostname: String,
@@ -30,8 +34,8 @@ pub struct SSHSession {
 // Implement Clone for SSHSession
 impl Clone for SSHSession {
     fn clone(&self) -> Self {
-        // Create a new session with the same parameters
-        SSHSession::new(
+        // Create a new session with the same parameters, but share the shutdown flag
+        let mut cloned = SSHSession::new(
             &self.hostname,
             self.port,
             &self.username,
@@ -39,11 +43,61 @@ impl Clone for SSHSession {
             self.private_key.as_deref(),
             self.device_type.as_deref(),
             &self.settings,
-        ).expect("Failed to clone SSH session")
+        ).expect("Failed to clone SSH session");
+        
+        // Share the same shutdown flag so both instances can be shut down together
+        cloned.shutdown_flag = self.shutdown_flag.clone();
+        
+        cloned
     }
 }
 
 impl SSHSession {
+    /// Closes the SSH session and releases all resources
+    ///
+    /// This method should be called when the session is no longer needed
+    /// to ensure proper cleanup of SSH connections and channels.
+    ///
+    /// # Returns
+    /// * `Result<(), SSHError>` - Success or an error
+    pub fn close(&mut self) -> Result<(), SSHError> {
+        info!("Closing SSH session to {}:{} for user {}", self.hostname, self.port, self.username);
+        
+        // Signal the I/O handling thread to stop by setting the shutdown flag
+        info!("Setting shutdown flag to signal I/O handling thread to stop");
+        self.shutdown_flag.store(true, Ordering::SeqCst);
+        
+        // Close the channel first
+        match self.channel.close() {
+            Ok(_) => info!("SSH channel closed successfully"),
+            Err(e) => {
+                // It's okay if the channel is already closed
+                error!("Error closing SSH channel: {}", e);
+            }
+        }
+        
+        // Try to send EOF
+        match self.channel.send_eof() {
+            Ok(_) => info!("Sent EOF to SSH channel"),
+            Err(e) => {
+                // It's okay if we can't send EOF (channel might be closed)
+                error!("Error sending EOF to SSH channel: {}", e);
+            }
+        }
+        
+        // We'll skip wait_close since we've already closed the channel
+        // This avoids the "channel is not in EOF state" error
+        
+        // Disconnect the session
+        match self.session.disconnect(None, "Session terminated by user", None) {
+            Ok(_) => info!("SSH session disconnected successfully"),
+            Err(e) => error!("Error disconnecting SSH session: {}", e),
+        }
+        
+        info!("SSH session to {}:{} for user {} closed", self.hostname, self.port, self.username);
+        Ok(())
+    }
+    
     /// Creates a new SSH session with the specified connection parameters
     ///
     /// # Arguments
@@ -226,6 +280,7 @@ impl SSHSession {
             session,
             channel,
             resize_rx: None,
+            shutdown_flag: Arc::new(AtomicBool::new(false)),
             settings: settings.clone(),
             // Store parameters for cloning
             hostname: hostname.to_string(),
@@ -273,6 +328,14 @@ impl SSHSession {
     ///
     /// # Returns
     /// * `Result<(), SSHError>` - Success or an error
+    /// Gets a clone of the shutdown flag for use in other threads
+    ///
+    /// # Returns
+    /// * `Arc<AtomicBool>` - A clone of the shutdown flag
+    pub fn get_shutdown_flag(&self) -> Arc<AtomicBool> {
+        self.shutdown_flag.clone()
+    }
+    
     pub fn start_io(
         mut self,
         mut input_rx: mpsc::Receiver<Bytes>,
@@ -287,7 +350,16 @@ impl SSHSession {
         // Take ownership of the resize channel if it exists
         let mut resize_rx = self.resize_rx.take();
         
+        // Get a clone of the shutdown flag for this thread
+        let shutdown_flag = self.shutdown_flag.clone();
+        
         loop {
+            // Check if the shutdown flag has been set
+            if shutdown_flag.load(Ordering::SeqCst) {
+                info!("Shutdown flag set, stopping I/O handling");
+                break;
+            }
+            
             // Send keepalive based on settings
             if last_keepalive.elapsed() >= std::time::Duration::from_secs(self.settings.connection.keepalive_seconds) {
                 debug!("Sending keepalive");
