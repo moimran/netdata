@@ -124,6 +124,7 @@ async fn main() {
         .route("/api/session/:session_id/status", get(session_status_single_handler))
         .route("/api/session/:session_id/terminate", post(session_terminate_handler))
         .nest_service("/static", ServeDir::new("static"))
+        .fallback_service(ServeDir::new("static").append_index_html_on_directories(true))
         .layer(cors)
         .with_state(state);
 
