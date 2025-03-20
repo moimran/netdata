@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from .credential import router as credential_router
-from .device import router as device_router
+from .devices import router as device_router
 from .prefix import router as prefix_router
 
 router = APIRouter()

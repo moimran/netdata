@@ -1,0 +1,51 @@
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+}
+
+.header {
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.connection-info {
+    display: flex;
+    gap: 15px;
+}
+
+.terminal-area {
+    flex: 1;
+    background-color: black;
+    padding: 5px;
+    position: relative;
+    overflow: hidden;
+}
+
+#terminal {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Ensure terminal has proper dimensions for commands like top */
+.xterm-viewport {
+    overflow-y: hidden !important;
+}
+
+/* Ensure cursor is visible */
+.xterm-cursor-layer {
+    z-index: 10;
+}
+
+/* Improve rendering for full-screen applications */
+.xterm-screen {
+    image-rendering: pixelated;
+}
