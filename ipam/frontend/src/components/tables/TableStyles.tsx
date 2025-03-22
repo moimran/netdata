@@ -237,21 +237,44 @@ export function TableHeader({ columns, children, tableName }: TableHeaderProps) 
     return null;
   }
 
+  // Check if 'actions' column is already included
+  const hasActionsColumn = columns.some(col => col.toLowerCase() === 'actions');
+
   // Otherwise, render the header row with columns
   return (
     <thead style={{ display: 'table-header-group' }}>
       <tr style={{ display: 'table-row' }}>
-        {columns.map((col) => (
-          <th key={col} style={headerStyle} className={`ipam-header ipam-header-${col}`}>
-            {formatColumnHeader(col)}
+        {columns.map((col) => {
+          // Special styling for actions column
+          if (col.toLowerCase() === 'actions') {
+            return (
+              <th
+                key={col}
+                style={{ ...headerStyle, ...tableStyles.actionsCell }}
+                className="ipam-header ipam-header-actions"
+              >
+                {formatColumnHeader(col)}
+              </th>
+            );
+          }
+
+          // Regular column styling
+          return (
+            <th key={col} style={headerStyle} className={`ipam-header ipam-header-${col}`}>
+              {formatColumnHeader(col)}
+            </th>
+          );
+        })}
+
+        {/* Only add the Actions column if it's not already included */}
+        {!hasActionsColumn && (
+          <th
+            style={{ ...headerStyle, ...tableStyles.actionsCell }}
+            className="ipam-header ipam-header-actions"
+          >
+            Actions
           </th>
-        ))}
-        <th
-          style={{ ...headerStyle, ...tableStyles.actionsCell }}
-          className="ipam-header ipam-header-actions"
-        >
-          Actions
-        </th>
+        )}
       </tr>
     </thead>
   );
