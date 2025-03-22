@@ -172,7 +172,10 @@ const formatColumnHeader = (column: string): string => {
 
   // VLAN specific fields
   if (column === 'vid') return 'VLAN ID';
+  if (column === 'group') return 'VLAN Group';
   if (column === 'group_id') return 'VLAN Group';
+  if (column === 'vlan_group') return 'VLAN Group';
+  if (column === 'vlan_group_id') return 'VLAN Group';
 
   // Credential specific fields
   if (column === 'enable_password') return 'Enable Password';

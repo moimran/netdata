@@ -119,6 +119,25 @@ const UtilizationBar = ({ percentage, used, total }: { percentage: number; used:
     );
 };
 
+// Helper function to format VLAN ID ranges
+const formatVlanIdRanges = (rangesString: string): string => {
+    if (!rangesString) return '-';
+    try {
+        const ranges = JSON.parse(rangesString);
+        if (!Array.isArray(ranges) || ranges.length === 0) return '-';
+
+        return ranges.map((range: any) => {
+            if (range.min_vid === range.max_vid) {
+                return `${range.min_vid}`;
+            }
+            return `${range.min_vid}-${range.max_vid}`;
+        }).join(', ');
+    } catch (e) {
+        console.error('Error parsing VLAN ID ranges:', e);
+        return rangesString;
+    }
+};
+
 interface TableComponentProps {
     tableName: string;
     customActionsRenderer?: (item: any) => React.ReactNode;
@@ -378,7 +397,11 @@ export function SharedTableComponent({ tableName, customActionsRenderer }: Table
                     <TableHeader columns={
                         tableName === 'prefixes'
                             ? [...displayColumns.filter(col => col !== 'prefix' && col !== 'actions'), 'prefix', 'utilization', 'actions']
-                            : [...displayColumns.filter(col => col !== 'actions'), 'actions']
+                            : tableName === 'vlans'
+                                ? ['id', 'name', 'slug', 'vid', 'status', 'group_id', 'site_id', 'description', 'actions']
+                                : tableName === 'vlan_groups'
+                                    ? ['id', 'name', 'slug', 'vlan_id_ranges', 'description', 'actions']
+                                    : [...displayColumns.filter(col => col !== 'actions'), 'actions']
                     } />
 
                     <tbody className="ipam-table-body">
@@ -414,6 +437,14 @@ export function SharedTableComponent({ tableName, customActionsRenderer }: Table
                                                         cellContent = formatReferenceValue(item[col], colDef.reference);
                                                     } else if (colDef?.type === 'boolean') {
                                                         cellContent = item[col] ? 'Yes' : 'No';
+                                                    } else if (col === 'vlan_id_ranges') {
+                                                        cellContent = formatVlanIdRanges(item[col]);
+                                                    } else if (col === 'vid') {
+                                                        cellContent = (
+                                                            <Text fw={600} ta="center">
+                                                                {item[col]}
+                                                            </Text>
+                                                        );
                                                     } else {
                                                         cellContent = item[col]?.toString() || '-';
                                                     }
@@ -452,36 +483,97 @@ export function SharedTableComponent({ tableName, customActionsRenderer }: Table
                                                 </td>
                                             </>
                                         )
-                                        : (
-                                            // For other tables, use standard column rendering
-                                            displayColumns.map((col) => {
-                                                const colDef = schema.find(c => c.name === col);
-
-                                                // Determine cell content based on column type
-                                                let cellContent;
-
-                                                if (col === 'status') {
-                                                    cellContent = <StatusBadge status={item[col]} />;
-                                                } else if (colDef?.reference) {
-                                                    cellContent = formatReferenceValue(item[col], colDef.reference);
-                                                } else if (colDef?.type === 'boolean') {
-                                                    cellContent = item[col] ? 'Yes' : 'No';
-                                                } else {
-                                                    cellContent = item[col]?.toString() || '-';
-                                                }
-
-                                                return (
-                                                    <td
-                                                        key={col}
-                                                        style={tableStyles.cell}
-                                                        className={`ipam-cell ipam-cell-${col} ipam-cell-type-${colDef?.type || 'text'}`}
-                                                        title={item[col]?.toString()}
-                                                    >
-                                                        {cellContent}
+                                        : tableName === 'vlans'
+                                            ? (
+                                                // Custom rendering for VLANs to ensure proper column order and alignment
+                                                <>
+                                                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-id" title={item.id.toString()}>
+                                                        {item.id}
                                                     </td>
-                                                );
-                                            })
-                                        )}
+                                                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-name" title={item.name}>
+                                                        {item.name}
+                                                    </td>
+                                                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-slug" title={item.slug || ''}>
+                                                        {item.slug || '-'}
+                                                    </td>
+                                                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-vid" title={item.vid?.toString()}>
+                                                        <Text fw={600} ta="center">
+                                                            {item.vid}
+                                                        </Text>
+                                                    </td>
+                                                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-status" title={item.status}>
+                                                        <StatusBadge status={item.status} />
+                                                    </td>
+                                                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-group_id" title={item.group_id?.toString() || ''}>
+                                                        {formatReferenceValue(item.group_id, 'vlan_groups')}
+                                                    </td>
+                                                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-site_id" title={item.site_id?.toString() || ''}>
+                                                        {formatReferenceValue(item.site_id, 'sites')}
+                                                    </td>
+                                                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-description" title={item.description || ''}>
+                                                        {item.description || '-'}
+                                                    </td>
+                                                </>
+                                            )
+                                            : tableName === 'vlan_groups'
+                                                ? (
+                                                    // Custom rendering for VLAN Groups to ensure proper column order and alignment
+                                                    <>
+                                                        <td style={tableStyles.cell} className="ipam-cell ipam-cell-id" title={item.id.toString()}>
+                                                            {item.id}
+                                                        </td>
+                                                        <td style={tableStyles.cell} className="ipam-cell ipam-cell-name" title={item.name}>
+                                                            {item.name}
+                                                        </td>
+                                                        <td style={tableStyles.cell} className="ipam-cell ipam-cell-slug" title={item.slug || ''}>
+                                                            {item.slug || '-'}
+                                                        </td>
+                                                        <td style={tableStyles.cell} className="ipam-cell ipam-cell-vlan_id_ranges" title={item.vlan_id_ranges || ''}>
+                                                            {formatVlanIdRanges(item.vlan_id_ranges)}
+                                                        </td>
+                                                        <td style={tableStyles.cell} className="ipam-cell ipam-cell-description" title={item.description || ''}>
+                                                            {item.description || '-'}
+                                                        </td>
+                                                    </>
+                                                )
+                                                : (
+                                                    // For other tables, use standard column rendering
+                                                    displayColumns.map((col) => {
+                                                        const colDef = schema.find(c => c.name === col);
+
+                                                        // Determine cell content based on column type
+                                                        let cellContent;
+
+                                                        if (col === 'status') {
+                                                            cellContent = <StatusBadge status={item[col]} />;
+                                                        } else if (colDef?.reference) {
+                                                            cellContent = formatReferenceValue(item[col], colDef.reference);
+                                                        } else if (colDef?.type === 'boolean') {
+                                                            cellContent = item[col] ? 'Yes' : 'No';
+                                                        } else if (col === 'vlan_id_ranges') {
+                                                            cellContent = formatVlanIdRanges(item[col]);
+                                                        } else if (col === 'vid') {
+                                                            cellContent = (
+                                                                <Text fw={600} ta="center">
+                                                                    {item[col]}
+                                                                </Text>
+                                                            );
+                                                        } else {
+                                                            cellContent = item[col]?.toString() || '-';
+                                                        }
+
+                                                        return (
+                                                            <td
+                                                                key={col}
+                                                                style={tableStyles.cell}
+                                                                className={`ipam-cell ipam-cell-${col} ipam-cell-type-${colDef?.type || 'text'}`}
+                                                                title={item[col]?.toString()}
+                                                            >
+                                                                {cellContent}
+                                                            </td>
+                                                        );
+                                                    })
+                                                )}
                                     <td
                                         style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}
                                         className="ipam-cell ipam-cell-actions"

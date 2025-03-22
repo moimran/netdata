@@ -107,7 +107,7 @@ th {
 
 .ipam-header-slug,
 .ipam-cell-slug {
-    width: 120px !important;
+    width: 130px !important;
 }
 
 .ipam-header-description,
@@ -445,10 +445,29 @@ th {
 /* VLAN specific columns */
 .ipam-header-vid,
 .ipam-cell-vid {
-    width: 80px;
-    text-align: center;
-    font-weight: 500;
-    color: #f9fafb !important;
+    width: 90px !important;
+    text-align: center !important;
+}
+
+.ipam-header-group,
+.ipam-cell-group,
+.ipam-header-group_id,
+.ipam-cell-group_id {
+    width: 160px !important;
+}
+
+.ipam-header-vlan_id_ranges,
+.ipam-cell-vlan_id_ranges {
+    width: 160px !important;
+    font-family: monospace;
+}
+
+/* Site column width */
+.ipam-header-site,
+.ipam-cell-site,
+.ipam-header-site_id,
+.ipam-cell-site_id {
+    width: 130px !important;
 }
 
 /* Device and interface specific columns */
@@ -516,7 +535,7 @@ th {
 
 .ipam-header-slug,
 .ipam-cell-slug {
-    width: 120px !important;
+    width: 130px !important;
 }
 
 .ipam-header-description,
@@ -570,4 +589,5 @@ th {
     white-space: nowrap !important;
     letter-spacing: 0.05em !important;
     text-align: center !important;
+    width: 120px !important;
 }
