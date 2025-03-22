@@ -15,9 +15,10 @@
     min-width: 800px;
     /* Prevent table from collapsing too much */
     margin-bottom: 16px;
-    border: 1px solid #374151;
-    border-radius: 8px;
-    overflow: hidden;
+    border: 1px solid #374151 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background-color: #1A1B1E !important;
 }
 
 table.ipam-styled-table,
@@ -77,10 +78,10 @@ table.ipam-styled-table thead {
     text-transform: uppercase !important;
     font-size: 12px !important;
     font-weight: 600 !important;
-    color: #f9fafb !important;
-    background-color: #1f2937 !important;
+    color: #d1d5db !important;
+    background-color: #111827 !important;
     padding: 12px 16px !important;
-    border-bottom: 2px solid #dee2e6 !important;
+    border-bottom: 1px solid #374151 !important;
     white-space: nowrap !important;
     letter-spacing: 0.05em !important;
 }
@@ -265,40 +266,70 @@ th {
 
 /* Button styling */
 .ipam-action-button {
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
+    border-radius: 4px !important;
+    transition: all 0.2s ease !important;
+    background-color: transparent !important;
 }
 
 .ipam-action-button:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(20, 184, 166, 0.15) !important;
+    transform: scale(1.1) !important;
+}
+
+/* Style for edit button */
+.ipam-edit-button svg {
+    color: #3b82f6 !important;
+    /* Blue color */
+    stroke-width: 2 !important;
+}
+
+/* Style for delete button */
+.ipam-delete-button svg {
+    color: #ef4444 !important;
+    /* Red color */
+    stroke-width: 2 !important;
 }
 
 /* Search container */
 .ipam-search-container {
     margin-bottom: 16px;
-    background-color: #25262B;
-    border-color: #374151;
-    color: #f9fafb;
+    background-color: #25262B !important;
+    border-color: #374151 !important;
+    color: #f9fafb !important;
 }
 
 .ipam-search-input,
 .ipam-filter-select,
 .ipam-filter-input {
-    font-size: 14px;
-    background-color: #1A1B1E;
-    color: #f9fafb;
-    border-color: #374151;
+    font-size: 14px !important;
+    background-color: #1A1B1E !important;
+    color: #f9fafb !important;
+    border-color: #374151 !important;
 }
 
-.ipam-apply-button,
-.ipam-clear-button {
-    font-size: 14px;
-    height: 36px;
+.ipam-apply-button {
+    font-size: 14px !important;
+    height: 36px !important;
+    background-color: #14b8a6 !important;
+    border-color: transparent !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.ipam-apply-button:hover {
+    background-color: #0d9488 !important;
 }
 
 .ipam-refresh-button {
-    height: 36px;
-    width: 36px;
+    height: 36px !important;
+    width: 36px !important;
+    background-color: #1e293b !important;
+    color: #f9fafb !important;
+    border-color: transparent !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.ipam-refresh-button:hover {
+    background-color: #334155 !important;
 }
 
 /* Table header */
@@ -409,20 +440,22 @@ th {
 
 /* Make column headers more visually distinct */
 .ipam-header {
-    background-color: #1f2937 !important;
-    /* Dark blue-gray */
-    color: #f9fafb !important;
+    background-color: #111827 !important;
+    /* Darker blue-gray */
+    color: #d1d5db !important;
     /* Light gray text */
     font-weight: 600 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
+    border-bottom: 1px solid #374151 !important;
 }
 
 /* Add subtle border for better table appearance */
 .ipam-styled-table {
-    border: 1px solid #374151;
-    border-radius: 8px;
-    overflow: hidden;
+    border: 1px solid #374151 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background-color: #1A1B1E !important;
 }
 
 /* Add this class for all network-related fields */
@@ -571,11 +604,24 @@ th {
 
 /* Table title */
 .ipam-table-title {
-    font-size: 22px;
-    font-weight: 600;
-    color: #f9fafb;
-    margin-bottom: 16px;
-    text-transform: capitalize;
+    font-size: 22px !important;
+    font-weight: 600 !important;
+    color: #f9fafb !important;
+    margin-bottom: 4px !important;
+    position: relative !important;
+    display: inline-block !important;
+    padding-bottom: 6px !important;
+}
+
+.ipam-table-title::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 50px !important;
+    height: 2px !important;
+    background-color: #14b8a6 !important;
+    /* Match the teal hover color */
 }
 
 /* Make sure actions column header is properly capitalized and styled */
@@ -590,4 +636,121 @@ th {
     letter-spacing: 0.05em !important;
     text-align: center !important;
     width: 120px !important;
+}
+
+/* Modal styling */
+.ipam-modal-title {
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    color: #f9fafb !important;
+    letter-spacing: 0.01em !important;
+}
+
+.ipam-cancel-button {
+    border-color: #4B5563 !important;
+    color: #D1D5DB !important;
+    transition: all 0.2s ease !important;
+}
+
+.ipam-cancel-button:hover {
+    background-color: rgba(75, 85, 99, 0.2) !important;
+    border-color: #6B7280 !important;
+}
+
+.ipam-confirm-button {
+    background-color: #14b8a6 !important;
+    border-color: transparent !important;
+    transition: background-color 0.2s ease !important;
+    color: white !important;
+}
+
+.ipam-confirm-button:hover {
+    background-color: #0d9488 !important;
+}
+
+/* Form field styling */
+.mantine-TextInput-input,
+.mantine-NumberInput-input,
+.mantine-Textarea-input,
+.mantine-Select-input,
+.mantine-MultiSelect-input {
+    background-color: #25262B !important;
+    color: #f9fafb !important;
+    border-color: #374151 !important;
+    font-size: 14px !important;
+}
+
+.mantine-TextInput-label,
+.mantine-NumberInput-label,
+.mantine-Textarea-label,
+.mantine-Select-label,
+.mantine-MultiSelect-label,
+.mantine-Switch-label {
+    color: #d1d5db !important;
+    font-weight: 500 !important;
+    margin-bottom: 4px !important;
+}
+
+.mantine-Select-item,
+.mantine-MultiSelect-item {
+    color: #f9fafb !important;
+}
+
+.mantine-Select-dropdown,
+.mantine-MultiSelect-dropdown {
+    background-color: #25262B !important;
+    border-color: #374151 !important;
+}
+
+.mantine-SegmentedControl-root {
+    background-color: #25262B !important;
+    border-color: #374151 !important;
+}
+
+.mantine-SegmentedControl-indicator {
+    background-color: #14b8a6 !important;
+}
+
+.mantine-SegmentedControl-label {
+    color: #d1d5db !important;
+}
+
+.mantine-SegmentedControl-active .mantine-SegmentedControl-label {
+    color: #f9fafb !important;
+    font-weight: 500 !important;
+}
+
+/* Add button styling */
+.ipam-add-button {
+    background-color: #14b8a6 !important;
+    border-color: transparent !important;
+    transition: all 0.2s ease !important;
+    color: white !important;
+}
+
+.ipam-add-button:hover {
+    background-color: #0d9488 !important;
+    transform: scale(1.03) !important;
+}
+
+/* Pagination styling */
+.ipam-pagination .mantine-Pagination-control {
+    background-color: #1A1B1E !important;
+    color: #f9fafb !important;
+    border-color: #374151 !important;
+    transition: all 0.2s ease !important;
+}
+
+.ipam-pagination .mantine-Pagination-control[data-active="true"] {
+    background-color: #14b8a6 !important;
+    color: white !important;
+    border-color: transparent !important;
+}
+
+.ipam-pagination .mantine-Pagination-control:hover {
+    background-color: #2C2E33 !important;
+}
+
+.ipam-pagination .mantine-Pagination-control[data-active="true"]:hover {
+    background-color: #0d9488 !important;
 }

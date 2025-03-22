@@ -77,10 +77,21 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
         onClose={onClose}
         title={title}
         styles={{
-          header: { backgroundColor: '#1A1B1E', color: 'white' },
-          content: { backgroundColor: '#1A1B1E' }
+          header: {
+            backgroundColor: '#1A1B1E',
+            color: '#f9fafb',
+            borderBottom: '1px solid #374151',
+            fontWeight: 600
+          },
+          content: {
+            backgroundColor: '#1A1B1E',
+            color: '#f9fafb'
+          }
         }}
         size="lg"
+        classNames={{
+          title: 'ipam-modal-title'
+        }}
       >
         <form onSubmit={handleSubmit}>
           <Stack pos="relative" gap="md">
@@ -125,10 +136,18 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
             ))}
 
             <Group justify="flex-end" mt="xl">
-              <Button variant="outline" onClick={onClose}>
+              <Button
+                variant="outline"
+                onClick={onClose}
+                className="ipam-cancel-button"
+              >
                 Cancel
               </Button>
-              <Button type="submit" loading={isSubmitting}>
+              <Button
+                type="submit"
+                loading={isSubmitting}
+                className="ipam-confirm-button"
+              >
                 {data ? 'Update' : 'Create'}
               </Button>
             </Group>

@@ -267,9 +267,9 @@ export function SharedTableComponent({ tableName, customActionsRenderer }: Table
         setShowModal(true);
     };
 
-    const handleDeleteClick = (id: number) => {
+    const handleDeleteClick = (item: any) => {
         if (window.confirm('Are you sure you want to delete this item?')) {
-            deleteMutation.mutate(id);
+            deleteMutation.mutate(item.id);
         }
     };
 
@@ -336,20 +336,21 @@ export function SharedTableComponent({ tableName, customActionsRenderer }: Table
     return (
         <Stack spacing="md">
             <Group justify="space-between">
-                <Title order={3}>{tableName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</Title>
+                <Title order={3} className="ipam-table-title">{tableName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</Title>
                 <Button
                     leftSection={<IconPlus size={14} />}
                     onClick={(e) => {
                         e.stopPropagation();
                         handleAddClick();
                     }}
+                    className="ipam-add-button"
                 >
                     Add
                 </Button>
             </Group>
 
             {/* Search and Filter Card */}
-            <Card p="sm" shadow="sm" style={tableStyles.filterCard}>
+            <Card p="sm" shadow="sm" style={tableStyles.filterCard} className="ipam-search-container">
                 <form onSubmit={handleSearch}>
                     <Group>
                         <TextInput
@@ -367,6 +368,7 @@ export function SharedTableComponent({ tableName, customActionsRenderer }: Table
                             onChange={(value) => setFilterField(value || '')}
                             leftSection={<IconFilter size={16} />}
                             clearable
+                            className="ipam-filter-select"
                             style={{ minWidth: '150px' }}
                         />
                         {filterField && (
@@ -374,6 +376,7 @@ export function SharedTableComponent({ tableName, customActionsRenderer }: Table
                                 placeholder="Filter value"
                                 value={filterValue}
                                 onChange={(e) => setFilterValue(e.target.value)}
+                                className="ipam-filter-input"
                                 style={{ minWidth: '150px' }}
                             />
                         )}
@@ -581,33 +584,29 @@ export function SharedTableComponent({ tableName, customActionsRenderer }: Table
                                         {customActionsRenderer ? (
                                             customActionsRenderer(item)
                                         ) : (
-                                            <Group gap="xs" justify="center">
-                                                <Tooltip label="Edit">
-                                                    <ActionIcon
-                                                        variant="subtle"
-                                                        color="blue"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleEditClick(item);
-                                                        }}
-                                                        className="ipam-action-button"
-                                                    >
-                                                        <IconEdit size={16} />
-                                                    </ActionIcon>
-                                                </Tooltip>
-                                                <Tooltip label="Delete">
-                                                    <ActionIcon
-                                                        variant="subtle"
-                                                        color="red"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleDeleteClick(item.id);
-                                                        }}
-                                                        className="ipam-action-button"
-                                                    >
-                                                        <IconTrash size={16} />
-                                                    </ActionIcon>
-                                                </Tooltip>
+                                            <Group spacing={4}>
+                                                <ActionIcon
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEditClick(item);
+                                                    }}
+                                                    size="sm"
+                                                    color="blue"
+                                                    className="ipam-action-button ipam-edit-button"
+                                                >
+                                                    <IconEdit size={14} />
+                                                </ActionIcon>
+                                                <ActionIcon
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteClick(item);
+                                                    }}
+                                                    size="sm"
+                                                    color="red"
+                                                    className="ipam-action-button ipam-delete-button"
+                                                >
+                                                    <IconTrash size={14} />
+                                                </ActionIcon>
                                             </Group>
                                         )}
                                     </td>
@@ -626,6 +625,7 @@ export function SharedTableComponent({ tableName, customActionsRenderer }: Table
                         value={page}
                         onChange={setPage}
                         withEdges
+                        className="ipam-pagination"
                     />
                 </Group>
             )}
