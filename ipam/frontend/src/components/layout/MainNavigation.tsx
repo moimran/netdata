@@ -9,7 +9,7 @@ import {
   TEXT_BRIGHT,
   ICON_ACTIVE,
   ICON_INACTIVE
-} from '../theme/colors';
+} from '../../theme/colors';
 import {
   IconWorld,
   IconLayersIntersect,

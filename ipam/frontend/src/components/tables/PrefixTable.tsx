@@ -18,11 +18,11 @@ import {
 } from '@mantine/core';
 import { StyledTable, TableHeader, StatusBadge, tableStyles } from './TableStyles';
 import { IconEdit, IconTrash, IconPlus, IconSearch, IconFilter, IconRefresh } from '@tabler/icons-react';
-import { IPAMModal } from './IPAMModal';
+import { IPAMModal } from '../ui/IPAMModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../api/client';
-import { TABLE_SCHEMAS } from './IPAMTable';
-import './IPAMTable/styles.css'; // Import the IPAM Table styles
+import { apiClient } from '../../api/client';
+import { TABLE_SCHEMAS } from '../IPAMTable/schemas';
+import '../IPAMTable/styles.css'; // Import the IPAM Table styles
 
 // Interface for prefix data
 interface Prefix {

@@ -1,4 +1,32 @@
-export type TableName = 'regions' | 'site_groups' | 'sites' | 'locations' | 'vrfs' | 'rirs' | 'aggregates' | 'roles' | 'prefixes' | 'ip_ranges' | 'ip_addresses' | 'asns' | 'asn_ranges' | 'vlans' | 'vlan_groups' | 'tenants' | 'route_targets' | 'vrf_import_targets' | 'vrf_export_targets' | 'devices' | 'interfaces' | 'credentials';
+// Type for component categories
+export type ComponentCategory = 'view' | 'layout' | 'ui' | 'table' | 'detail' | 'common';
+
+// Table names
+export type TableName = 
+  | 'prefixes' 
+  | 'ip_addresses' 
+  | 'vrfs' 
+  | 'vlans' 
+  | 'vlan_groups' 
+  | 'route_targets' 
+  | 'sites' 
+  | 'devices' 
+  | 'racks' 
+  | 'regions' 
+  | 'tenants' 
+  | 'asns'
+  | 'users'
+  | 'credentials'
+  | 'interfaces'
+  | 'roles'
+  | 'rirs'
+  | 'aggregates'
+  | 'ip_ranges'
+  | 'site_groups'
+  | 'locations'
+  | 'vrf_import_targets'
+  | 'vrf_export_targets'
+  | 'asn_ranges';
 
 export interface TableSchema {
   columns: Array<{

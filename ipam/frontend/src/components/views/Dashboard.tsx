@@ -1,15 +1,9 @@
-import { Card, Text, Group, RingProgress, Stack, SimpleGrid, Title, ThemeIcon, Box, Progress, Divider } from '@mantine/core';
+import React, { useEffect, useState } from 'react';
+import { SimpleGrid, Card, Text, Title, Group, Paper, ThemeIcon, Progress, Stack, Box, Divider } from '@mantine/core';
+import { IconNetworkOff, IconServer, IconRouter, IconNetwork, IconWifi, IconArrowUpRight, IconArrowDownRight, IconUsers, IconBuildingFactory2 } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-import { 
-  IconNetwork, 
-  IconDeviceDesktopAnalytics, 
-  IconBuildingFactory2, 
-  IconRouter,
-  IconArrowUpRight,
-  IconArrowDownRight,
-  IconPercentage
-} from '@tabler/icons-react';
+import { apiClient } from '../../api/client';
+import { PRIMARY, STATUS_ACTIVE } from '../../theme/colors';
 
 const API_BASE_URL = 'http://localhost:9001/api/v1';
 
@@ -17,7 +11,7 @@ export function Dashboard() {
   const { data: prefixes = [], isLoading: prefixesLoading } = useQuery({
     queryKey: ['prefixes'],
     queryFn: async () => {
-      const response = await axios.get(`${API_BASE_URL}/prefixes`);
+      const response = await apiClient.get('/prefixes');
       return response.data;
     }
   });
@@ -25,7 +19,7 @@ export function Dashboard() {
   const { data: ipAddresses = [], isLoading: ipAddressesLoading } = useQuery({
     queryKey: ['ip_addresses'],
     queryFn: async () => {
-      const response = await axios.get(`${API_BASE_URL}/ip_addresses`);
+      const response = await apiClient.get('/ip_addresses');
       return response.data;
     }
   });
@@ -33,7 +27,7 @@ export function Dashboard() {
   const { data: sites = [], isLoading: sitesLoading } = useQuery({
     queryKey: ['sites'],
     queryFn: async () => {
-      const response = await axios.get(`${API_BASE_URL}/sites`);
+      const response = await apiClient.get('/sites');
       return response.data;
     }
   });
@@ -41,7 +35,7 @@ export function Dashboard() {
   const { data: vrfs = [], isLoading: vrfsLoading } = useQuery({
     queryKey: ['vrfs'],
     queryFn: async () => {
-      const response = await axios.get(`${API_BASE_URL}/vrfs`);
+      const response = await apiClient.get('/vrfs');
       return response.data;
     }
   });
@@ -74,7 +68,7 @@ export function Dashboard() {
       title: 'IP Addresses',
       value: ipAddresses.length || 0,
       color: 'green',
-      icon: IconDeviceDesktopAnalytics,
+      icon: IconServer,
       trend: trends.ipAddresses,
       isLoading: ipAddressesLoading
     },
@@ -143,7 +137,7 @@ export function Dashboard() {
               </Group>
               <Progress value={utilization.ipv4} color="blue" size="md" radius="xl" />
             </Box>
-            
+
             <Box>
               <Group position="apart" mb={5}>
                 <Text size="sm">IPv6 Address Space</Text>
@@ -151,7 +145,7 @@ export function Dashboard() {
               </Group>
               <Progress value={utilization.ipv6} color="cyan" size="md" radius="xl" />
             </Box>
-            
+
             <Box>
               <Group position="apart" mb={5}>
                 <Text size="sm">VLAN Utilization</Text>
@@ -165,23 +159,17 @@ export function Dashboard() {
         <Card withBorder shadow="sm" radius="md" p="md">
           <Title order={4} mb="md">IP Address Distribution</Title>
           <Group position="center" grow mt="xl">
-            <RingProgress
-              size={160}
-              thickness={16}
-              roundCaps
+            <Progress
+              value={100}
+              color="teal"
+              size="xl"
+              radius="xl"
               sections={[
-                { value: 40, color: 'blue', tooltip: 'Production' },
-                { value: 25, color: 'orange', tooltip: 'Development' },
-                { value: 15, color: 'grape', tooltip: 'Testing' },
-                { value: 20, color: 'teal', tooltip: 'Management' },
+                { value: 40, color: 'blue' },
+                { value: 25, color: 'orange' },
+                { value: 15, color: 'grape' },
+                { value: 20, color: 'teal' },
               ]}
-              label={
-                <Box style={{ textAlign: 'center' }}>
-                  <IconPercentage size={20} stroke={1.5} />
-                  <Text fw={700} size="lg">100%</Text>
-                  <Text size="xs" color="dimmed">Allocation</Text>
-                </Box>
-              }
             />
           </Group>
           <Divider my="md" />

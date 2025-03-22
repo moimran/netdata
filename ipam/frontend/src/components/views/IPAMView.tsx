@@ -12,8 +12,8 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import { IPAMTable } from './IPAMTable';
-import type { TableName } from '../types';
+import { SharedTableComponent } from '../tables/SharedTableComponent';
+import type { TableName } from '../../types';
 
 interface Prefix {
   id: number;
@@ -34,5 +34,5 @@ interface IPAMViewProps {
 }
 
 export function IPAMView({ tableName }: IPAMViewProps) {
-  return <IPAMTable tableName={tableName} />;
+  return <SharedTableComponent tableName={tableName} />;
 }

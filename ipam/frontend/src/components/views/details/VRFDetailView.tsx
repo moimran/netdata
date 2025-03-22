@@ -24,9 +24,9 @@ import {
   useAddVRFRouteTargets,
   useRemoveVRFRouteTarget,
   RouteTarget
-} from '../hooks';
-import { StyledTable, TableHeader, tableStyles } from './TableStyles';
-import { ErrorBoundary } from './common/ErrorBoundary';
+} from '../../../hooks';
+import { StyledTable, TableHeader, tableStyles } from '../../tables/TableStyles';
+import { ErrorBoundary } from '../../common/ErrorBoundary';
 
 export function VRFDetailView() {
   const { id } = useParams<{ id: string }>();

@@ -1,8 +1,10 @@
 import { Stack, ActionIcon, Tooltip, Group } from '@mantine/core';
-import { IPAMTable, TABLE_SCHEMAS } from './IPAMTable';
-import { IPAMModal } from './IPAMModal';
+import { IPAMTable } from '../tables/IPAMTable';
+import { TABLE_SCHEMAS } from '../IPAMTable/schemas';
+import { IPAMModal } from '../ui/IPAMModal';
 import { IconExternalLink, IconEdit, IconTrash } from '@tabler/icons-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { useBaseMutation } from '../../hooks';
 
 export function DeviceView() {
   const [selectedDevice, setSelectedDevice] = useState<any>(null);

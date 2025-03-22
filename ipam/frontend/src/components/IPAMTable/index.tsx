@@ -15,9 +15,9 @@ import {
   Loader,
   Alert
 } from '@mantine/core';
-import { StyledTable, TableHeader, tableStyles, StatusBadge } from '../TableStyles';
+import { StyledTable, TableHeader, tableStyles, StatusBadge } from '../tables/TableStyles';
 import { IconEdit, IconTrash, IconPlus, IconSearch, IconFilter, IconRefresh } from '@tabler/icons-react';
-import { IPAMModal } from '../IPAMModal';
+import { IPAMModal } from '../ui/IPAMModal';
 import { useBaseMutation, useTableData, useReferenceData } from '../../hooks';
 import type { TableName } from '../../types';
 import { TABLE_SCHEMAS } from './schemas';

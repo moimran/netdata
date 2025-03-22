@@ -213,11 +213,16 @@ th {
 
 .ipam-header-children,
 .ipam-cell-children,
-.ipam-header-utilization,
-.ipam-cell-utilization,
 .ipam-header-vrf,
 .ipam-cell-vrf {
     width: 150px;
+}
+
+/* Utilization column styling */
+.ipam-header-utilization,
+.ipam-cell-utilization {
+    width: 180px;
+    min-width: 150px;
 }
 
 /* Tooltip on hover */

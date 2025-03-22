@@ -1,25 +1,28 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Card,
+  Group,
   Title,
   Text,
-  Group,
-  Button,
   Stack,
-  ActionIcon,
+  Button,
   Badge,
-  Modal,
-  MultiSelect,
-  Loader,
-  Alert,
   Box,
-  TextInput
+  ActionIcon,
+  Modal,
+  TextInput,
+  Grid,
+  Alert,
+  Loader,
+  MultiSelect
 } from '@mantine/core';
-import { useParams, useNavigate } from 'react-router-dom';
+import { IconArrowLeft, IconPlus, IconTrash, IconSearch, IconRefresh } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { IconArrowLeft, IconPlus, IconTrash } from '@tabler/icons-react';
-import { apiClient } from '../api/client';
-import { StyledTable, TableHeader, StatusBadge, tableStyles } from './TableStyles';
+import { apiClient } from '../../../api/client';
+import { StyledTable, TableHeader, tableStyles } from '../../tables/TableStyles';
+import { StatusBadge } from '../../tables/TableStyles';
+import { ErrorBoundary } from '../../common/ErrorBoundary';
 
 interface VLAN {
   id: number;

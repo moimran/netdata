@@ -12,8 +12,8 @@ import {
   STATUS_OFFLINE,
   STATUS_FAILED,
   STATUS_STAGED
-} from '../theme/colors';
-import { EnhancedStatusBadge } from './IPAMTable/statusUtils';
+} from '../../theme/colors';
+import { EnhancedStatusBadge } from '../IPAMTable/statusUtils';
 
 /**
  * IPAM Frontend Centralized Table Styling

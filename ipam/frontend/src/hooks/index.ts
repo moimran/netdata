@@ -9,6 +9,3 @@ export * from './api/usePrefixData';
 // Form Hooks
 export * from './forms/useFormState';
 export * from './forms/useIPAMForm';
-
-// Re-export the existing hook
-export * from './useTabbedTerminal'; 
