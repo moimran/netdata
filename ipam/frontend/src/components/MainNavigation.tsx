@@ -10,7 +10,7 @@ import {
   ICON_ACTIVE,
   ICON_INACTIVE
 } from '../theme/colors';
-import { 
+import {
   IconWorld,
   IconLayersIntersect,
   IconNetwork,
@@ -108,7 +108,7 @@ export function MainNavigation() {
           >
             {group.title}
           </Text>
-          
+
           {group.items.map((item) => (
             <NavLink
               key={item.path}
@@ -126,7 +126,6 @@ export function MainNavigation() {
               }
               rightSection={location.pathname === item.path && <IconChevronRight size={14} color={ICON_ACTIVE} />}
               active={location.pathname === item.path}
-              variant="light"
               color={location.pathname === item.path ? PRIMARY : "dark"}
               pl="md"
               py="xs"
@@ -134,7 +133,7 @@ export function MainNavigation() {
               className="main-nav-link"
             />
           ))}
-          
+
           {index < navigationGroups.length - 1 && <Divider my="sm" color={PRIMARY_LIGHT} />}
         </Box>
       ))}
