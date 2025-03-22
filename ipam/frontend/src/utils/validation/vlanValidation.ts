@@ -1,4 +1,8 @@
-import { VlanIdRangeResult, ReferenceItem } from '../types';
+// Types for VLAN validation
+export interface VlanIdRangeResult {
+  min_vid: number;
+  max_vid: number;
+}
 
 /**
  * Validates if a VLAN ID is within the ranges of a VLAN group
@@ -93,4 +97,4 @@ export const parseVlanIdRanges = (rangesStr: string): VlanIdRangeResult | null =
     console.error('Error parsing VLAN ID ranges:', error);
     return null;
   }
-};
+}; 

@@ -1,19 +1,7 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell, Title, MantineProvider, Group, Avatar, Text, Box, Burger, ScrollArea, useMantineTheme } from '@mantine/core';
+import { Suspense, lazy, useState } from 'react';
 import { MainNavigation } from './components/MainNavigation';
-import { Dashboard } from './components/Dashboard';
-import { IPAMView } from './components/IPAMView';
-import { RegionsView } from './components/RegionsView';
-import { IPAddressView } from './components/IPAddressView';
-import { PrefixView } from './components/PrefixView';
-import { VRFView } from './components/VRFView';
-import { ASNView } from './components/ASNView';
-import { ASNRangeView } from './components/ASNRangeView';
-import { VRFDetailView } from './components/VRFDetailView';
-import { DeviceView } from './components/DeviceView';
-import { CredentialView } from './components/CredentialView';
-// Terminal functionality now handled by webssh-rs
-import { useState } from 'react';
 import { IconNetwork } from '@tabler/icons-react';
 import type { TableName } from './types';
 import {
@@ -25,6 +13,36 @@ import {
   TEXT_PRIMARY,
   ICON_ACTIVE
 } from './theme/colors';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+
+// Lazy load components to improve initial load time
+const Dashboard = lazy(() => import('./components/Dashboard').then(module => ({ default: module.Dashboard })));
+const IPAMView = lazy(() => import('./components/IPAMView').then(module => ({ default: module.IPAMView })));
+const RegionsView = lazy(() => import('./components/RegionsView').then(module => ({ default: module.RegionsView })));
+const IPAddressView = lazy(() => import('./components/IPAddressView').then(module => ({ default: module.IPAddressView })));
+const PrefixView = lazy(() => import('./components/PrefixView').then(module => ({ default: module.PrefixView })));
+const VRFView = lazy(() => import('./components/VRFView').then(module => ({ default: module.VRFView })));
+const VRFDetailView = lazy(() => import('./components/VRFDetailView').then(module => ({ default: module.VRFDetailView })));
+const ASNView = lazy(() => import('./components/ASNView').then(module => ({ default: module.ASNView })));
+const ASNRangeView = lazy(() => import('./components/ASNRangeView').then(module => ({ default: module.ASNRangeView })));
+const DeviceView = lazy(() => import('./components/DeviceView').then(module => ({ default: module.DeviceView })));
+const CredentialView = lazy(() => import('./components/CredentialView').then(module => ({ default: module.CredentialView })));
+
+// Loading component for suspense fallback
+const LoadingComponent = () => (
+  <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '400px',
+    color: TEXT_PRIMARY
+  }}>
+    <div style={{ textAlign: 'center' }}>
+      <IconNetwork size={40} color={ICON_ACTIVE} style={{ marginBottom: '16px' }} />
+      <div>Loading...</div>
+    </div>
+  </div>
+);
 
 function AppContent() {
   const [opened, setOpened] = useState(false);
@@ -64,7 +82,7 @@ function AppContent() {
               <Title order={1} c={TEXT_PRIMARY} style={{ fontWeight: 700 }}>IPAM System</Title>
             </Group>
           </Group>
-          
+
           <Group>
             <Avatar color={PRIMARY} radius="xl">IP</Avatar>
             <Box visibleFrom="sm">
@@ -82,33 +100,37 @@ function AppContent() {
       </AppShell.Navbar>
 
       <AppShell.Main>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/regions" element={<RegionsView />} />
-          <Route path="/site-groups" element={<IPAMView tableName="site_groups" />} />
-          <Route path="/sites" element={<IPAMView tableName="sites" />} />
-          <Route path="/locations" element={<IPAMView tableName="locations" />} />
-          <Route path="/vrfs" element={<VRFView />} />
-          <Route path="/vrfs/:id" element={<VRFDetailView />} />
-          <Route path="/route-targets" element={<IPAMView tableName="route_targets" />} />
-          <Route path="/vrf-import-targets" element={<IPAMView tableName="vrf_import_targets" />} />
-          <Route path="/vrf-export-targets" element={<IPAMView tableName="vrf_export_targets" />} />
-          <Route path="/rirs" element={<IPAMView tableName="rirs" />} />
-          <Route path="/aggregates" element={<IPAMView tableName="aggregates" />} />
-          <Route path="/roles" element={<IPAMView tableName="roles" />} />
-          <Route path="/prefixes" element={<PrefixView />} />
-          <Route path="/ip-ranges" element={<IPAMView tableName="ip_ranges" />} />
-          <Route path="/ip-addresses" element={<IPAddressView />} />
-          <Route path="/vlans" element={<IPAMView tableName="vlans" />} />
-          <Route path="/vlan-groups" element={<IPAMView tableName="vlan_groups" />} />
-          <Route path="/devices" element={<DeviceView />} />
-          {/* Terminal route removed - now handled by webssh-rs */}
-          <Route path="/interfaces" element={<IPAMView tableName="interfaces" />} />
-          <Route path="/credentials" element={<CredentialView />} />
-          <Route path="/asns" element={<ASNView />} />
-          <Route path="/asn-ranges" element={<ASNRangeView />} />
-          <Route path="/tenants" element={<IPAMView tableName="tenants" />} />
-        </Routes>
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingComponent />}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/regions" element={<RegionsView />} />
+              <Route path="/site-groups" element={<IPAMView tableName="site_groups" />} />
+              <Route path="/sites" element={<IPAMView tableName="sites" />} />
+              <Route path="/locations" element={<IPAMView tableName="locations" />} />
+              <Route path="/vrfs" element={<VRFView />} />
+              <Route path="/vrfs/:id" element={<VRFDetailView />} />
+              <Route path="/route-targets" element={<IPAMView tableName="route_targets" />} />
+              <Route path="/vrf-import-targets" element={<IPAMView tableName="vrf_import_targets" />} />
+              <Route path="/vrf-export-targets" element={<IPAMView tableName="vrf_export_targets" />} />
+              <Route path="/rirs" element={<IPAMView tableName="rirs" />} />
+              <Route path="/aggregates" element={<IPAMView tableName="aggregates" />} />
+              <Route path="/roles" element={<IPAMView tableName="roles" />} />
+              <Route path="/prefixes" element={<PrefixView />} />
+              <Route path="/ip-ranges" element={<IPAMView tableName="ip_ranges" />} />
+              <Route path="/ip-addresses" element={<IPAddressView />} />
+              <Route path="/vlans" element={<IPAMView tableName="vlans" />} />
+              <Route path="/vlan-groups" element={<IPAMView tableName="vlan_groups" />} />
+              <Route path="/devices" element={<DeviceView />} />
+              <Route path="/interfaces" element={<IPAMView tableName="interfaces" />} />
+              <Route path="/credentials" element={<CredentialView />} />
+              <Route path="/asns" element={<ASNView />} />
+              <Route path="/asn-ranges" element={<ASNRangeView />} />
+              <Route path="/tenants" element={<IPAMView tableName="tenants" />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
       </AppShell.Main>
     </AppShell>
   );

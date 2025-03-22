@@ -8,26 +8,26 @@ import type { TableName } from '../../types';
 export const calculateUtilization = (ipData: string, isRange: boolean = false): { percentage: number; used: number; total: number } => {
   // This is a simplified calculation for demonstration purposes
   // In a real implementation, you would fetch actual IP address usage data
-  
+
   if (isRange) {
     // For IP ranges, we need to calculate the total number of IPs in the range
     // In a real app, you'd calculate based on actual IP usage within the range
-    
+
     // For demonstration, we'll generate a random number of used IPs
     // In a real app, you'd query the database for actual usage
     const total = 100; // Placeholder for demo
     const used = Math.floor(Math.random() * total * 0.8); // Random usage up to 80%
     const percentage = (used / total) * 100;
-    
+
     return { percentage, used, total };
   } else {
     // For prefixes, calculate based on the network mask
     // Extract the network mask from the prefix (e.g., "192.168.1.0/24" -> 24)
     const maskMatch = ipData.match(/\/(\d+)$/);
     if (!maskMatch) return { percentage: 0, used: 0, total: 0 };
-    
+
     const mask = parseInt(maskMatch[1], 10);
-    
+
     let total = 0;
     if (ipData.includes(':')) {
       // IPv6 - simplified calculation for demonstration
@@ -44,16 +44,16 @@ export const calculateUtilization = (ipData: string, isRange: boolean = false): 
         total = Math.pow(2, 32 - mask);
       }
     }
-    
+
     // Generate a random number of used IPs for demonstration
     // In a real app, you'd query the database for actual usage
-    const baseUtilizationPercentage = ipData.includes(':') 
-      ? Math.max(0, 100 - (128 - mask) * 2) 
+    const baseUtilizationPercentage = ipData.includes(':')
+      ? Math.max(0, 100 - (128 - mask) * 2)
       : Math.max(0, 100 - (32 - mask) * 8);
-    
+
     const utilizationPercentage = Math.min(100, baseUtilizationPercentage + Math.random() * 30);
     const used = Math.floor(total * (utilizationPercentage / 100));
-    
+
     return { percentage: utilizationPercentage, used, total };
   }
 };
@@ -62,7 +62,7 @@ export const calculateUtilization = (ipData: string, isRange: boolean = false): 
 export const renderUtilizationBar = (ipData: string, isRange: boolean = false): React.ReactElement => {
   const { percentage, used, total } = calculateUtilization(ipData, isRange);
   const roundedPercentage = Math.round(percentage);
-  
+
   // Determine color based on utilization percentage
   let color: MantineColor = 'green';
   if (percentage > 80) {
@@ -72,7 +72,7 @@ export const renderUtilizationBar = (ipData: string, isRange: boolean = false): 
   } else if (percentage > 40) {
     color = 'blue';
   }
-  
+
   // Format the display text
   // For very large numbers (like in IPv6), use abbreviated format
   const formatNumber = (num: number): string => {
@@ -83,19 +83,22 @@ export const renderUtilizationBar = (ipData: string, isRange: boolean = false): 
     }
     return num.toString();
   };
-  
+
   return (
-    <Box>
+    <Box className="ipam-utilization-bar">
       <Group justify="apart" mb={5}>
-        <Text size="xs" fw={500}>{formatNumber(used)}/{formatNumber(total)}</Text>
+        <Text size="xs" fw={500} className="ipam-utilization-text">
+          {formatNumber(used)}/{formatNumber(total)} {roundedPercentage}%
+        </Text>
       </Group>
-      <Progress 
-        value={roundedPercentage} 
-        color={color} 
-        size="sm" 
+      <Progress
+        value={roundedPercentage}
+        color={color}
+        size="sm"
         radius="xl"
         striped={percentage > 80}
         animated={percentage > 90}
+        className="ipam-progress-bar"
       />
     </Box>
   );
@@ -103,22 +106,26 @@ export const renderUtilizationBar = (ipData: string, isRange: boolean = false): 
 
 // Helper function to format cell values for display
 export const formatCellValue = (
-  column: Column, 
-  value: any, 
-  referenceData: Record<string, any[]>, 
-  item?: any, 
+  column: Column,
+  value: any,
+  referenceData: Record<string, any[]>,
+  item?: any,
   tableName?: TableName
 ): ReactNode => {
   if (value === null || value === undefined) return '-';
-  
+
   if (column.name === 'status') {
     return <StatusBadge status={value} />;
   }
-  
+
   if (column.type === 'boolean') {
     return value ? 'Yes' : 'No';
   }
-  
+
+  if (column.type === 'number') {
+    return Number(value);
+  }
+
   // Special handling for VLAN ID ranges
   if (column.name === 'vlan_id_ranges') {
     // If we have a stored vlan_id_ranges value, use it
@@ -131,11 +138,11 @@ export const formatCellValue = (
     }
     return '-';
   }
-  
+
   // Handle reference fields (foreign keys)
   if (column.reference && value !== null && value !== undefined) {
     const referenceTable = column.reference;
-    
+
     // Special handling for VLAN group_id to make the relationship more visible
     if (tableName === 'vlans' && column.name === 'group_id') {
       const vlanGroupItems = referenceData['vlan_groups'] || [];
@@ -146,29 +153,30 @@ export const formatCellValue = (
         }
       }
     }
-    
+
     const referenceItems = referenceData[referenceTable] || [];
-    
+
     // Ensure referenceItems is an array before using find
     if (Array.isArray(referenceItems) && referenceItems.length > 0) {
       // Convert both IDs to strings for comparison to avoid type mismatches
       const referencedItem = referenceItems.find((item: any) => String(item.id) === String(value));
-      
+
       if (referencedItem) {
         // Return the most appropriate field from the referenced item
-        return referencedItem.name || 
-               referencedItem.prefix || 
-               referencedItem.address || 
-               referencedItem.rd || 
-               referencedItem.slug || 
-               String(value);
+        return referencedItem.name ||
+          referencedItem.prefix ||
+          referencedItem.address ||
+          referencedItem.rd ||
+          referencedItem.slug ||
+          String(value);
       }
     }
-    
+
     // If we couldn't find a reference item, return a placeholder
     // This is more user-friendly than showing the raw ID
     return `${referenceTable.charAt(0).toUpperCase() + referenceTable.slice(1)} #${value}`;
   }
-  
-  return String(value);
+
+  // For string and other types, return as is
+  return value;
 };

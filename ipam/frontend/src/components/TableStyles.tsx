@@ -28,7 +28,8 @@ export const tableStyles: TableStyles = {
     backgroundColor: DARK_BG,
     color: TEXT_SECONDARY,
     borderRadius: '8px',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    display: 'table'
   },
   header: {
     backgroundColor: DARK_CARD_BG,
@@ -62,8 +63,15 @@ export const statusBadgeStyles: Record<string, string> = {
 
 // Shared table component
 export function StyledTable({ children }: { children: React.ReactNode }) {
+  const tableStyle = {
+    ...tableStyles.table,
+    display: 'table',
+    width: '100%',
+    tableLayout: 'auto' as const
+  };
+
   return (
-    <Table striped highlightOnHover style={tableStyles.table}>
+    <Table striped highlightOnHover style={tableStyle} className="ipam-styled-table">
       {children}
     </Table>
   );
@@ -71,15 +79,29 @@ export function StyledTable({ children }: { children: React.ReactNode }) {
 
 // Shared table header component
 export function TableHeader({ columns }: { columns: string[] }) {
+  const headerStyle = {
+    ...tableStyles.header,
+    display: 'table-cell',
+    whiteSpace: 'nowrap' as const,
+    textAlign: 'left' as const
+  };
+
+  const actionsStyle = {
+    ...tableStyles.header,
+    ...tableStyles.actionsCell,
+    display: 'table-cell',
+    whiteSpace: 'nowrap' as const
+  };
+
   return (
-    <thead>
-      <tr>
+    <thead style={{ display: 'table-header-group' }}>
+      <tr style={{ display: 'table-row' }}>
         {columns.map((col) => (
-          <th key={col} style={tableStyles.header}>
+          <th key={col} style={headerStyle} className={`ipam-header ipam-header-${col}`}>
             {col.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
           </th>
         ))}
-        <th style={{ ...tableStyles.header, ...tableStyles.actionsCell }}>
+        <th style={actionsStyle} className="ipam-header ipam-header-actions">
           Actions
         </th>
       </tr>
@@ -90,7 +112,13 @@ export function TableHeader({ columns }: { columns: string[] }) {
 // Shared status badge component
 export function StatusBadge({ status }: { status: string }) {
   return (
-    <Badge color={statusBadgeStyles[status.toLowerCase()] || 'gray'}>
+    <Badge
+      color={statusBadgeStyles[status.toLowerCase()] || 'gray'}
+      className="ipam-status-badge"
+      variant="filled"
+      radius="md"
+      size="sm"
+    >
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </Badge>
   );

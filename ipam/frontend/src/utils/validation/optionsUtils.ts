@@ -1,4 +1,8 @@
-import { SelectOption } from '../types';
+// Types for form options
+export interface SelectOption {
+  value: string;
+  label: string;
+}
 
 /**
  * Get status options based on table type
@@ -62,4 +66,4 @@ export const formatReferenceDataForSelect = (
   }
 
   return options;
-};
+}; 
