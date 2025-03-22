@@ -223,6 +223,7 @@ th {
 .ipam-cell-utilization {
     width: 180px;
     min-width: 150px;
+    padding: 8px 16px !important;
 }
 
 /* Tooltip on hover */
@@ -556,4 +557,17 @@ th {
     color: #f9fafb;
     margin-bottom: 16px;
     text-transform: capitalize;
+}
+
+/* Make sure actions column header is properly capitalized and styled */
+.ipam-header-actions {
+    text-transform: uppercase !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    background-color: #1f2937 !important;
+    padding: 12px 16px !important;
+    border-bottom: 2px solid #dee2e6 !important;
+    white-space: nowrap !important;
+    letter-spacing: 0.05em !important;
+    text-align: center !important;
 }

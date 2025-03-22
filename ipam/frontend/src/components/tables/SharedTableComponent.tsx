@@ -377,8 +377,8 @@ export function SharedTableComponent({ tableName, customActionsRenderer }: Table
                 <StyledTable className={`ipam-${tableName}-table`}>
                     <TableHeader columns={
                         tableName === 'prefixes'
-                            ? [...displayColumns.filter(col => col !== 'prefix'), 'prefix', 'utilization', 'actions']
-                            : [...displayColumns, 'actions']
+                            ? [...displayColumns.filter(col => col !== 'prefix' && col !== 'actions'), 'prefix', 'utilization', 'actions']
+                            : [...displayColumns.filter(col => col !== 'actions'), 'actions']
                     } />
 
                     <tbody className="ipam-table-body">
@@ -435,15 +435,19 @@ export function SharedTableComponent({ tableName, customActionsRenderer }: Table
                                                     className="ipam-cell ipam-cell-prefix ipam-cell-type-network"
                                                     title={item['prefix']?.toString()}
                                                 >
-                                                    {item['prefix']?.toString() || '-'}
+                                                    <Text ff="monospace" fw={500}>
+                                                        {item['prefix']?.toString() || '-'}
+                                                    </Text>
                                                 </td>
                                                 {/* Utilization column */}
                                                 <td
                                                     style={tableStyles.cell}
                                                     className="ipam-cell ipam-cell-utilization"
                                                 >
-                                                    {utilizations[item.id] && (
+                                                    {utilizations[item.id] ? (
                                                         <UtilizationBar {...utilizations[item.id]} />
+                                                    ) : (
+                                                        <Text size="xs" color="dimmed">No utilization data</Text>
                                                     )}
                                                 </td>
                                             </>
