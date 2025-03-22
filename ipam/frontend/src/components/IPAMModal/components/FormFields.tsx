@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import {
   TextInput,
   NumberInput,
@@ -26,10 +26,205 @@ interface FormFieldProps {
   formatReferenceValue: (value: number | string | null, tableName: string) => string;
 }
 
+// Helper function to get the field label
+const getFieldLabel = (name: string) => {
+  if (name === 'id') return null; // Skip ID field
+  if (name === 'vid') return 'VLAN ID';
+  if (name === 'rd') return 'Route Distinguisher';
+
+  // Handle _id fields by removing suffix and capitalizing
+  if (name.endsWith('_id')) {
+    return name.replace('_id', '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+
+  // Default label formatting
+  return name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+};
+
+// Memoized Form Field Components
+const BooleanField = memo(({
+  name,
+  label,
+  value,
+  onChange,
+  error
+}: {
+  name: string;
+  label: string;
+  value: boolean;
+  onChange: (name: string, value: boolean) => void;
+  error?: string
+}) => (
+  <Switch
+    label={label}
+    checked={!!value}
+    onChange={(event) => onChange(name, event.currentTarget.checked)}
+    error={error}
+  />
+));
+
+const NumberField = memo(({
+  name,
+  label,
+  value,
+  onChange,
+  error,
+  required
+}: {
+  name: string;
+  label: string;
+  value: number | null;
+  onChange: (name: string, value: number | null) => void;
+  error?: string;
+  required?: boolean
+}) => (
+  <NumberInput
+    label={label}
+    value={value || ''}
+    onChange={(value) => onChange(name, value)}
+    error={error}
+    required={required}
+    placeholder={`Enter ${label}`}
+  />
+));
+
+const StatusField = memo(({
+  name,
+  label,
+  value,
+  onChange,
+  required
+}: {
+  name: string;
+  label: string;
+  value: string;
+  onChange: (name: string, value: string) => void;
+  required?: boolean
+}) => (
+  <div>
+    <Text size="sm" fw={500} mb={5}>{label}{required ? ' *' : ''}</Text>
+    <SegmentedControl
+      fullWidth
+      value={value || 'active'}
+      onChange={(value) => onChange(name, value)}
+      data={[
+        { label: 'Active', value: 'active' },
+        { label: 'Reserved', value: 'reserved' },
+        { label: 'Deprecated', value: 'deprecated' },
+        { label: 'Available', value: 'available' }
+      ]}
+    />
+  </div>
+));
+
+const TextField = memo(({
+  name,
+  label,
+  value,
+  onChange,
+  error,
+  required,
+  placeholder,
+  isTextarea = false
+}: {
+  name: string;
+  label: string;
+  value: string;
+  onChange: (name: string, value: string) => void;
+  error?: string;
+  required?: boolean;
+  placeholder?: string;
+  isTextarea?: boolean;
+}) => {
+  if (isTextarea) {
+    return (
+      <Textarea
+        label={label}
+        value={value || ''}
+        onChange={(e) => onChange(name, e.currentTarget.value)}
+        error={error}
+        required={required}
+        placeholder={placeholder || `Enter ${label}`}
+        minRows={3}
+      />
+    );
+  }
+
+  return (
+    <TextInput
+      label={label}
+      value={value || ''}
+      onChange={(e) => onChange(name, e.currentTarget.value)}
+      error={error}
+      required={required}
+      placeholder={placeholder || `Enter ${label}`}
+    />
+  );
+});
+
+const ReferenceField = memo(({
+  name,
+  label,
+  value,
+  onChange,
+  error,
+  required,
+  referenceTable,
+  referenceData,
+  formatReferenceValue,
+  allowMultiple = false
+}: {
+  name: string;
+  label: string;
+  value: any;
+  onChange: (name: string, value: any) => void;
+  error?: string;
+  required?: boolean;
+  referenceTable: string;
+  referenceData: Record<string, any[]>;
+  formatReferenceValue: (value: number | string | null, tableName: string) => string;
+  allowMultiple?: boolean;
+}) => {
+  // Get the data for the reference table
+  const options = (referenceData[referenceTable] || []).map(item => ({
+    value: item.id.toString(),
+    label: item.name || item.display_name || item.rd || formatReferenceValue(item.id, referenceTable)
+  }));
+
+  if (allowMultiple) {
+    return (
+      <MultiSelect
+        label={label}
+        data={options}
+        value={Array.isArray(value) ? value.map(v => v.toString()) : []}
+        onChange={(selectedValues) => onChange(name, selectedValues.map(v => Number(v)))}
+        error={error}
+        required={required}
+        placeholder={`Select ${label}`}
+        searchable
+      />
+    );
+  }
+
+  return (
+    <Select
+      label={label}
+      data={options}
+      value={value ? value.toString() : null}
+      onChange={(value) => onChange(name, value ? Number(value) : null)}
+      error={error}
+      required={required}
+      placeholder={`Select ${label}`}
+      searchable
+      clearable
+    />
+  );
+});
+
 /**
  * Renders a form field based on the column configuration
  */
-export function FormField({
+export const FormField = memo(function FormField({
   column,
   formData,
   handleChange,
@@ -43,47 +238,34 @@ export function FormField({
   // Skip ID field since it's auto-generated
   if (column.name === 'id') return null;
 
-  // Helper function to get the field label
-  const getFieldLabel = (name: string) => {
-    if (name === 'vid') return 'VLAN ID';
-    if (name === 'rd') return 'Route Distinguisher';
-
-    // Handle _id fields by removing suffix and capitalizing
-    if (name.endsWith('_id')) {
-      return name.replace('_id', '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    }
-
-    // Default label formatting
-    return name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-  };
+  // Skip internal fields
+  if (column.name === 'vlanIdRanges') return null;
 
   // Generate label for the field
   const label = getFieldLabel(column.name);
-
-  // Skip internal fields
-  if (column.name === 'vlanIdRanges') return null;
 
   // Generate field based on column type
   switch (column.type) {
     case 'boolean':
       return (
-        <Switch
+        <BooleanField
+          name={column.name}
           label={label}
-          checked={!!formData[column.name]}
-          onChange={(event) => handleChange(column.name, event.currentTarget.checked)}
+          value={formData[column.name]}
+          onChange={handleChange}
           error={validationErrors[column.name]}
         />
       );
 
     case 'number':
       return (
-        <NumberInput
+        <NumberField
+          name={column.name}
           label={label}
-          value={formData[column.name] || ''}
-          onChange={(value) => handleChange(column.name, value)}
+          value={formData[column.name]}
+          onChange={handleChange}
           error={validationErrors[column.name]}
           required={column.required}
-          placeholder={`Enter ${label}`}
         />
       );
 
@@ -91,100 +273,72 @@ export function FormField({
       // Special handling for status fields
       if (column.name === 'status') {
         return (
-          <div>
-            <Text size="sm" fw={500} mb={5}>{label}{column.required ? ' *' : ''}</Text>
-            <SegmentedControl
-              fullWidth
-              value={formData[column.name] || 'active'}
-              onChange={(value) => handleChange(column.name, value)}
-              data={[
-                { label: 'Active', value: 'active' },
-                { label: 'Reserved', value: 'reserved' },
-                { label: 'Deprecated', value: 'deprecated' },
-                { label: 'Available', value: 'available' }
-              ]}
-            />
-            {validationErrors[column.name] && (
-              <Text size="xs" c="red" mt={5}>{validationErrors[column.name]}</Text>
-            )}
-          </div>
-        );
-      }
-
-      // Special handling for role fields
-      if (column.name === 'role' && tableName === 'ip_addresses') {
-        return (
-          <Select
+          <StatusField
+            name={column.name}
             label={label}
-            value={formData[column.name] || ''}
-            onChange={(value) => handleChange(column.name, value)}
-            error={validationErrors[column.name]}
+            value={formData[column.name]}
+            onChange={handleChange}
             required={column.required}
-            placeholder={`Select ${label}`}
-            data={[
-              { label: 'Loopback', value: 'loopback' },
-              { label: 'Secondary', value: 'secondary' },
-              { label: 'Anycast', value: 'anycast' },
-              { label: 'VIP', value: 'vip' },
-              { label: 'VRRP', value: 'vrrp' },
-              { label: 'HSRP', value: 'hsrp' },
-              { label: 'GLBP', value: 'glbp' },
-              { label: 'CARP', value: 'carp' },
-              { label: 'Other', value: 'other' }
-            ]}
           />
         );
       }
 
-      // Reference fields (foreign keys)
+      // Special handling for description fields
+      if (column.name === 'description' || column.name === 'comments') {
+        return (
+          <TextField
+            name={column.name}
+            label={label}
+            value={formData[column.name]}
+            onChange={handleChange}
+            error={validationErrors[column.name]}
+            required={column.required}
+            isTextarea={true}
+          />
+        );
+      }
+
+      // Special handling for reference fields
       if (column.reference) {
-        const referenceItems = referenceData[column.reference] || [];
-
-        // Create options from reference data
-        const options = referenceItems.map((item: any) => ({
-          value: String(item.id),
-          label: item.name || item.rd || String(item.id)
-        }));
-
         return (
-          <Select
+          <ReferenceField
+            name={column.name}
             label={label}
-            value={formData[column.name] ? String(formData[column.name]) : null}
-            onChange={(value) => handleChange(column.name, value ? parseInt(value, 10) : null)}
+            value={formData[column.name]}
+            onChange={handleChange}
             error={validationErrors[column.name]}
             required={column.required}
-            placeholder={`Select ${label}`}
-            data={options}
-            searchable
-            clearable
+            referenceTable={column.reference}
+            referenceData={referenceData}
+            formatReferenceValue={formatReferenceValue}
           />
         );
       }
 
-      // Special handling for description fields - use textarea
-      if (column.name === 'description') {
+      // Special handling for CIDR notation
+      if (column.name === 'prefix') {
         return (
-          <Textarea
+          <TextField
+            name={column.name}
             label={label}
-            value={formData[column.name] || ''}
-            onChange={(event) => handleChange(column.name, event.currentTarget.value)}
+            value={formData[column.name]}
+            onChange={handleChange}
             error={validationErrors[column.name]}
             required={column.required}
-            placeholder={`Enter ${label}`}
-            minRows={3}
+            placeholder="e.g., 192.168.1.0/24"
           />
         );
       }
 
-      // Default text input for other string fields
+      // Default text field
       return (
-        <TextInput
+        <TextField
+          name={column.name}
           label={label}
-          value={formData[column.name] || ''}
-          onChange={(event) => handleChange(column.name, event.currentTarget.value)}
+          value={formData[column.name]}
+          onChange={handleChange}
           error={validationErrors[column.name]}
           required={column.required}
-          placeholder={`Enter ${label}`}
         />
       );
 
@@ -193,14 +347,13 @@ export function FormField({
         <TextInput
           label={label}
           value={formData[column.name] || ''}
-          onChange={(event) => handleChange(column.name, event.currentTarget.value)}
+          onChange={(e) => handleChange(column.name, e.currentTarget.value)}
           error={validationErrors[column.name]}
           required={column.required}
-          placeholder={`Enter ${label}`}
         />
       );
   }
-}
+});
 
 interface VlanIdRangesFieldProps {
   vlanIdRanges: string;
@@ -209,24 +362,26 @@ interface VlanIdRangesFieldProps {
 }
 
 /**
- * Special field for VLAN ID ranges in VLAN groups
+ * Specialized field for VLAN ID ranges
  */
-export function VlanIdRangesField({
+export const VlanIdRangesField = memo(function VlanIdRangesField({
   vlanIdRanges,
   setVlanIdRanges,
   validationErrors
 }: VlanIdRangesFieldProps) {
   return (
     <div>
-      <TextInput
-        label="VLAN ID Ranges"
+      <Text size="sm" fw={500} mb={5}>VLAN ID Ranges</Text>
+      <Textarea
+        placeholder="Enter VLAN ID ranges (e.g., 100-200, 300-400)"
         value={vlanIdRanges}
-        onChange={(event) => setVlanIdRanges(event.currentTarget.value)}
+        onChange={(e) => setVlanIdRanges(e.currentTarget.value)}
         error={validationErrors.vlanIdRanges}
-        required
-        placeholder="e.g. 1-1000,2000-3000"
-        description="Specify ranges of VLAN IDs (e.g. 100-199,300-399)"
+        minRows={3}
       />
+      <Text size="xs" mt={5} c="dimmed">
+        Enter ranges separated by commas (e.g., 100-200, 300-400)
+      </Text>
     </div>
   );
-}
+});

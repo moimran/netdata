@@ -26,7 +26,7 @@ import {
   useRemoveVRFRouteTarget,
   RouteTarget
 } from '../hooks';
-import { tableStyles } from './TableStyles';
+import { StyledTable, TableHeader, tableStyles } from './TableStyles';
 import { ErrorBoundary } from './common/ErrorBoundary';
 
 export function VRFDetailView() {
@@ -143,26 +143,26 @@ export function VRFDetailView() {
         <Card shadow="sm" padding="lg" radius="md" withBorder>
           <Title order={3} mb="md">VRF Details</Title>
 
-          <Table>
+          <StyledTable>
             <tbody>
               <tr>
-                <td style={{ fontWeight: 'bold', width: '25%' }}>Name</td>
-                <td>{vrf?.name}</td>
+                <td style={{ ...tableStyles.cell, fontWeight: 'bold', width: '25%' }}>Name</td>
+                <td style={tableStyles.cell}>{vrf?.name}</td>
               </tr>
               <tr>
-                <td style={{ fontWeight: 'bold' }}>Route Distinguisher</td>
-                <td>{vrf?.rd || '-'}</td>
+                <td style={{ ...tableStyles.cell, fontWeight: 'bold' }}>Route Distinguisher</td>
+                <td style={tableStyles.cell}>{vrf?.rd || '-'}</td>
               </tr>
               <tr>
-                <td style={{ fontWeight: 'bold' }}>Enforce Unique</td>
-                <td>{vrf?.enforce_unique ? 'Yes' : 'No'}</td>
+                <td style={{ ...tableStyles.cell, fontWeight: 'bold' }}>Enforce Unique</td>
+                <td style={tableStyles.cell}>{vrf?.enforce_unique ? 'Yes' : 'No'}</td>
               </tr>
               <tr>
-                <td style={{ fontWeight: 'bold' }}>Description</td>
-                <td>{vrf?.description || '-'}</td>
+                <td style={{ ...tableStyles.cell, fontWeight: 'bold' }}>Description</td>
+                <td style={tableStyles.cell}>{vrf?.description || '-'}</td>
               </tr>
             </tbody>
-          </Table>
+          </StyledTable>
         </Card>
 
         <Card shadow="sm" padding="lg" radius="md" withBorder>
@@ -196,20 +196,14 @@ export function VRFDetailView() {
                   No import route targets defined for this VRF.
                 </Text>
               ) : (
-                <Table>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Description</th>
-                      <th style={{ width: '100px', textAlign: 'center' }}>Actions</th>
-                    </tr>
-                  </thead>
+                <StyledTable>
+                  <TableHeader columns={['Name', 'Description', 'Actions']} />
                   <tbody>
                     {importTargets?.map((target: RouteTarget) => (
                       <tr key={target.id}>
-                        <td>{target.name}</td>
-                        <td>{target.description || '-'}</td>
-                        <td style={{ textAlign: 'center' }}>
+                        <td style={tableStyles.cell}>{target.name}</td>
+                        <td style={tableStyles.cell}>{target.description || '-'}</td>
+                        <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}>
                           <ActionIcon
                             color="red"
                             onClick={() => handleRemoveTarget(target.id, 'import')}
@@ -222,7 +216,7 @@ export function VRFDetailView() {
                       </tr>
                     ))}
                   </tbody>
-                </Table>
+                </StyledTable>
               )}
             </Tabs.Panel>
 
@@ -250,20 +244,14 @@ export function VRFDetailView() {
                   No export route targets defined for this VRF.
                 </Text>
               ) : (
-                <Table>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Description</th>
-                      <th style={{ width: '100px', textAlign: 'center' }}>Actions</th>
-                    </tr>
-                  </thead>
+                <StyledTable>
+                  <TableHeader columns={['Name', 'Description', 'Actions']} />
                   <tbody>
                     {exportTargets?.map((target: RouteTarget) => (
                       <tr key={target.id}>
-                        <td>{target.name}</td>
-                        <td>{target.description || '-'}</td>
-                        <td style={{ textAlign: 'center' }}>
+                        <td style={tableStyles.cell}>{target.name}</td>
+                        <td style={tableStyles.cell}>{target.description || '-'}</td>
+                        <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}>
                           <ActionIcon
                             color="red"
                             onClick={() => handleRemoveTarget(target.id, 'export')}
@@ -276,7 +264,7 @@ export function VRFDetailView() {
                       </tr>
                     ))}
                   </tbody>
-                </Table>
+                </StyledTable>
               )}
             </Tabs.Panel>
           </Tabs>

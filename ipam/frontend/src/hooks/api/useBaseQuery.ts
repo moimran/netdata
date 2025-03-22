@@ -7,6 +7,8 @@ export interface BaseQueryOptions<TData = unknown> extends Omit<UseQueryOptions<
   params?: Record<string, any>;
   transformation?: (data: any) => TData;
   keyParts?: any[];
+  staleTime?: number;
+  cacheTime?: number;
 }
 
 /**
@@ -20,6 +22,8 @@ export function useBaseQuery<TData = unknown>({
   params,
   transformation,
   keyParts = [],
+  staleTime = 5 * 60 * 1000,
+  cacheTime = 10 * 60 * 1000,
   ...restOptions
 }: BaseQueryOptions<TData>): UseQueryResult<TData, AxiosError> {
   const queryKey = ['data', url, params, ...keyParts];
@@ -36,6 +40,10 @@ export function useBaseQuery<TData = unknown>({
       
       return response.data;
     },
+    staleTime,
+    cacheTime,
+    retry: 1,
+    refetchOnWindowFocus: false,
     ...restOptions
   });
 } 

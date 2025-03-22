@@ -19,7 +19,7 @@ export function DeviceView() {
               try {
                 // Generate a random UUID for the session
                 const sessionId = crypto.randomUUID();
-                
+
                 // Call the backend API to get connection details and establish the session
                 const response = await fetch(`/api/v1/devices/connect`, {
                   method: 'POST',
@@ -31,15 +31,15 @@ export function DeviceView() {
                     session_id: sessionId
                   })
                 });
-                
+
                 if (!response.ok) {
                   const errorData = await response.json();
                   throw new Error(errorData.detail || 'Failed to connect to device');
                 }
-                
+
                 const data = await response.json();
                 console.log('Connection response:', data);
-                
+
                 // Open the WebSSH interface using the URL from the response
                 if (data.websocket_url) {
                   window.open(
@@ -92,17 +92,17 @@ export function DeviceView() {
                     'Content-Type': 'application/json',
                   }
                 })
-                .then(response => {
-                  if (!response.ok) {
-                    throw new Error('Failed to delete device');
-                  }
-                  // Refresh the table
-                  window.location.reload();
-                })
-                .catch(error => {
-                  console.error('Error deleting device:', error);
-                  alert(`Failed to delete device: ${error.message || 'Unknown error'}`);
-                });
+                  .then(response => {
+                    if (!response.ok) {
+                      throw new Error('Failed to delete device');
+                    }
+                    // Refresh the table
+                    window.location.reload();
+                  })
+                  .catch(error => {
+                    console.error('Error deleting device:', error);
+                    alert(`Failed to delete device: ${error.message || 'Unknown error'}`);
+                  });
               }
             }}
             title="Delete device"
@@ -124,20 +124,20 @@ export function DeviceView() {
   return (
     <Stack gap="md">
       {/* Device table */}
-      <IPAMTable 
-        tableName="devices" 
+      <IPAMTable
+        tableName="devices"
         customActionsRenderer={renderDeviceActions}
       />
-      
+
       {/* Edit device modal */}
-      <IPAMModal
-        show={showModal}
-        onHide={handleModalClose}
-        tableName="devices"
-        schema={TABLE_SCHEMAS.devices}
-        item={selectedDevice}
-      />
-      
+      {showModal && (
+        <IPAMModal
+          tableName="devices"
+          data={selectedDevice}
+          onClose={handleModalClose}
+        />
+      )}
+
       {/* Terminal functionality now handled by webssh-rs */}
     </Stack>
   );

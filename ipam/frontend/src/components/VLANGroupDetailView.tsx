@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Title, 
-  Text, 
-  Group, 
-  Button, 
-  Stack, 
-  Table, 
-  ActionIcon, 
-  Badge, 
+import {
+  Card,
+  Title,
+  Text,
+  Group,
+  Button,
+  Stack,
+  ActionIcon,
+  Badge,
   Modal,
   MultiSelect,
   Loader,
@@ -20,7 +19,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { IconArrowLeft, IconPlus, IconTrash } from '@tabler/icons-react';
 import { apiClient } from '../api/client';
-import { StatusBadge, tableStyles } from './TableStyles';
+import { StyledTable, TableHeader, StatusBadge, tableStyles } from './TableStyles';
 
 interface VLAN {
   id: number;
@@ -47,12 +46,12 @@ export function VLANGroupDetailView() {
   const queryClient = useQueryClient();
   const [showAddVLANsModal, setShowAddVLANsModal] = useState(false);
   const [selectedVLANs, setSelectedVLANs] = useState<string[]>([]);
-  
+
   // Fetch VLAN group details
-  const { 
-    data: vlanGroup, 
-    isLoading: isLoadingGroup, 
-    isError: isErrorGroup 
+  const {
+    data: vlanGroup,
+    isLoading: isLoadingGroup,
+    isError: isErrorGroup
   } = useQuery({
     queryKey: ['vlan_groups', id],
     queryFn: async () => {
@@ -60,11 +59,11 @@ export function VLANGroupDetailView() {
       return response.data;
     }
   });
-  
+
   // Fetch VLANs in this group
-  const { 
-    data: vlansInGroup, 
-    isLoading: isLoadingVLANs, 
+  const {
+    data: vlansInGroup,
+    isLoading: isLoadingVLANs,
     isError: isErrorVLANs,
     refetch: refetchVLANsInGroup
   } = useQuery({
@@ -76,10 +75,10 @@ export function VLANGroupDetailView() {
       return response.data.items || [];
     }
   });
-  
+
   // Fetch all VLANs not in this group for the add modal
-  const { 
-    data: availableVLANs, 
+  const {
+    data: availableVLANs,
     isLoading: isLoadingAvailableVLANs,
     refetch: refetchAvailableVLANs
   } = useQuery({
@@ -92,12 +91,12 @@ export function VLANGroupDetailView() {
     },
     enabled: showAddVLANsModal // Only fetch when modal is open
   });
-  
+
   // Mutation to add VLANs to group
   const addVLANsMutation = useMutation({
     mutationFn: async (vlanIds: number[]) => {
       // Update each VLAN to set its group_id
-      await Promise.all(vlanIds.map(vlanId => 
+      await Promise.all(vlanIds.map(vlanId =>
         apiClient.patch(`vlans/${vlanId}`, { group_id: parseInt(id!) })
       ));
     },
@@ -109,7 +108,7 @@ export function VLANGroupDetailView() {
       setSelectedVLANs([]);
     }
   });
-  
+
   // Mutation to remove VLAN from group
   const removeVLANMutation = useMutation({
     mutationFn: async (vlanId: number) => {
@@ -120,18 +119,18 @@ export function VLANGroupDetailView() {
       refetchVLANsInGroup();
     }
   });
-  
+
   const handleAddVLANs = () => {
     const vlanIds = selectedVLANs.map(id => parseInt(id));
     addVLANsMutation.mutate(vlanIds);
   };
-  
+
   const handleRemoveVLAN = (vlanId: number) => {
     if (window.confirm('Are you sure you want to remove this VLAN from the group?')) {
       removeVLANMutation.mutate(vlanId);
     }
   };
-  
+
   if (isLoadingGroup) {
     return (
       <Box p="xl" style={{ display: 'flex', justifyContent: 'center' }}>
@@ -139,7 +138,7 @@ export function VLANGroupDetailView() {
       </Box>
     );
   }
-  
+
   if (isErrorGroup) {
     return (
       <Alert color="red" title="Error">
@@ -147,15 +146,15 @@ export function VLANGroupDetailView() {
       </Alert>
     );
   }
-  
+
   return (
     <Stack gap="md">
       <Card shadow="sm" p="lg" radius="md" withBorder>
         <Group justify="space-between" mb="lg">
           <Box>
             <Group mb={5}>
-              <Button 
-                variant="subtle" 
+              <Button
+                variant="subtle"
                 leftSection={<IconArrowLeft size={16} />}
                 onClick={() => navigate('/vlan-groups')}
               >
@@ -165,8 +164,8 @@ export function VLANGroupDetailView() {
             </Group>
             <Text color="dimmed" size="sm">Manage VLANs in this group</Text>
           </Box>
-          <Button 
-            leftSection={<IconPlus size={16} />} 
+          <Button
+            leftSection={<IconPlus size={16} />}
             onClick={() => setShowAddVLANsModal(true)}
             radius="md"
             variant="filled"
@@ -174,7 +173,7 @@ export function VLANGroupDetailView() {
             Add VLANs to Group
           </Button>
         </Group>
-        
+
         <Card withBorder p="md" radius="md" mb="md">
           <Title order={4} mb="sm">Group Details</Title>
           <Stack gap="xs">
@@ -198,7 +197,7 @@ export function VLANGroupDetailView() {
             )}
           </Stack>
         </Card>
-        
+
         <Card withBorder p="md" radius="md" mb="md">
           <Title order={4} mb="sm">VLAN ID Ranges</Title>
           <Text size="sm" color="dimmed" mb="md">
@@ -221,9 +220,9 @@ export function VLANGroupDetailView() {
             Note: Changing these ranges will not affect existing VLANs, but will determine which VIDs are available when creating new VLANs in this group.
           </Text>
         </Card>
-        
+
         <Title order={4} mb="sm">VLANs in this Group</Title>
-        
+
         {isLoadingVLANs ? (
           <Box p="xl" style={{ display: 'flex', justifyContent: 'center' }}>
             <Loader />
@@ -237,16 +236,8 @@ export function VLANGroupDetailView() {
             No VLANs in this group. Add VLANs using the button above.
           </Text>
         ) : (
-          <Table>
-            <thead>
-              <tr>
-                <th style={tableStyles.header}>Name</th>
-                <th style={tableStyles.header}>VID</th>
-                <th style={tableStyles.header}>Status</th>
-                <th style={tableStyles.header}>Description</th>
-                <th style={tableStyles.header}>Actions</th>
-              </tr>
-            </thead>
+          <StyledTable>
+            <TableHeader columns={['Name', 'VID', 'Status', 'Description', 'Actions']} />
             <tbody>
               {vlansInGroup?.map((vlan: VLAN) => (
                 <tr key={vlan.id}>
@@ -257,8 +248,8 @@ export function VLANGroupDetailView() {
                   </td>
                   <td style={tableStyles.cell}>{vlan.description || '-'}</td>
                   <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}>
-                    <ActionIcon 
-                      color="red" 
+                    <ActionIcon
+                      color="red"
                       onClick={() => handleRemoveVLAN(vlan.id)}
                       title="Remove from group"
                       loading={removeVLANMutation.isPending}
@@ -271,10 +262,10 @@ export function VLANGroupDetailView() {
                 </tr>
               ))}
             </tbody>
-          </Table>
+          </StyledTable>
         )}
       </Card>
-      
+
       {/* Modal for adding VLANs to the group */}
       <Modal
         opened={showAddVLANsModal}
@@ -308,8 +299,8 @@ export function VLANGroupDetailView() {
               <Button variant="outline" onClick={() => setShowAddVLANsModal(false)}>
                 Cancel
               </Button>
-              <Button 
-                onClick={handleAddVLANs} 
+              <Button
+                onClick={handleAddVLANs}
                 loading={addVLANsMutation.isPending}
                 disabled={selectedVLANs.length === 0}
               >

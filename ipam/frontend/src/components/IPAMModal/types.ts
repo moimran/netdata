@@ -8,11 +8,9 @@ export interface Column {
 }
 
 export interface IPAMModalProps {
-  show: boolean;
-  onHide: () => void;
   tableName: TableName;
-  schema: Column[];
-  item?: any;
+  data?: any;
+  onClose: () => void;
 }
 
 export interface FormData {

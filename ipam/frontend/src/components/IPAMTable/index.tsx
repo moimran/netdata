@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import {
   Button,
   Group,
@@ -14,7 +14,8 @@ import {
   Box,
   Loader,
   Alert,
-  Badge
+  Badge,
+  Table
 } from '@mantine/core';
 import { StyledTable, TableHeader, tableStyles, StatusBadge } from '../TableStyles';
 import { IconEdit, IconTrash, IconPlus, IconSearch, IconFilter, IconRefresh } from '@tabler/icons-react';
@@ -31,7 +32,139 @@ interface IPAMTableProps {
   customActionsRenderer?: (item: any) => React.ReactNode;
 }
 
-export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) {
+// Extracted table header component
+const TableFilterBar = memo(({
+  filterableFields,
+  filterField,
+  setFilterField,
+  filterValue,
+  setFilterValue,
+  searchQuery,
+  setSearchQuery,
+  handleSearch,
+  handleClearFilters,
+  handleAddClick,
+  isLoading,
+  refetch
+}: {
+  filterableFields: { value: string, label: string }[];
+  filterField: string;
+  setFilterField: (value: string) => void;
+  filterValue: string;
+  setFilterValue: (value: string) => void;
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
+  handleSearch: (e: React.FormEvent) => void;
+  handleClearFilters: () => void;
+  handleAddClick: () => void;
+  isLoading: boolean;
+  refetch: () => void;
+}) => (
+  <Card mb="md" padding="md" style={tableStyles.filterCard}>
+    <Group position="apart" mb="xs">
+      <Title order={4}>Filters</Title>
+      <Group>
+        <ActionIcon
+          color="blue"
+          variant="light"
+          onClick={refetch}
+          loading={isLoading}
+          title="Refresh data"
+        >
+          <IconRefresh size={16} />
+        </ActionIcon>
+        <Button
+          variant="filled"
+          leftIcon={<IconPlus size={16} />}
+          onClick={handleAddClick}
+          size="xs"
+        >
+          Add
+        </Button>
+      </Group>
+    </Group>
+
+    <form onSubmit={handleSearch}>
+      <Group>
+        <TextInput
+          placeholder="Search..."
+          icon={<IconSearch size={16} />}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ flexGrow: 1 }}
+          size="xs"
+        />
+        <Select
+          placeholder="Filter field"
+          data={filterableFields}
+          value={filterField}
+          onChange={(value) => setFilterField(value || '')}
+          clearable
+          size="xs"
+          style={{ width: 150 }}
+        />
+        <TextInput
+          placeholder="Filter value"
+          disabled={!filterField}
+          value={filterValue}
+          onChange={(e) => setFilterValue(e.target.value)}
+          size="xs"
+          style={{ width: 150 }}
+        />
+        <Button type="submit" variant="outline" size="xs">
+          Apply
+        </Button>
+        <Button variant="subtle" onClick={handleClearFilters} size="xs">
+          Clear
+        </Button>
+      </Group>
+    </form>
+  </Card>
+));
+
+// Extracted table actions component
+const TableActions = memo(({
+  item,
+  handleEditClick,
+  handleDeleteClick,
+  customActionsRenderer
+}: {
+  item: any;
+  handleEditClick: (item: any) => void;
+  handleDeleteClick: (id: number) => void;
+  customActionsRenderer?: (item: any) => React.ReactNode;
+}) => (
+  <Group spacing={4}>
+    <Tooltip label="Edit">
+      <ActionIcon
+        color="blue"
+        variant="light"
+        onClick={() => handleEditClick(item)}
+      >
+        <IconEdit size={16} />
+      </ActionIcon>
+    </Tooltip>
+    <Tooltip label="Delete">
+      <ActionIcon
+        color="red"
+        variant="light"
+        onClick={() => handleDeleteClick(item.id)}
+      >
+        <IconTrash size={16} />
+      </ActionIcon>
+    </Tooltip>
+    {customActionsRenderer && customActionsRenderer(item)}
+  </Group>
+));
+
+// Reusable utilization bar component
+const UtilizationBar = memo(({ prefixId, prefix }: { prefixId: number, prefix: string }) => {
+  // Implementation from the original component
+  return renderUtilizationBar(prefixId, prefix);
+});
+
+// Main component with memoized handlers and optimizations
+export const IPAMTable = memo(function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) {
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [page, setPage] = useState(1);
@@ -41,7 +174,7 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
   const pageSize = 10;
 
   // Get table schema
-  const schema = TABLE_SCHEMAS[tableName] || [];
+  const schema = useMemo(() => TABLE_SCHEMAS[tableName] || [], [tableName]);
 
   // Get filterable fields
   const filterableFields = useMemo(() => schema
@@ -64,7 +197,7 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
     refetch: refetchReferenceData
   } = useReferenceData(referenceTableNames);
 
-  // Fetch table data using the new hook
+  // Fetch table data using the memoized hook
   const {
     data,
     isLoading,
@@ -83,52 +216,71 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
     url: `${tableName}/$id`,
     type: 'delete',
     invalidateQueries: [tableName, 'references'],
-    mutationFn: async (id: number) => {
-      await fetch(`/api/v1/${tableName}/${id}`, {
-        method: 'DELETE'
-      });
+    optimisticUpdate: {
+      queryKey: ['data', tableName],
+      updateFn: (oldData: any, id: number) => {
+        if (!oldData) return oldData;
 
-      return { success: true };
+        return {
+          ...oldData,
+          items: oldData.items.filter((item: any) => item.id !== id),
+          total: oldData.total - 1
+        };
+      }
     }
   });
 
-  const handleAddClick = () => {
+  // Memoized handlers using useCallback
+  const handleAddClick = useCallback(() => {
     setSelectedItem(null);
     setShowModal(true);
-  };
+  }, []);
 
-  const handleEditClick = (item: any) => {
+  const handleEditClick = useCallback((item: any) => {
     setSelectedItem(item);
     setShowModal(true);
-  };
+  }, []);
 
-  const handleDeleteClick = (id: number) => {
+  const handleDeleteClick = useCallback((id: number) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
       deleteMutation.mutate(id);
     }
-  };
+  }, [deleteMutation]);
 
-  const handleModalClose = () => {
+  const handleModalClose = useCallback(() => {
     setShowModal(false);
     refetch();
     refetchReferenceData();
-  };
+  }, [refetch, refetchReferenceData]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     setPage(1); // Reset to first page when searching
     refetch();
-  };
+  }, [refetch]);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSearchQuery('');
     setFilterField('');
     setFilterValue('');
     setPage(1);
     refetch();
-  };
+  }, [refetch]);
 
-  const formatTableCell = (item: any, column: any) => {
+  const formatReferenceValue = useCallback((value: number | null, referenceData: Record<string, any[]>, referenceTable: string): string => {
+    if (value === null) return '';
+
+    const referencedItem = referenceData[referenceTable]?.find(item => item.id === value);
+
+    if (referencedItem) {
+      // Try to use display_name, name, or id in that order
+      return referencedItem.display_name || referencedItem.name || `${value}`;
+    }
+
+    return `${value}`;
+  }, []);
+
+  const formatTableCell = useCallback((item: any, column: any) => {
     // For references, show the referenced item's name instead of ID
     if (column.reference) {
       return formatReferenceValue(item[column.name], referenceData, column.reference);
@@ -151,211 +303,100 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
       );
     }
 
-    // Format ID columns with a specific style
-    if (column.name === 'id') {
-      return <Text size="sm" fw={500}>{item[column.name]}</Text>;
-    }
+    // Use the generic formatter for all other fields
+    return formatCellValue(item[column.name], column.type);
+  }, [formatReferenceValue, referenceData, tableName]);
 
-    // Format name columns with emphasis
-    if (column.name === 'name') {
-      return <Text fw={500}>{item[column.name]}</Text>;
-    }
-
-    // Standard formatting for other fields
-    const formattedValue = formatCellValue(column, item[column.name], referenceData, item, tableName);
-
-    // Apply specific styling based on column type
-    if (column.type === 'number') {
-      return <Text>{formattedValue}</Text>;
-    } else if (column.type === 'boolean') {
-      return <Badge color={formattedValue === 'Yes' ? 'green' : 'gray'}>{formattedValue}</Badge>;
-    } else {
-      return <Text>{formattedValue}</Text>;
-    }
-  };
-
-  // Format reference values
-  const formatReferenceValue = (value: number | null, referenceData: Record<string, any[]>, referenceTable: string): string => {
-    if (value === null) return '-';
-
-    const referenceItems = referenceData[referenceTable] || [];
-
-    if (Array.isArray(referenceItems) && referenceItems.length > 0) {
-      const referencedItem = referenceItems.find((item: any) => String(item.id) === String(value));
-
-      if (referencedItem) {
-        return referencedItem.name || referencedItem.rd || String(value);
-      }
-    }
-
-    return `${referenceTable} #${value}`;
-  };
-
-  const totalPages = data?.total
-    ? Math.ceil(data.total / pageSize)
-    : 1;
-
-  // Use the UtilizationBar from utils.tsx
-  const UtilizationBar = ({ prefixId, prefix }: { prefixId: number, prefix: string }) => {
-    return renderUtilizationBar(prefix);
-  };
+  if (isError) {
+    return (
+      <Alert color="red" title="Error">
+        Failed to load data. Please try again later.
+      </Alert>
+    );
+  }
 
   return (
     <ErrorBoundary>
-      <Stack gap="md">
-        <Card shadow="sm" p="lg" radius="md" withBorder>
-          <Group justify="space-between" mb="lg">
-            <Box className="ipam-table-header">
-              <Title order={3} mb={5}>
-                {tableName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-              </Title>
-              <Text color="dimmed" size="sm">Manage your {tableName.replace(/_/g, ' ')} data</Text>
-            </Box>
-            <Button
-              leftSection={<IconPlus size={16} />}
-              onClick={handleAddClick}
-              radius="md"
-              variant="filled"
-            >
-              Add New
-            </Button>
-          </Group>
+      <Stack>
+        <TableFilterBar
+          filterableFields={filterableFields}
+          filterField={filterField}
+          setFilterField={setFilterField}
+          filterValue={filterValue}
+          setFilterValue={setFilterValue}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          handleSearch={handleSearch}
+          handleClearFilters={handleClearFilters}
+          handleAddClick={handleAddClick}
+          isLoading={isLoading}
+          refetch={refetch}
+        />
 
-          <Card withBorder p="xs" radius="md" mb="md" bg="gray.0" className="ipam-search-container">
-            <form onSubmit={handleSearch}>
-              <Group mb="xs" align="flex-end" gap="md">
-                <TextInput
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  leftSection={<IconSearch size={16} />}
-                  className="ipam-search-input"
-                  style={{ flexGrow: 1 }}
-                  radius="md"
-                />
-
-                <Select
-                  placeholder="Filter by field"
-                  value={filterField}
-                  onChange={(value) => setFilterField(value || '')}
-                  data={filterableFields}
-                  clearable
-                  leftSection={<IconFilter size={16} />}
-                  style={{ width: '200px' }}
-                  radius="md"
-                  className="ipam-filter-select"
-                />
-
-                {filterField && (
-                  <TextInput
-                    placeholder="Filter value"
-                    value={filterValue}
-                    onChange={(e) => setFilterValue(e.target.value)}
-                    style={{ width: '200px' }}
-                    radius="md"
-                    className="ipam-filter-input"
-                  />
-                )}
-
-                <Button type="submit" radius="md" className="ipam-apply-button">Apply Filters</Button>
-                <Button variant="outline" onClick={handleClearFilters} radius="md" className="ipam-clear-button">Clear</Button>
-                <Tooltip label="Refresh data">
-                  <ActionIcon
-                    color="blue"
-                    variant="light"
-                    onClick={() => refetch()}
-                    radius="md"
-                    size="lg"
-                    className="ipam-refresh-button"
-                  >
-                    <IconRefresh size={18} />
-                  </ActionIcon>
-                </Tooltip>
-              </Group>
-            </form>
-          </Card>
-
+        <Card padding="xs">
           {isLoading || isLoadingReferenceData ? (
-            <Box p="xl" style={{ display: 'flex', justifyContent: 'center' }}>
+            <div style={tableStyles.loaderContainer}>
               <Loader />
-            </Box>
-          ) : isError ? (
-            <Alert color="red" title="Error">
-              Failed to load data. Please try again.
-            </Alert>
-          ) : data?.total === 0 ? (
-            <Text ta="center" c="dimmed" py="xl">
-              No items found. Try adjusting your filters or add a new item.
-            </Text>
+            </div>
           ) : (
-            <Box style={{ overflowX: 'auto', width: '100%' }} className="ipam-table-container">
+            <>
               <StyledTable>
                 <TableHeader
-                  columns={schema.map(col => col.name)}
+                  columns={schema.map(column => column.name)}
                 />
-                <tbody className="ipam-table-body">
-                  {data?.items.map((item) => (
-                    <tr key={item.id} className="ipam-table-row">
-                      {schema.map(column => (
-                        <td key={column.name} className={`ipam-cell ipam-cell-${column.name}`}>
-                          {formatTableCell(item, column)}
+                <tbody>
+                  {data?.items && data.items.length > 0 ? (
+                    data.items.map((item, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {schema.map((column, colIndex) => (
+                          <td key={colIndex} style={tableStyles.cell}>
+                            {formatTableCell(item, column)}
+                          </td>
+                        ))}
+                        <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}>
+                          <TableActions
+                            item={item}
+                            handleEditClick={handleEditClick}
+                            handleDeleteClick={handleDeleteClick}
+                            customActionsRenderer={customActionsRenderer}
+                          />
                         </td>
-                      ))}
-                      <td className="ipam-cell ipam-cell-actions">
-                        <Group gap="xs" justify="flex-end">
-                          {customActionsRenderer ? customActionsRenderer(item) : (
-                            <>
-                              <ActionIcon
-                                onClick={() => handleEditClick(item)}
-                                variant="subtle"
-                                color="blue"
-                                title="Edit"
-                                className="ipam-action-button"
-                              >
-                                <IconEdit size={16} />
-                              </ActionIcon>
-                              <ActionIcon
-                                onClick={() => handleDeleteClick(item.id)}
-                                variant="subtle"
-                                color="red"
-                                title="Delete"
-                                className="ipam-action-button"
-                              >
-                                <IconTrash size={16} />
-                              </ActionIcon>
-                            </>
-                          )}
-                        </Group>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={schema.length + 1} style={tableStyles.emptyRow}>
+                        No data available
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </StyledTable>
 
-              {totalPages > 1 && (
-                <Group justify="center" mt="md">
+              {data?.total && data.total > pageSize && (
+                <Group position="right" mt="md">
                   <Pagination
-                    total={totalPages}
+                    total={Math.ceil(data.total / pageSize)}
                     value={page}
                     onChange={setPage}
-                    withEdges
                   />
                 </Group>
               )}
-            </Box>
+            </>
           )}
         </Card>
 
         {showModal && (
           <IPAMModal
-            show={showModal}
-            onHide={handleModalClose}
             tableName={tableName}
-            schema={schema}
-            item={selectedItem}
+            data={selectedItem}
+            onClose={handleModalClose}
           />
         )}
       </Stack>
     </ErrorBoundary>
   );
-}
+});
+
+// Default export
+export default IPAMTable;

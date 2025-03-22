@@ -1,5 +1,6 @@
 import { useBaseQuery } from './useBaseQuery';
 import { TableName } from '../../types';
+import { useMemo } from 'react';
 
 export interface TableQueryParams {
   page?: number;
@@ -7,6 +8,8 @@ export interface TableQueryParams {
   searchQuery?: string;
   filterField?: string;
   filterValue?: string;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
 }
 
 export interface TableData<T = any> {
@@ -15,38 +18,61 @@ export interface TableData<T = any> {
 }
 
 /**
- * Hook for fetching table data with pagination, search, and filtering
+ * Hook for fetching table data with pagination, search, filtering, and sorting
  *
  * @param tableName The name of the table to fetch data from
- * @param params Parameters for pagination, search, and filtering
+ * @param params Parameters for pagination, search, filtering, and sorting
  * @returns Query result with table data and pagination information
  */
 export function useTableData<T = any>(
   tableName: TableName,
-  { page = 1, pageSize = 10, searchQuery = '', filterField = '', filterValue = '' }: TableQueryParams = {}
+  { 
+    page = 1, 
+    pageSize = 10, 
+    searchQuery = '', 
+    filterField = '', 
+    filterValue = '',
+    sortField = '',
+    sortDirection = 'asc' 
+  }: TableQueryParams = {}
 ) {
-  // Build query parameters for the API request
-  const queryParams: Record<string, any> = {};
+  // Memoize query parameters to prevent unnecessary re-renders
+  const queryParams = useMemo(() => {
+    const params: Record<string, any> = {};
+    
+    if (page > 1) {
+      params.skip = (page - 1) * pageSize;
+    }
+    
+    params.limit = pageSize;
+    
+    if (searchQuery) {
+      params.search = searchQuery;
+    }
+    
+    if (filterField && filterValue) {
+      params[filterField] = filterValue;
+    }
+    
+    if (sortField) {
+      params.sort = sortField;
+      params.order = sortDirection;
+    }
+    
+    return params;
+  }, [page, pageSize, searchQuery, filterField, filterValue, sortField, sortDirection]);
   
-  if (page > 1) {
-    queryParams.skip = (page - 1) * pageSize;
-  }
-  
-  queryParams.limit = pageSize;
-  
-  if (searchQuery) {
-    queryParams.search = searchQuery;
-  }
-  
-  if (filterField && filterValue) {
-    queryParams[filterField] = filterValue;
-  }
+  // Memoize key parts to ensure stable query keys
+  const keyParts = useMemo(() => 
+    [tableName, page, searchQuery, filterField, filterValue, sortField, sortDirection],
+    [tableName, page, searchQuery, filterField, filterValue, sortField, sortDirection]
+  );
   
   // Use the base query hook with table-specific settings
-  return useBaseQuery<TableData<T>>({
+  const queryResult = useBaseQuery<TableData<T>>({
     url: tableName,
     params: queryParams,
-    keyParts: [tableName, page, searchQuery, filterField, filterValue],
+    keyParts,
     // Transform the response to ensure consistent data structure
     transformation: (data) => {
       // Handle different API response formats
@@ -74,4 +100,6 @@ export function useTableData<T = any>(
       };
     }
   });
+
+  return queryResult;
 } 

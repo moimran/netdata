@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { Progress, Box, Text, Group, MantineColor } from '@mantine/core';
 import { StatusBadge } from '../TableStyles';
 import { Column } from './schemas';
-import type { TableName } from '../../types';
+import { TableName } from '../../types';
 
 // Helper function to calculate IP prefix or range utilization
 export const calculateUtilization = (ipData: string, isRange: boolean = false): { percentage: number; used: number; total: number } => {
@@ -59,7 +59,23 @@ export const calculateUtilization = (ipData: string, isRange: boolean = false): 
 };
 
 // Helper function to render the utilization progress bar
-export const renderUtilizationBar = (ipData: string, isRange: boolean = false): React.ReactElement => {
+export const renderUtilizationBar = (
+  prefixIdOrIpData: number | string,
+  prefixOrIsRange?: string | boolean
+): React.ReactElement => {
+  let ipData: string;
+  let isRange: boolean = false;
+
+  // Check if we're using the new API with prefixId and prefix
+  if (typeof prefixIdOrIpData === 'number' && typeof prefixOrIsRange === 'string') {
+    // In this case, prefixOrIsRange is the prefix string
+    ipData = prefixOrIsRange;
+  } else {
+    // Otherwise, use the original implementation for backward compatibility
+    ipData = prefixIdOrIpData as string;
+    isRange = Boolean(prefixOrIsRange);
+  }
+
   const { percentage, used, total } = calculateUtilization(ipData, isRange);
   const roundedPercentage = Math.round(percentage);
 
@@ -106,12 +122,38 @@ export const renderUtilizationBar = (ipData: string, isRange: boolean = false): 
 
 // Helper function to format cell values for display
 export const formatCellValue = (
-  column: Column,
-  value: any,
-  referenceData: Record<string, any[]>,
-  item?: any,
+  valueOrColumn: any,
+  typeOrReferenceData?: any,
+  referenceDataOrItem?: any,
+  itemOrTableName?: any,
   tableName?: TableName
 ): ReactNode => {
+  // Check if we're using the new simplified API (value, type)
+  if (typeof typeOrReferenceData === 'string') {
+    const value = valueOrColumn;
+    const type = typeOrReferenceData;
+
+    if (value === null || value === undefined) return '-';
+
+    // Simple type-based formatting
+    if (type === 'boolean') {
+      return value ? 'Yes' : 'No';
+    }
+
+    if (type === 'number') {
+      return Number(value);
+    }
+
+    // Default to string representation
+    return String(value);
+  }
+
+  // Otherwise, use the original implementation for backward compatibility
+  const column = valueOrColumn as Column;
+  const value = typeOrReferenceData;
+  const referenceData = referenceDataOrItem;
+  const item = itemOrTableName;
+
   if (value === null || value === undefined) return '-';
 
   if (column.name === 'status') {

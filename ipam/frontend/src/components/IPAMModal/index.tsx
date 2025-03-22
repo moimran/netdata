@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Modal,
   Stack,
@@ -12,15 +12,19 @@ import { IPAMModalProps } from './types';
 import { useIPAMForm, useReferenceData } from '../../hooks';
 import { FormField, VlanIdRangesField } from './components/FormFields';
 import { ErrorBoundary } from '../common/ErrorBoundary';
+import { TABLE_SCHEMAS } from '../IPAMTable/schemas';
 
-export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalProps) {
+export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
+  // Get schema for this table
+  const schema = useMemo(() => TABLE_SCHEMAS[tableName] || [], [tableName]);
+
   // Get reference table names from schema
-  const referenceTableNames = [...new Set(schema
+  const referenceTableNames = useMemo(() => [...new Set(schema
     .filter(col => col.reference)
     .map(col => col.reference!)
-  )];
+  )], [schema]);
 
-  // Use our new hooks for form handling and reference data
+  // Use our hooks for form handling and reference data
   const {
     formData,
     handleChange,
@@ -33,8 +37,8 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
   } = useIPAMForm({
     tableName,
     schema,
-    item,
-    onSuccess: onHide
+    item: data,
+    onSuccess: onClose
   });
 
   const {
@@ -43,31 +47,35 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
     isError,
     getReferenceItem,
     formatReferenceValue
-  } = useReferenceData(referenceTableNames, show);
+  } = useReferenceData(referenceTableNames);
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = await submitForm(e);
     if (success) {
-      onHide();
+      onClose();
     }
   };
 
+  const isOpen = true; // Modal is always open when rendered
+
   if (isError) {
     return (
-      <Modal opened={show} onClose={onHide} title="Error">
+      <Modal opened={isOpen} onClose={onClose} title="Error">
         <div>Failed to load reference data. Please try again.</div>
       </Modal>
     );
   }
 
+  const title = `${data ? 'Edit' : 'Add'} ${tableName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}`;
+
   return (
     <ErrorBoundary>
       <Modal
-        opened={show}
-        onClose={onHide}
-        title={`${item ? 'Edit' : 'Add'} ${tableName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}`}
+        opened={isOpen}
+        onClose={onClose}
+        title={title}
         styles={{
           header: { backgroundColor: '#1A1B1E', color: 'white' },
           content: { backgroundColor: '#1A1B1E' }
@@ -100,13 +108,13 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
               />
             )}
 
-            {/* Render form fields based on schema */}
-            {schema.map(column => (
+            {/* Render form fields for each column in the schema */}
+            {schema.map((column) => (
               <FormField
                 key={column.name}
                 column={column}
                 formData={formData}
-                handleChange={(name, value) => handleChange(name, value)}
+                handleChange={handleChange}
                 validationErrors={validationErrors}
                 setValidationErrors={setValidationErrors}
                 tableName={tableName}
@@ -116,12 +124,12 @@ export function IPAMModal({ show, onHide, tableName, schema, item }: IPAMModalPr
               />
             ))}
 
-            <Group justify="flex-end" mt="md">
-              <Button variant="outline" onClick={onHide} color="gray">
+            <Group justify="flex-end" mt="xl">
+              <Button variant="outline" onClick={onClose}>
                 Cancel
               </Button>
               <Button type="submit" loading={isSubmitting}>
-                {item ? 'Update' : 'Create'}
+                {data ? 'Update' : 'Create'}
               </Button>
             </Group>
           </Stack>

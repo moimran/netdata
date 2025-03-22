@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { 
+import {
   Button,
   Group,
   Title,
@@ -23,6 +23,7 @@ import { IPAMModal } from './IPAMModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../api/client';
 import { TABLE_SCHEMAS } from './IPAMTable';
+import './IPAMTable/styles.css'; // Import the IPAM Table styles
 
 // Interface for prefix data
 interface Prefix {
@@ -58,25 +59,25 @@ const calculateUtilization = async (prefixId: number, prefix: string): Promise<{
   if (utilizationCache.has(prefixId)) {
     return utilizationCache.get(prefixId)!;
   }
-  
+
   try {
     // Fetch utilization data from API
     const utilization = await fetchUtilization(prefixId);
-    
+
     // Cache the result
     utilizationCache.set(prefixId, utilization);
-    
+
     return utilization;
   } catch (error) {
     console.error(`Error calculating utilization for prefix ${prefix}:`, error);
-    
+
     // Fallback to local calculation if API fails
     // Extract the network mask from the prefix (e.g., "192.168.1.0/24" -> 24)
     const maskMatch = prefix.match(/\/(\d+)$/);
     if (!maskMatch) return { percentage: 0, used: 0, total: 0 };
-    
+
     const mask = parseInt(maskMatch[1], 10);
-    
+
     let total = 0;
     if (prefix.includes(':')) {
       // IPv6
@@ -92,20 +93,20 @@ const calculateUtilization = async (prefixId: number, prefix: string): Promise<{
         total = Math.pow(2, 32 - mask);
       }
     }
-    
+
     // Generate a random number of used IPs for demonstration
-    const baseUtilizationPercentage = prefix.includes(':') 
-      ? Math.max(0, 100 - (128 - mask) * 2) 
+    const baseUtilizationPercentage = prefix.includes(':')
+      ? Math.max(0, 100 - (128 - mask) * 2)
       : Math.max(0, 100 - (32 - mask) * 8);
-    
+
     const utilizationPercentage = Math.min(100, baseUtilizationPercentage + Math.random() * 30);
     const used = Math.floor(total * (utilizationPercentage / 100));
-    
+
     const fallbackUtilization = { percentage: utilizationPercentage, used, total };
-    
+
     // Cache the fallback result
     utilizationCache.set(prefixId, fallbackUtilization);
-    
+
     return fallbackUtilization;
   }
 };
@@ -118,7 +119,7 @@ const UtilizationBar = ({ prefixId, prefix }: { prefixId: number, prefix: string
     total: 0
   });
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Format the display text
   // For very large numbers (like in IPv6), use abbreviated format
   const formatNumber = (num: number): string => {
@@ -129,7 +130,7 @@ const UtilizationBar = ({ prefixId, prefix }: { prefixId: number, prefix: string
     }
     return num.toString();
   };
-  
+
   useEffect(() => {
     const fetchUtilizationData = async () => {
       setIsLoading(true);
@@ -142,16 +143,16 @@ const UtilizationBar = ({ prefixId, prefix }: { prefixId: number, prefix: string
         setIsLoading(false);
       }
     };
-    
+
     fetchUtilizationData();
   }, [prefixId, prefix]);
-  
+
   if (isLoading) {
     return <Loader size="sm" />;
   }
-  
+
   const roundedPercentage = Math.round(utilization.percentage);
-  
+
   // Determine color based on utilization percentage
   let color = 'green';
   if (utilization.percentage > 80) {
@@ -161,17 +162,17 @@ const UtilizationBar = ({ prefixId, prefix }: { prefixId: number, prefix: string
   } else if (utilization.percentage > 40) {
     color = 'blue';
   }
-  
+
   return (
     <Box>
       <Group justify="apart" mb={5}>
         <Text size="xs" fw={500}>{formatNumber(utilization.used)}/{formatNumber(utilization.total)}</Text>
         <Text size="xs" c="dimmed">{roundedPercentage}%</Text>
       </Group>
-      <Progress 
-        value={roundedPercentage} 
-        color={color} 
-        size="sm" 
+      <Progress
+        value={roundedPercentage}
+        color={color}
+        size="sm"
         radius="xl"
         striped={utilization.percentage > 80}
         animated={utilization.percentage > 90}
@@ -183,17 +184,17 @@ const UtilizationBar = ({ prefixId, prefix }: { prefixId: number, prefix: string
 // Helper function to format reference values
 const formatReferenceValue = (value: number | null, referenceData: Record<string, any[]>, referenceTable: string): string => {
   if (value === null) return '-';
-  
+
   const referenceItems = referenceData[referenceTable] || [];
-  
+
   if (Array.isArray(referenceItems) && referenceItems.length > 0) {
     const referencedItem = referenceItems.find((item: any) => String(item.id) === String(value));
-    
+
     if (referencedItem) {
       return referencedItem.name || referencedItem.rd || String(value);
     }
   }
-  
+
   return `${referenceTable} #${value}`;
 };
 
@@ -206,12 +207,12 @@ export function PrefixTable() {
   const [filterValue, setFilterValue] = useState<string>('');
   const [vrfFilter, setVrfFilter] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  
+
   const pageSize = 100; // Larger page size for hierarchical view
 
   // Get table schema
   const schema = TABLE_SCHEMAS['prefixes'] || [];
-  
+
   // Get filterable fields
   const filterableFields = schema
     .filter(col => col.name !== 'id' && col.name !== 'description')
@@ -231,19 +232,19 @@ export function PrefixTable() {
     .filter(col => col.reference)
     .map(col => col.reference!)
   )];
-  
+
   const { data: referenceData = {} } = useQuery({
     queryKey: ['references', referenceTableNames],
     queryFn: async () => {
       const results: Record<string, any> = {};
-      
+
       // Use Promise.all to fetch all reference data in parallel
       await Promise.all(referenceTableNames.map(async (refTableName) => {
         try {
           const response = await apiClient.get(`${refTableName}`);
           // Ensure we have a consistent data structure
           const responseData = response.data;
-          
+
           // Store data in a consistent format
           if (Array.isArray(responseData)) {
             results[refTableName] = responseData;
@@ -260,7 +261,7 @@ export function PrefixTable() {
           results[refTableName] = [];
         }
       }));
-      
+
       return results;
     },
     enabled: referenceTableNames.length > 0
@@ -274,7 +275,7 @@ export function PrefixTable() {
       if (vrfFilter) {
         params.append('vrf_id', vrfFilter);
       }
-      
+
       try {
         console.log("Fetching prefix hierarchy...");
         const response = await apiClient.get(`/prefixes/hierarchy`, { params });
@@ -355,12 +356,12 @@ export function PrefixTable() {
   const buildPrefixTree = (prefixes: Prefix[]) => {
     // First, create a map of all prefixes by ID for quick lookup
     const prefixMap = new Map<number, Prefix & { children: number[] }>();
-    
+
     // Initialize each prefix with an empty children array
     prefixes.forEach(prefix => {
       prefixMap.set(prefix.id, { ...prefix, children: [] });
     });
-    
+
     // Build the tree structure by adding children to their parents
     prefixes.forEach(prefix => {
       if (prefix.parent_id !== null && prefixMap.has(prefix.parent_id)) {
@@ -370,22 +371,22 @@ export function PrefixTable() {
         }
       }
     });
-    
+
     return prefixMap;
   };
-  
+
   // Flatten the tree for display, preserving the hierarchy
   const flattenPrefixTree = (prefixMap: Map<number, Prefix & { children: number[] }>) => {
     const result: Prefix[] = [];
-    
+
     // Helper function to recursively add a prefix and its children
     const addPrefixAndChildren = (prefixId: number, prefixMap: Map<number, Prefix & { children: number[] }>) => {
       const prefix = prefixMap.get(prefixId);
       if (!prefix) return;
-      
+
       // Add this prefix to the result
       result.push(prefix);
-      
+
       // Sort children by prefix for consistent display
       const sortedChildren = [...prefix.children].sort((a, b) => {
         const prefixA = prefixMap.get(a);
@@ -393,43 +394,48 @@ export function PrefixTable() {
         if (!prefixA || !prefixB) return 0;
         return prefixA.prefix.localeCompare(prefixB.prefix);
       });
-      
+
       // Recursively add all children
       sortedChildren.forEach(childId => {
         addPrefixAndChildren(childId, prefixMap);
       });
     };
-    
+
     // Start with root prefixes (those without parents)
     const rootPrefixes = Array.from(prefixMap.values())
       .filter(prefix => prefix.parent_id === null)
       .sort((a, b) => a.prefix.localeCompare(b.prefix));
-    
+
     rootPrefixes.forEach(prefix => {
       addPrefixAndChildren(prefix.id, prefixMap);
     });
-    
+
     return result;
   };
-  
+
   // Filter and organize prefixes
   const filteredPrefixes = prefixData
     ? (() => {
-        // First filter by search query
-        const filtered = prefixData.filter((prefix: Prefix) => {
-          if (!searchQuery) return true;
-          return prefix.prefix.toLowerCase().includes(searchQuery.toLowerCase());
-        });
-        
-        // Build the tree and flatten it for display
-        const prefixTree = buildPrefixTree(filtered);
-        return flattenPrefixTree(prefixTree);
-      })()
+      // First filter by search query
+      const filtered = prefixData.filter((prefix: Prefix) => {
+        if (!searchQuery) return true;
+        return prefix.prefix.toLowerCase().includes(searchQuery.toLowerCase());
+      });
+
+      // Build the tree and flatten it for display
+      const prefixTree = buildPrefixTree(filtered);
+      return flattenPrefixTree(prefixTree);
+    })()
     : [];
 
   // Pagination
   const paginatedPrefixes = filteredPrefixes.slice((page - 1) * pageSize, page * pageSize);
   const totalPages = Math.ceil(filteredPrefixes.length / pageSize);
+
+  // Debug log to track showModal state changes
+  useEffect(() => {
+    console.log("showModal changed:", showModal);
+  }, [showModal]);
 
   return (
     <Stack gap="md">
@@ -439,8 +445,8 @@ export function PrefixTable() {
             <Title order={3} mb={5}>Prefixes</Title>
             <Text color="dimmed" size="sm">Manage your IP prefixes</Text>
           </Box>
-          <Button 
-            leftSection={<IconPlus size={16} />} 
+          <Button
+            leftSection={<IconPlus size={16} />}
             onClick={handleAddClick}
             radius="md"
             variant="filled"
@@ -462,16 +468,16 @@ export function PrefixTable() {
                 radius="md"
                 className="ipam-search-input"
               />
-              
+
               <Select
                 placeholder="Filter by VRF"
                 value={vrfFilter}
                 onChange={setVrfFilter}
                 data={[
                   { value: '', label: 'All VRFs' },
-                  ...(vrfData || []).map((vrf: any) => ({ 
-                    value: String(vrf.id), 
-                    label: vrf.name || `VRF #${vrf.id}` 
+                  ...(vrfData || []).map((vrf: any) => ({
+                    value: String(vrf.id),
+                    label: vrf.name || `VRF #${vrf.id}`
                   }))
                 ]}
                 clearable
@@ -480,13 +486,13 @@ export function PrefixTable() {
                 radius="md"
                 className="ipam-filter-select"
               />
-              
+
               <Button type="submit" radius="md" className="ipam-apply-button">Apply Filters</Button>
               <Button variant="outline" onClick={handleClearFilters} radius="md" className="ipam-clear-button">Clear</Button>
               <Tooltip label="Refresh data">
-                <ActionIcon 
-                  color="blue" 
-                  variant="light" 
+                <ActionIcon
+                  color="blue"
+                  variant="light"
                   onClick={() => refetch()}
                   radius="md"
                   size="lg"
@@ -512,27 +518,27 @@ export function PrefixTable() {
             No prefixes found. Try adjusting your filters or add a new prefix.
           </Text>
         ) : (
-          <Box style={{ overflowX: 'auto' }}>
+          <Box className="ipam-table-container">
             <StyledTable className="ipam-table">
-              <TableHeader 
+              <TableHeader
                 columns={[
                   'Prefix',
                   'Status',
                   'Children',
                   'VRF',
                   'Utilization'
-                ]} 
+                ]}
               />
-              <tbody>
+              <tbody className="ipam-table-body">
                 {paginatedPrefixes.map((prefix: Prefix) => (
-                  <tr key={prefix.id}>
-                    <td style={tableStyles.cell}>
+                  <tr key={prefix.id} className="ipam-table-row">
+                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-prefix">
                       {renderIndentation(prefix.depth, prefix.prefix)}
                     </td>
-                    <td style={tableStyles.cell}>
+                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-status">
                       <StatusBadge status={prefix.status} />
                     </td>
-                    <td style={tableStyles.cell}>
+                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-children">
                       {prefix.child_count > 0 ? (
                         <Badge color="blue" variant="light">
                           {prefix.child_count}
@@ -541,16 +547,16 @@ export function PrefixTable() {
                         <Text size="sm">0</Text>
                       )}
                     </td>
-                    <td style={tableStyles.cell}>
+                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-vrf">
                       {formatReferenceValue(prefix.vrf_id, referenceData, 'vrfs')}
                     </td>
-                    <td style={tableStyles.cell}>
+                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-utilization">
                       <UtilizationBar prefixId={prefix.id} prefix={prefix.prefix} />
                     </td>
-                    <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}>
+                    <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }} className="ipam-cell ipam-cell-actions">
                       <Group gap="xs" justify="center">
-                        <ActionIcon 
-                          color="blue" 
+                        <ActionIcon
+                          color="blue"
                           onClick={() => handleEditClick(prefix)}
                           title="Edit"
                           variant="light"
@@ -559,8 +565,8 @@ export function PrefixTable() {
                         >
                           <IconEdit size={16} />
                         </ActionIcon>
-                        <ActionIcon 
-                          color="red" 
+                        <ActionIcon
+                          color="red"
                           onClick={() => handleDeleteClick(prefix.id)}
                           title="Delete"
                           loading={deleteMutation.isPending}
@@ -584,10 +590,10 @@ export function PrefixTable() {
             <Text size="sm" color="dimmed">
               Showing {((page - 1) * pageSize) + 1}-{Math.min(page * pageSize, filteredPrefixes.length)} of {filteredPrefixes.length} prefixes
             </Text>
-            <Pagination 
-              total={totalPages} 
-              value={page} 
-              onChange={setPage} 
+            <Pagination
+              total={totalPages}
+              value={page}
+              onChange={setPage}
               radius="md"
               withControls
             />
@@ -595,13 +601,13 @@ export function PrefixTable() {
         )}
       </Card>
 
-      <IPAMModal
-        show={showModal}
-        onHide={handleModalClose}
-        tableName="prefixes"
-        schema={schema}
-        item={selectedItem}
-      />
+      {showModal && (
+        <IPAMModal
+          tableName="prefixes"
+          data={selectedItem}
+          onClose={handleModalClose}
+        />
+      )}
     </Stack>
   );
 }
