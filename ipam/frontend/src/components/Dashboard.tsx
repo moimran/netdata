@@ -1,4 +1,4 @@
-import { Grid, Card, Text, Group, RingProgress, Stack, SimpleGrid, Title, Paper, ThemeIcon, Box, Progress, Divider } from '@mantine/core';
+import { Card, Text, Group, RingProgress, Stack, SimpleGrid, Title, ThemeIcon, Box, Progress, Divider } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { 
@@ -8,7 +8,6 @@ import {
   IconRouter,
   IconArrowUpRight,
   IconArrowDownRight,
-  IconChartBar,
   IconPercentage
 } from '@tabler/icons-react';
 
