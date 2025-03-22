@@ -6,7 +6,6 @@ import {
   Group,
   Button,
   Stack,
-  Table,
   ActionIcon,
   Badge,
   Modal,

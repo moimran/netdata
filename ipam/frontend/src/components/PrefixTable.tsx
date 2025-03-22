@@ -338,16 +338,17 @@ export function PrefixTable() {
     refetch();
   };
 
-  // Render indentation based on depth
+  // Replace the renderIndentation function
   const renderIndentation = (depth: number, prefix: string) => {
     const indentation = [];
     for (let i = 0; i < depth; i++) {
       indentation.push(<span key={i} style={{ marginRight: '4px' }}>•</span>);
     }
+
     return (
       <Group gap={4} wrap="nowrap">
         <span style={{ color: '#888', marginRight: '4px' }}>{indentation}</span>
-        <span>{prefix}</span>
+        <span className="ipam-cell-type-network">{prefix}</span>
       </Group>
     );
   };
@@ -547,7 +548,7 @@ export function PrefixTable() {
                         <Text size="sm">0</Text>
                       )}
                     </td>
-                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-vrf" title={formatReferenceValue(prefix.vrf_id, referenceData, 'vrfs')}>
+                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-vrf ipam-cell-type-reference" title={formatReferenceValue(prefix.vrf_id, referenceData, 'vrfs')}>
                       {formatReferenceValue(prefix.vrf_id, referenceData, 'vrfs')}
                     </td>
                     <td style={tableStyles.cell} className="ipam-cell ipam-cell-utilization">
@@ -555,18 +556,24 @@ export function PrefixTable() {
                     </td>
                     <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }} className="ipam-cell ipam-cell-actions">
                       <Group gap="xs" justify="center">
-                        <ActionIcon
-                          color="blue"
-                          onClick={() => handleEditClick(prefix)}
-                        >
-                          <IconEdit size={16} />
-                        </ActionIcon>
-                        <ActionIcon
-                          color="red"
-                          onClick={() => handleDeleteClick(prefix.id)}
-                        >
-                          <IconTrash size={16} />
-                        </ActionIcon>
+                        <Tooltip label="Edit">
+                          <ActionIcon
+                            color="blue"
+                            variant="light"
+                            onClick={() => handleEditClick(prefix)}
+                          >
+                            <IconEdit size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+                        <Tooltip label="Delete">
+                          <ActionIcon
+                            color="red"
+                            variant="light"
+                            onClick={() => handleDeleteClick(prefix.id)}
+                          >
+                            <IconTrash size={16} />
+                          </ActionIcon>
+                        </Tooltip>
                       </Group>
                     </td>
                   </tr>

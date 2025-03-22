@@ -14,8 +14,7 @@ import {
   Box,
   Loader,
   Alert,
-  Badge,
-  Table
+  Badge
 } from '@mantine/core';
 import { StyledTable, TableHeader, tableStyles, StatusBadge } from '../TableStyles';
 import { IconEdit, IconTrash, IconPlus, IconSearch, IconFilter, IconRefresh } from '@tabler/icons-react';
@@ -34,6 +33,7 @@ interface IPAMTableProps {
 
 // Extracted table header component
 const TableFilterBar = memo(({
+  tableName,
   filterableFields,
   filterField,
   setFilterField,
@@ -47,6 +47,7 @@ const TableFilterBar = memo(({
   isLoading,
   refetch
 }: {
+  tableName: string;
   filterableFields: { value: string, label: string }[];
   filterField: string;
   setFilterField: (value: string) => void;
@@ -59,68 +60,85 @@ const TableFilterBar = memo(({
   handleAddClick: () => void;
   isLoading: boolean;
   refetch: () => void;
-}) => (
-  <Card mb="md" padding="md" style={tableStyles.filterCard}>
-    <Group position="apart" mb="xs">
-      <Title order={4}>Filters</Title>
-      <Group>
-        <ActionIcon
-          color="blue"
-          variant="light"
-          onClick={refetch}
-          loading={isLoading}
-          title="Refresh data"
-        >
-          <IconRefresh size={16} />
-        </ActionIcon>
-        <Button
-          variant="filled"
-          leftIcon={<IconPlus size={16} />}
-          onClick={handleAddClick}
-          size="xs"
-        >
-          Add
-        </Button>
-      </Group>
-    </Group>
+}) => {
+  // Format table name for display (capitalize, convert from camelCase or snake_case)
+  const displayTableName = tableName
+    .replace(/_/g, ' ')
+    .replace(/([A-Z])/g, ' $1')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 
-    <form onSubmit={handleSearch}>
-      <Group>
-        <TextInput
-          placeholder="Search..."
-          icon={<IconSearch size={16} />}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ flexGrow: 1 }}
-          size="xs"
-        />
-        <Select
-          placeholder="Filter field"
-          data={filterableFields}
-          value={filterField}
-          onChange={(value) => setFilterField(value || '')}
-          clearable
-          size="xs"
-          style={{ width: 150 }}
-        />
-        <TextInput
-          placeholder="Filter value"
-          disabled={!filterField}
-          value={filterValue}
-          onChange={(e) => setFilterValue(e.target.value)}
-          size="xs"
-          style={{ width: 150 }}
-        />
-        <Button type="submit" variant="outline" size="xs">
-          Apply
-        </Button>
-        <Button variant="subtle" onClick={handleClearFilters} size="xs">
-          Clear
-        </Button>
+  return (
+    <Card mb="md" padding="md" style={{ backgroundColor: '#25262B', borderColor: '#374151' }}>
+      <Group justify="space-between" mb="xs">
+        <Title order={3} c="#f9fafb">{displayTableName}</Title>
+        <Group>
+          <ActionIcon
+            color="blue"
+            variant="light"
+            onClick={refetch}
+            loading={isLoading}
+            title="Refresh data"
+          >
+            <IconRefresh size={16} />
+          </ActionIcon>
+          <Button
+            variant="filled"
+            leftSection={<IconPlus size={16} />}
+            onClick={handleAddClick}
+            size="xs"
+            color="teal"
+          >
+            Add
+          </Button>
+        </Group>
       </Group>
-    </form>
-  </Card>
-));
+
+      <form onSubmit={handleSearch}>
+        <Group>
+          <TextInput
+            placeholder="Search..."
+            leftSection={<IconSearch size={16} />}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ flexGrow: 1 }}
+            size="xs"
+            bg="#1A1B1E"
+            c="#f9fafb"
+          />
+          <Select
+            placeholder="Filter field"
+            data={filterableFields}
+            value={filterField}
+            onChange={(value) => setFilterField(value || '')}
+            clearable
+            size="xs"
+            style={{ width: 150 }}
+            bg="#1A1B1E"
+            c="#f9fafb"
+          />
+          <TextInput
+            placeholder="Filter value"
+            disabled={!filterField}
+            value={filterValue}
+            onChange={(e) => setFilterValue(e.target.value)}
+            size="xs"
+            style={{ width: 150 }}
+            bg="#1A1B1E"
+            c="#f9fafb"
+          />
+          <Button type="submit" variant="outline" size="xs" color="blue">
+            Apply
+          </Button>
+          <Button variant="subtle" onClick={handleClearFilters} size="xs" color="gray">
+            Clear
+          </Button>
+        </Group>
+      </form>
+    </Card>
+  );
+});
 
 // Extracted table actions component
 const TableActions = memo(({
@@ -134,7 +152,8 @@ const TableActions = memo(({
   handleDeleteClick: (id: number) => void;
   customActionsRenderer?: (item: any) => React.ReactNode;
 }) => (
-  <Group spacing={4}>
+  <Group gap={4} style={{ justifyContent: 'center' }}>
+    {/* Standard edit action */}
     <Tooltip label="Edit">
       <ActionIcon
         color="blue"
@@ -144,6 +163,8 @@ const TableActions = memo(({
         <IconEdit size={16} />
       </ActionIcon>
     </Tooltip>
+
+    {/* Standard delete action */}
     <Tooltip label="Delete">
       <ActionIcon
         color="red"
@@ -153,6 +174,8 @@ const TableActions = memo(({
         <IconTrash size={16} />
       </ActionIcon>
     </Tooltip>
+
+    {/* Custom actions provided by the table implementation */}
     {customActionsRenderer && customActionsRenderer(item)}
   </Group>
 ));
@@ -303,9 +326,60 @@ export const IPAMTable = memo(function IPAMTable({ tableName, customActionsRende
       );
     }
 
+    // Special formatting for credential fields
+    if ((column.name === 'password' || column.name === 'enable_password') && tableName === 'credentials') {
+      return '••••••••';
+    }
+
+    // Special formatting for boolean fields
+    if (column.type === 'boolean') {
+      return item[column.name] ? 'Yes' : 'No';
+    }
+
+    // ASN field formatting
+    if (column.name === 'asn') {
+      return `AS${item[column.name]}`;
+    }
+
     // Use the generic formatter for all other fields
     return formatCellValue(item[column.name], column.type);
   }, [formatReferenceValue, referenceData, tableName]);
+
+  // Apply consistent CSS classes for column styling
+  const getColumnTypeClass = (column: any, value: any): string => {
+    // Reference type class
+    if (column.reference) return 'reference';
+
+    // Boolean type class
+    if (column.type === 'boolean') return 'boolean';
+
+    // Special field type classes
+    if (column.name === 'asn') return 'asn';
+    if (column.name === 'vid') return 'vid';
+    if (column.name === 'address' ||
+      column.name === 'prefix' ||
+      column.name === 'start_address' ||
+      column.name === 'end_address' ||
+      column.name === 'rd') return 'network';
+
+    // Username/password fields
+    if (column.name === 'username' ||
+      column.name === 'password' ||
+      column.name === 'enable_password') return 'credential';
+
+    // Default to the column type
+    return column.type || 'string';
+  };
+
+  // Format table name for display
+  const formatTableName = (name: string): string => {
+    return name
+      .replace(/_/g, ' ')
+      .replace(/([A-Z])/g, ' $1')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   if (isError) {
     return (
@@ -319,6 +393,7 @@ export const IPAMTable = memo(function IPAMTable({ tableName, customActionsRende
     <ErrorBoundary>
       <Stack>
         <TableFilterBar
+          tableName={tableName}
           filterableFields={filterableFields}
           filterField={filterField}
           setFilterField={setFilterField}
@@ -333,10 +408,10 @@ export const IPAMTable = memo(function IPAMTable({ tableName, customActionsRende
           refetch={refetch}
         />
 
-        <Card padding="xs">
+        <Card padding="xs" style={{ backgroundColor: '#1A1B1E', borderColor: '#374151' }}>
           {isLoading || isLoadingReferenceData ? (
             <div style={tableStyles.loaderContainer}>
-              <Loader />
+              <Loader color="teal" />
             </div>
           ) : (
             <>
@@ -344,20 +419,24 @@ export const IPAMTable = memo(function IPAMTable({ tableName, customActionsRende
                 <StyledTable>
                   <TableHeader
                     columns={schema.map(column => column.name)}
+                    tableName={tableName}
                   />
-                  <tbody>
+                  <tbody className="ipam-table-body">
                     {data?.items && data.items.length > 0 ? (
                       data.items.map((item, rowIndex) => (
-                        <tr key={rowIndex} className="ipam-table-row">
+                        <tr key={rowIndex} className="ipam-table-row" style={tableStyles.row}>
                           {schema.map((column, colIndex) => {
                             const cellContent = formatTableCell(item, column);
                             const cellValue = typeof cellContent === 'string' ? cellContent : column.name === 'status' ? item[column.name] : '';
-                            
+
+                            // Apply consistent CSS classes for column styling
+                            const typeClass = getColumnTypeClass(column, cellContent);
+
                             return (
                               <td
                                 key={colIndex}
                                 style={tableStyles.cell}
-                                className={`ipam-cell ipam-cell-${column.name}`}
+                                className={`ipam-cell ipam-cell-${column.name} ipam-cell-type-${typeClass}`}
                                 title={cellValue}
                               >
                                 {cellContent}
@@ -365,7 +444,7 @@ export const IPAMTable = memo(function IPAMTable({ tableName, customActionsRende
                             );
                           })}
                           <td
-                            style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}
+                            style={{ ...tableStyles.cell }}
                             className="ipam-cell ipam-cell-actions"
                           >
                             <TableActions
@@ -389,11 +468,12 @@ export const IPAMTable = memo(function IPAMTable({ tableName, customActionsRende
               </Box>
 
               {data?.total && data.total > pageSize && (
-                <Group position="right" mt="md">
+                <Group justify="right" mt="md">
                   <Pagination
                     total={Math.ceil(data.total / pageSize)}
                     value={page}
                     onChange={setPage}
+                    color="teal"
                   />
                 </Group>
               )}

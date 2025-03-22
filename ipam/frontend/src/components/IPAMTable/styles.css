@@ -14,6 +14,10 @@
     table-layout: fixed;
     min-width: 800px;
     /* Prevent table from collapsing too much */
+    margin-bottom: 16px;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 table.ipam-styled-table,
@@ -37,36 +41,48 @@ table.ipam-styled-table thead {
 .ipam-table-row {
     transition: background-color 0.2s ease;
     display: table-row;
-    height: 56px;
-    /* Increased height for better visibility */
+    height: 56px !important;
+    background-color: #25262B !important;
+    /* Dark row background */
+}
+
+/* Alternate row colors for better readability */
+.ipam-table-row:nth-child(odd) {
+    background-color: #2C2E33 !important;
+    /* Slightly lighter for alternating rows */
 }
 
 .ipam-table-row:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: rgba(20, 184, 166, 0.15) !important;
+    /* Brighter teal color on hover */
 }
 
+/* Table cell common formatting */
 .ipam-cell {
-    padding: 12px 16px;
-    border-bottom: 1px solid #e9ecef;
-    vertical-align: middle;
-    display: table-cell;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 0;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid #e9ecef !important;
+    vertical-align: middle !important;
+    display: table-cell !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 0 !important;
     /* This forces text-overflow to work */
+    color: #f9fafb !important;
+    /* Light color for visibility on dark backgrounds */
 }
 
 /* Table header formatting */
 .ipam-header {
-    text-transform: uppercase;
-    font-size: 12px;
-    font-weight: 600;
-    color: #495057;
-    background-color: #f8f9fa;
-    padding: 12px 16px;
-    border-bottom: 2px solid #dee2e6;
-    white-space: nowrap;
+    text-transform: uppercase !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #f9fafb !important;
+    background-color: #1f2937 !important;
+    padding: 12px 16px !important;
+    border-bottom: 2px solid #dee2e6 !important;
+    white-space: nowrap !important;
+    letter-spacing: 0.05em !important;
 }
 
 thead tr {
@@ -78,25 +94,25 @@ th {
     display: table-cell !important;
 }
 
-/* Specific column width settings */
+/* Specific column width settings - standardized across tables */
 .ipam-header-id,
 .ipam-cell-id {
-    width: 60px;
+    width: 60px !important;
 }
 
 .ipam-header-name,
 .ipam-cell-name {
-    width: 200px;
+    width: 150px !important;
 }
 
 .ipam-header-slug,
 .ipam-cell-slug {
-    width: 150px;
+    width: 120px !important;
 }
 
 .ipam-header-description,
 .ipam-cell-description {
-    width: 250px;
+    width: 200px !important;
 }
 
 .ipam-header-status,
@@ -104,8 +120,81 @@ th {
     width: 120px;
 }
 
+/* IP Address specific columns */
+.ipam-header-address,
+.ipam-cell-address,
+.ipam-header-start_address,
+.ipam-cell-start_address,
+.ipam-header-end_address,
+.ipam-cell-end_address {
+    width: 180px;
+    font-family: monospace;
+}
+
+/* Role and DNS fields */
+.ipam-header-role,
+.ipam-cell-role,
+.ipam-header-dns_name,
+.ipam-cell-dns_name {
+    width: 150px;
+}
+
+/* VRF specific columns */
+.ipam-header-rd,
+.ipam-cell-rd {
+    width: 150px;
+    font-family: monospace;
+}
+
+.ipam-header-enforce_unique,
+.ipam-cell-enforce_unique {
+    width: 120px;
+    text-align: center;
+}
+
+/* Boolean fields */
+.ipam-header-is_pool,
+.ipam-cell-is_pool,
+.ipam-header-mark_utilized,
+.ipam-cell-mark_utilized {
+    width: 100px;
+    text-align: center;
+}
+
+/* Prefix-specific field */
+.ipam-header-prefix,
+.ipam-cell-prefix {
+    width: 180px;
+    font-family: monospace;
+}
+
+/* Consistent widths for reference fields */
 .ipam-header-parent_id,
-.ipam-cell-parent_id {
+.ipam-cell-parent_id,
+.ipam-header-site_id,
+.ipam-cell-site_id,
+.ipam-header-region_id,
+.ipam-cell-region_id,
+.ipam-header-site_group_id,
+.ipam-cell-site_group_id,
+.ipam-header-location_id,
+.ipam-cell-location_id,
+.ipam-header-device_id,
+.ipam-cell-device_id,
+.ipam-header-tenant_id,
+.ipam-cell-tenant_id,
+.ipam-header-vrf_id,
+.ipam-cell-vrf_id,
+.ipam-header-role_id,
+.ipam-cell-role_id,
+.ipam-header-rir_id,
+.ipam-cell-rir_id,
+.ipam-header-vlan_id,
+.ipam-cell-vlan_id,
+.ipam-header-nat_inside_id,
+.ipam-cell-nat_inside_id,
+.ipam-header-prefix_id,
+.ipam-cell-prefix_id {
     width: 150px;
 }
 
@@ -116,31 +205,19 @@ th {
     width: 100px;
 }
 
-.ipam-header-rir_id,
-.ipam-cell-rir_id {
-    width: 120px;
-}
-
 .ipam-header-actions,
 .ipam-cell-actions {
-    width: 100px;
-    text-align: right;
+    width: 120px !important;
+    text-align: center !important;
 }
 
 .ipam-header-children,
 .ipam-cell-children,
 .ipam-header-utilization,
 .ipam-cell-utilization,
-.ipam-header-vrf_id,
-.ipam-cell-vrf_id,
 .ipam-header-vrf,
 .ipam-cell-vrf {
     width: 150px;
-}
-
-.ipam-header-prefix,
-.ipam-cell-prefix {
-    width: 200px;
 }
 
 /* Tooltip on hover */
@@ -193,13 +270,18 @@ th {
 /* Search container */
 .ipam-search-container {
     margin-bottom: 16px;
-    background-color: #f8f9fa;
+    background-color: #25262B;
+    border-color: #374151;
+    color: #f9fafb;
 }
 
 .ipam-search-input,
 .ipam-filter-select,
 .ipam-filter-input {
     font-size: 14px;
+    background-color: #1A1B1E;
+    color: #f9fafb;
+    border-color: #374151;
 }
 
 .ipam-apply-button,
@@ -226,10 +308,247 @@ th {
 }
 
 /* Badge styling for statuses */
-.ipam-status-badge {
-    text-transform: capitalize;
+.mantine-Badge-root.ipam-status-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 6px 12px !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: capitalize !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+    width: 100px !important;
+    letter-spacing: 0.02em !important;
+    box-shadow: none !important;
+    line-height: 1.5 !important;
+    height: 28px !important;
+    border: none !important;
+}
+
+/* Remove padding from badge label to ensure text is centered */
+.mantine-Badge-root.ipam-status-badge .mantine-Badge-label {
+    padding: 0 !important;
+    display: inline-block !important;
+    width: 100% !important;
+}
+
+/* Status badge color overrides - more specific selectors to ensure they apply */
+.mantine-Badge-root.ipam-status-badge[data-variant="filled"] {
+    color: white !important;
+}
+
+/* Container badge (different background color) */
+.mantine-Badge-root.ipam-status-badge[data-color="indigo"] {
+    background-color: #4f46e5 !important;
+    color: white !important;
+}
+
+/* Active badge (bright teal) */
+.mantine-Badge-root.ipam-status-badge[data-color="teal"] {
+    background-color: #14b8a6 !important;
+    color: white !important;
+}
+
+/* Reserved badge (purple) */
+.mantine-Badge-root.ipam-status-badge[data-color="violet"] {
+    background-color: #8b5cf6 !important;
+    color: white !important;
+}
+
+/* Consistent styling for reference fields */
+.ipam-cell-type-reference {
+    color: #3b82f6 !important;
+    /* Keep the blue color for reference fields */
+}
+
+/* Format monospace text fields consistently */
+.ipam-cell-address,
+.ipam-cell-start_address,
+.ipam-cell-end_address,
+.ipam-cell-prefix,
+.ipam-cell-rd {
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    letter-spacing: -0.03em;
+}
+
+/* Format boolean fields consistently */
+.ipam-cell-type-boolean {
+    text-align: center;
     font-weight: 500;
-    font-size: 12px;
-    padding: 4px 8px;
-    border-radius: 4px;
+    color: #f9fafb !important;
+}
+
+/* Ensure all tables have consistent padding and spacing */
+.ipam-styled-table {
+    margin-bottom: 16px;
+}
+
+/* Make sure all tables have consistent row height */
+.ipam-table-row {
+    height: 56px !important;
+}
+
+/* Add consistent hover effect for all tables */
+.ipam-table-row:hover {
+    background-color: rgba(20, 184, 166, 0.15) !important;
+    /* Brighter teal color on hover */
+}
+
+/* Ensure all action buttons are aligned properly */
+.ipam-cell-actions {
+    text-align: center !important;
+}
+
+/* Make column headers more visually distinct */
+.ipam-header {
+    background-color: #1f2937 !important;
+    /* Dark blue-gray */
+    color: #f9fafb !important;
+    /* Light gray text */
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+/* Add subtle border for better table appearance */
+.ipam-styled-table {
+    border: 1px solid #374151;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Add this class for all network-related fields */
+.ipam-cell-type-network {
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    letter-spacing: -0.03em;
+    background-color: rgba(20, 184, 166, 0.05);
+    color: #f9fafb !important;
+}
+
+/* ASN specific columns */
+.ipam-header-asn,
+.ipam-cell-asn {
+    width: 100px;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    text-align: right;
+    color: #f9fafb !important;
+}
+
+/* VLAN specific columns */
+.ipam-header-vid,
+.ipam-cell-vid {
+    width: 80px;
+    text-align: center;
+    font-weight: 500;
+    color: #f9fafb !important;
+}
+
+/* Device and interface specific columns */
+.ipam-header-name,
+.ipam-cell-name {
+    width: 150px !important;
+}
+
+/* Credential specific columns */
+.ipam-header-username,
+.ipam-cell-username,
+.ipam-header-password,
+.ipam-cell-password,
+.ipam-header-enable_password,
+.ipam-cell-enable_password {
+    width: 150px;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    color: #f9fafb !important;
+}
+
+/* Is default field */
+.ipam-header-is_default,
+.ipam-cell-is_default {
+    width: 120px !important;
+    text-align: center !important;
+}
+
+/* Format ASN and VID fields consistently */
+.ipam-cell-type-vid,
+.ipam-cell-type-asn {
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    letter-spacing: -0.03em;
+    text-align: center;
+    font-weight: 500;
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #f9fafb !important;
+}
+
+/* Device specific columns */
+.ipam-header-ip_address,
+.ipam-cell-ip_address {
+    width: 130px !important;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+.ipam-header-credential_name,
+.ipam-cell-credential_name,
+.ipam-header-fallback_credential_name,
+.ipam-cell-fallback_credential_name {
+    width: 130px !important;
+}
+
+.ipam-header-location,
+.ipam-cell-location,
+.ipam-header-location_id,
+.ipam-cell-location_id {
+    width: 130px !important;
+}
+
+/* Device and interface specific column widths */
+.ipam-header-id,
+.ipam-cell-id {
+    width: 60px !important;
+}
+
+.ipam-header-slug,
+.ipam-cell-slug {
+    width: 120px !important;
+}
+
+.ipam-header-description,
+.ipam-cell-description {
+    width: 200px !important;
+}
+
+.ipam-header-ip_address,
+.ipam-cell-ip_address,
+.ipam-header-ip_address_id,
+.ipam-cell-ip_address_id {
+    width: 130px !important;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+.ipam-header-credential_name,
+.ipam-cell-credential_name,
+.ipam-header-fallback_credential_name,
+.ipam-cell-fallback_credential_name {
+    width: 130px !important;
+}
+
+.ipam-header-device_id,
+.ipam-cell-device_id {
+    width: 130px !important;
+}
+
+.ipam-header-actions,
+.ipam-cell-actions {
+    width: 120px !important;
+    text-align: center !important;
+}
+
+/* Table title */
+.ipam-table-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #f9fafb;
+    margin-bottom: 16px;
+    text-transform: capitalize;
 }

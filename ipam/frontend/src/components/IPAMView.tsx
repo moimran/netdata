@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Table,
   Group,
   Button,
   TextInput,

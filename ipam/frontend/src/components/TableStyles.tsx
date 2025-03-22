@@ -11,12 +11,20 @@ import {
   STATUS_DEPRECATED,
   STATUS_CONTAINER,
   STATUS_DHCP,
-  STATUS_SLAAC
+  STATUS_SLAAC,
+  STATUS_PLANNED,
+  STATUS_AVAILABLE,
+  STATUS_OFFLINE,
+  STATUS_FAILED,
+  STATUS_STAGED
 } from '../theme/colors';
+import { EnhancedStatusBadge } from './IPAMTable/statusUtils';
 
 /**
- * Table Styling Standards for IPAM Frontend
- * -----------------------------------------
+ * IPAM Frontend Centralized Table Styling
+ * ---------------------------------------
+ * THIS IS THE CENTRAL SOURCE OF TRUTH FOR ALL TABLE STYLING IN THE APPLICATION.
+ * All table implementations must use these components and styles for consistency.
  * 
  * For consistent table styling across the application, follow these guidelines:
  * 
@@ -37,14 +45,10 @@ import {
  * 
  * 6. Include appropriate CSS classes from IPAMTable/styles.css when needed
  *    Example: className="ipam-cell ipam-cell-status"
+ * 
+ * 7. Import all table-related styling and components from this file:
+ *    import { StyledTable, TableHeader, tableStyles, StatusBadge } from './TableStyles';
  */
-
-// Status colors for badges
-const STATUS_PLANNED = 'yellow';
-const STATUS_AVAILABLE = 'teal';
-const STATUS_OFFLINE = 'gray';
-const STATUS_FAILED = 'red';
-const STATUS_STAGED = 'orange';
 
 // Table styles
 interface TableStyles {
@@ -55,63 +59,74 @@ interface TableStyles {
   loaderContainer: CSSProperties;
   emptyRow: CSSProperties;
   filterCard: CSSProperties;
+  row: CSSProperties;
+  headerCell: CSSProperties;
 }
 
-// Shared table styles - Dark Theme
+// Common table styling
 export const tableStyles: TableStyles = {
   table: {
-    borderCollapse: 'collapse' as const,
     width: '100%',
-    backgroundColor: DARK_BG,
-    color: TEXT_SECONDARY,
-    borderRadius: '8px',
-    overflow: 'hidden',
-    display: 'table'
+    borderCollapse: 'collapse',
+    tableLayout: 'fixed' as const
+  },
+  row: {
+    height: '56px'
+  },
+  cell: {
+    padding: '12px 16px',
+    verticalAlign: 'middle' as const,
+    overflowX: 'hidden' as const,
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap' as const,
+    maxWidth: 0,
+    borderBottom: '1px solid #e9ecef',
+    color: '#f9fafb'
   },
   header: {
-    backgroundColor: DARK_CARD_BG,
+    backgroundColor: '#1f2937',
     fontWeight: 600,
     fontSize: '0.85rem',
     padding: '14px 16px',
     textTransform: 'uppercase' as const,
-    color: TEXT_PRIMARY,
-    borderBottom: `1px solid ${DARK_BORDER}`,
+    color: '#f9fafb',
+    borderBottom: '1px solid #374151',
     whiteSpace: 'nowrap' as const,
     overflow: 'hidden' as const,
     textOverflow: 'ellipsis' as const
   },
-  cell: {
+  headerCell: {
+    fontWeight: 600,
+    backgroundColor: '#1f2937',
+    color: '#f9fafb',
     padding: '12px 16px',
-    borderBottom: `1px solid ${DARK_BORDER}`,
-    fontSize: '0.9rem',
-    whiteSpace: 'nowrap' as const,
-    overflow: 'hidden' as const,
-    textOverflow: 'ellipsis' as const,
-    maxWidth: '0px',
-    height: '56px'
+    textAlign: 'left' as const
   },
   actionsCell: {
-    width: '100px',
-    textAlign: 'center' as const
+    display: 'flex',
+    justifyContent: 'center',
+    width: '120px',
+    padding: '8px'
+  },
+  emptyRow: {
+    textAlign: 'center' as const,
+    padding: '24px',
+    color: '#f9fafb'
   },
   loaderContainer: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: '50px 0'
-  },
-  emptyRow: {
-    textAlign: 'center',
-    padding: '20px 0',
-    color: '#909296'
+    padding: '48px'
   },
   filterCard: {
-    backgroundColor: '#25262B',
-    border: '1px solid #373A40'
+    backgroundColor: '#25262B', // Dark background to match the theme
+    borderColor: '#374151', // Match the table border
+    color: '#f9fafb' // Light text color
   }
 };
 
-// Status badge styles mapping
+// Status colors for badges - kept for backwards compatibility
 const statusBadgeStyles: Record<string, string> = {
   active: STATUS_ACTIVE,
   inactive: STATUS_DEPRECATED,
@@ -123,7 +138,8 @@ const statusBadgeStyles: Record<string, string> = {
   failed: STATUS_FAILED,
   staged: STATUS_STAGED,
   dhcp: STATUS_DHCP,
-  slaac: STATUS_SLAAC
+  slaac: STATUS_SLAAC,
+  container: STATUS_CONTAINER
 };
 
 // Shared table component
@@ -132,7 +148,9 @@ export function StyledTable({ children, className }: { children: React.ReactNode
     ...tableStyles.table,
     display: 'table',
     width: '100%',
-    tableLayout: 'fixed' as const
+    tableLayout: 'fixed' as const,
+    backgroundColor: '#1A1B1E', // Dark background
+    color: '#f9fafb' // Light text
   };
 
   return (
@@ -142,15 +160,69 @@ export function StyledTable({ children, className }: { children: React.ReactNode
   );
 }
 
+// Helper function to format column headers consistently
+const formatColumnHeader = (column: string): string => {
+  // Special case for ID fields
+  if (column === 'id') return 'ID';
+
+  // Special cases for IP/network fields
+  if (column === 'address') return 'IP Address';
+  if (column === 'start_address') return 'Start Address';
+  if (column === 'end_address') return 'End Address';
+  if (column === 'prefix') return 'Prefix';
+  if (column === 'dns_name') return 'DNS Name';
+
+  // ASN specific fields
+  if (column === 'asn') return 'ASN';
+
+  // VLAN specific fields
+  if (column === 'vid') return 'VLAN ID';
+  if (column === 'group_id') return 'VLAN Group';
+
+  // Credential specific fields
+  if (column === 'enable_password') return 'Enable Password';
+  if (column === 'is_default') return 'Default';
+  if (column === 'credential_name') return 'Credential';
+  if (column === 'fallback_credential_name') return 'Fallback Credential';
+
+  // Device specific fields
+  if (column === 'ip_address_id') return 'IP Address';
+
+  // VRF specific fields
+  if (column === 'rd') return 'Route Distinguisher';
+  if (column === 'enforce_unique') return 'Enforce Unique';
+
+  // Special cases for boolean fields
+  if (column === 'is_pool') return 'Pool';
+  if (column === 'mark_utilized') return 'Utilized';
+
+  // Reference fields should be displayed in a consistent way
+  if (column.endsWith('_id')) {
+    const prefix = column.substring(0, column.length - 3);
+    const formattedPrefix = prefix
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+    return `${formattedPrefix}`;
+  }
+
+  // For other columns, capitalize each word
+  return column
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 // Shared table header component
 export interface TableHeaderProps {
   columns?: string[];
   children?: React.ReactNode;
+  tableName?: string;
 }
 
-export function TableHeader({ columns, children }: TableHeaderProps) {
+export function TableHeader({ columns, children, tableName }: TableHeaderProps) {
   const headerStyle = {
-    ...tableStyles.header,
+    ...tableStyles.headerCell,
     display: 'table-cell',
     whiteSpace: 'nowrap' as const,
     textAlign: 'left' as const
@@ -176,7 +248,7 @@ export function TableHeader({ columns, children }: TableHeaderProps) {
       <tr style={{ display: 'table-row' }}>
         {columns.map((col) => (
           <th key={col} style={headerStyle} className={`ipam-header ipam-header-${col}`}>
-            {col.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+            {formatColumnHeader(col)}
           </th>
         ))}
         <th
@@ -192,15 +264,5 @@ export function TableHeader({ columns, children }: TableHeaderProps) {
 
 // Shared status badge component
 export function StatusBadge({ status }: { status: string }) {
-  return (
-    <Badge
-      color={statusBadgeStyles[status.toLowerCase()] || 'gray'}
-      className="ipam-status-badge"
-      variant="filled"
-      radius="md"
-      size="sm"
-    >
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </Badge>
-  );
+  return <EnhancedStatusBadge status={status} />;
 }

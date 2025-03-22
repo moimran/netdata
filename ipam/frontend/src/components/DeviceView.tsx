@@ -11,10 +11,11 @@ export function DeviceView() {
   // Custom actions renderer for the device table
   const renderDeviceActions = (device: any) => {
     return (
-      <Group gap="xs">
+      <>
         <Tooltip label="Connect to device">
           <ActionIcon
             color="green"
+            variant="light"
             onClick={async () => {
               try {
                 // Generate a random UUID for the session
@@ -60,59 +61,13 @@ export function DeviceView() {
                 alert(`Failed to connect to device: ${error.message || 'Unknown error'}`);
               }
             }}
-            title="Connect to device"
             variant="light"
             radius="md"
           >
             <IconExternalLink size={16} />
           </ActionIcon>
         </Tooltip>
-        <Tooltip label="Edit device">
-          <ActionIcon
-            color="blue"
-            onClick={() => {
-              setSelectedDevice(device);
-              setShowModal(true);
-            }}
-            title="Edit device"
-            variant="light"
-            radius="md"
-          >
-            <IconEdit size={16} />
-          </ActionIcon>
-        </Tooltip>
-        <Tooltip label="Delete device">
-          <ActionIcon
-            color="red"
-            onClick={() => {
-              if (window.confirm(`Are you sure you want to delete the device ${device.name}?`)) {
-                fetch(`/api/v1/devices/${device.id}`, {
-                  method: 'DELETE',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  }
-                })
-                  .then(response => {
-                    if (!response.ok) {
-                      throw new Error('Failed to delete device');
-                    }
-                    // Refresh the table
-                    window.location.reload();
-                  })
-                  .catch(error => {
-                    console.error('Error deleting device:', error);
-                    alert(`Failed to delete device: ${error.message || 'Unknown error'}`);
-                  });
-              }
-            }}
-            title="Delete device"
-            variant="light"
-            radius="md"
-          >
-            <IconTrash size={16} />
-          </ActionIcon>
-        </Tooltip>
-      </Group>
+      </>
     );
   };
 

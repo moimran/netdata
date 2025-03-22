@@ -101,124 +101,76 @@ export const renderUtilizationBar = (
   };
 
   return (
-    <Box className="ipam-utilization-bar">
-      <Group justify="apart" mb={5}>
-        <Text size="xs" fw={500} className="ipam-utilization-text">
-          {formatNumber(used)}/{formatNumber(total)} {roundedPercentage}%
-        </Text>
+    <Box>
+      <Group justify="apart" gap="xs">
+        <Text size="xs" color="dimmed">{formatNumber(used)} / {formatNumber(total)}</Text>
+        <Text size="xs" color="dimmed">{roundedPercentage}%</Text>
       </Group>
       <Progress
         value={roundedPercentage}
         color={color}
         size="sm"
-        radius="xl"
-        striped={percentage > 80}
-        animated={percentage > 90}
-        className="ipam-progress-bar"
+        style={{ height: '8px' }}
+        radius="sm"
       />
     </Box>
   );
 };
 
-// Helper function to format cell values for display
-export const formatCellValue = (
-  valueOrColumn: any,
-  typeOrReferenceData?: any,
-  referenceDataOrItem?: any,
-  itemOrTableName?: any,
-  tableName?: TableName
-): ReactNode => {
-  // Check if we're using the new simplified API (value, type)
-  if (typeof typeOrReferenceData === 'string') {
-    const value = valueOrColumn;
-    const type = typeOrReferenceData;
-
-    if (value === null || value === undefined) return '-';
-
-    // Simple type-based formatting
-    if (type === 'boolean') {
-      return value ? 'Yes' : 'No';
-    }
-
-    if (type === 'number') {
-      return Number(value);
-    }
-
-    // Default to string representation
-    return String(value);
-  }
-
-  // Otherwise, use the original implementation for backward compatibility
-  const column = valueOrColumn as Column;
-  const value = typeOrReferenceData;
-  const referenceData = referenceDataOrItem;
-  const item = itemOrTableName;
-
+// Format a reference field value consistently
+const formatReferenceFieldValue = (value: any, referenceData: Record<string, any[]>, referenceTable: string): string => {
   if (value === null || value === undefined) return '-';
 
-  if (column.name === 'status') {
-    return <StatusBadge status={value} />;
-  }
+  const referenceItems = referenceData[referenceTable] || [];
 
-  if (column.type === 'boolean') {
-    return value ? 'Yes' : 'No';
-  }
+  // Ensure referenceItems is an array before using find
+  if (Array.isArray(referenceItems) && referenceItems.length > 0) {
+    // Convert both IDs to strings for comparison to avoid type mismatches
+    const referencedItem = referenceItems.find((item: any) => String(item.id) === String(value));
 
-  if (column.type === 'number') {
-    return Number(value);
-  }
-
-  // Special handling for VLAN ID ranges
-  if (column.name === 'vlan_id_ranges') {
-    // If we have a stored vlan_id_ranges value, use it
-    if (value) {
-      return value;
+    if (referencedItem) {
+      // Return the most appropriate field from the referenced item
+      return referencedItem.name ||
+        referencedItem.prefix ||
+        referencedItem.address ||
+        referencedItem.rd ||
+        referencedItem.slug ||
+        String(value);
     }
-    // Otherwise, fall back to min_vid-max_vid if available
-    if (item?.min_vid && item?.max_vid) {
-      return `${item.min_vid}-${item.max_vid}`;
-    }
-    return '-';
   }
 
-  // Handle reference fields (foreign keys)
-  if (column.reference && value !== null && value !== undefined) {
-    const referenceTable = column.reference;
+  // Format reference placeholder more nicely
+  const tableName = referenceTable
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 
-    // Special handling for VLAN group_id to make the relationship more visible
-    if (tableName === 'vlans' && column.name === 'group_id') {
-      const vlanGroupItems = referenceData['vlan_groups'] || [];
-      if (Array.isArray(vlanGroupItems) && vlanGroupItems.length > 0) {
-        const vlanGroup = vlanGroupItems.find((item: any) => String(item.id) === String(value));
-        if (vlanGroup) {
-          return vlanGroup.name || String(value);
-        }
-      }
-    }
-
-    const referenceItems = referenceData[referenceTable] || [];
-
-    // Ensure referenceItems is an array before using find
-    if (Array.isArray(referenceItems) && referenceItems.length > 0) {
-      // Convert both IDs to strings for comparison to avoid type mismatches
-      const referencedItem = referenceItems.find((item: any) => String(item.id) === String(value));
-
-      if (referencedItem) {
-        // Return the most appropriate field from the referenced item
-        return referencedItem.name ||
-          referencedItem.prefix ||
-          referencedItem.address ||
-          referencedItem.rd ||
-          referencedItem.slug ||
-          String(value);
-      }
-    }
-
-    // If we couldn't find a reference item, return a placeholder
-    // This is more user-friendly than showing the raw ID
-    return `${referenceTable.charAt(0).toUpperCase() + referenceTable.slice(1)} #${value}`;
-  }
-
-  // For string and other types, return as is
-  return value;
+  return `${tableName} #${value}`;
 };
+
+// Format numbers with comma separators for thousands
+const formatNumber = (num: number): string => {
+  return num.toLocaleString();
+};
+
+// Format cell values according to their type
+export const formatCellValue = (value: any, type?: string) => {
+  if (value === null || value === undefined) {
+    return '—';
+  }
+
+  // Handle based on type
+  switch (type) {
+    case 'boolean':
+      return value ? 'Yes' : 'No';
+    case 'number':
+      return formatNumber(value);
+    case 'date':
+    case 'datetime':
+      return new Date(value).toLocaleString();
+    default:
+      return String(value);
+  }
+};
+
+// Additional utility functions can be added here as needed
