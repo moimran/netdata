@@ -14,8 +14,7 @@ import {
   Box,
   Loader,
   Alert,
-  Progress,
-  Badge
+  Progress
 } from '@mantine/core';
 import { StyledTable, TableHeader, StatusBadge, tableStyles } from './TableStyles';
 import { IconEdit, IconTrash, IconPlus, IconSearch, IconFilter, IconRefresh } from '@tabler/icons-react';
@@ -541,9 +540,9 @@ export function PrefixTable() {
                     </td>
                     <td style={tableStyles.cell} className="ipam-cell ipam-cell-children" title={`${prefix.child_count} children`}>
                       {prefix.child_count > 0 ? (
-                        <Badge color="blue" variant="light">
+                        <Text size="sm">
                           {prefix.child_count}
-                        </Badge>
+                        </Text>
                       ) : (
                         <Text size="sm">0</Text>
                       )}

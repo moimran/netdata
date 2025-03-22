@@ -6,7 +6,6 @@ import App from './App'
 import './index.css'
 import { MantineProvider, createTheme } from '@mantine/core'
 import '@mantine/core/styles.css'
-import 'bootstrap/dist/css/bootstrap.min.css'
 
 const theme = createTheme({
   primaryColor: 'blue',

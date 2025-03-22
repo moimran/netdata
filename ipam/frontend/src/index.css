@@ -18,6 +18,7 @@ a {
   color: #646cff;
   text-decoration: inherit;
 }
+
 a:hover {
   color: #535bf2;
 }
@@ -46,6 +47,7 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 button:hover {
   border-color: #646cff;
 }
@@ -60,31 +62,38 @@ button:focus-visible {
 .mantine-AppShell-navbar .mantine-NavLink-root:hover,
 .main-nav-link:hover,
 .mantine-NavLink-root.main-nav-link:hover {
-  background-color: transparent !important; /* Remove teal background */
+  background-color: transparent !important;
+  /* Remove teal background */
 }
 
 /* Navigation text styling and glow effect */
 .mantine-NavLink-label {
-  color: #66cdaa !important; /* Light teal color for text */
+  color: #66cdaa !important;
+  /* Light teal color for text */
   text-shadow: 0 0 5px rgba(102, 205, 170, 0.3), 0 0 10px rgba(102, 205, 170, 0.2);
   transition: all 0.3s ease;
   position: relative;
 }
 
 .mantine-NavLink-root:hover .mantine-NavLink-label {
-  color: #ffffff !important; /* White text on hover */
+  color: #ffffff !important;
+  /* White text on hover */
   text-shadow: 0 0 8px rgba(102, 205, 170, 0.8), 0 0 15px rgba(102, 205, 170, 0.6), 0 0 25px rgba(102, 205, 170, 0.4);
-  letter-spacing: 0.5px; /* Slight letter spacing for emphasis */
-  transform: translateX(3px); /* Slight movement on hover */
+  letter-spacing: 0.5px;
+  /* Slight letter spacing for emphasis */
+  transform: translateX(3px);
+  /* Slight movement on hover */
 }
 
 /* Active navigation item with enhanced glow */
 .mantine-NavLink-root[data-active="true"] .mantine-NavLink-label {
-  color: #ffffff !important; /* White text for active item */
+  color: #ffffff !important;
+  /* White text for active item */
   text-shadow: 0 0 10px rgba(102, 205, 170, 0.8), 0 0 20px rgba(102, 205, 170, 0.6), 0 0 30px rgba(102, 205, 170, 0.4);
   font-weight: 600;
   animation: glow-pulse 2s infinite alternate;
-  transform: translateX(3px); /* Slight indent for active item */
+  transform: translateX(3px);
+  /* Slight indent for active item */
 }
 
 /* Glow animation */
@@ -92,6 +101,7 @@ button:focus-visible {
   0% {
     text-shadow: 0 0 10px rgba(102, 205, 170, 0.8), 0 0 20px rgba(102, 205, 170, 0.6), 0 0 30px rgba(102, 205, 170, 0.4);
   }
+
   100% {
     text-shadow: 0 0 15px rgba(102, 205, 170, 1), 0 0 25px rgba(102, 205, 170, 0.8), 0 0 35px rgba(102, 205, 170, 0.6);
   }
@@ -99,7 +109,8 @@ button:focus-visible {
 
 /* IPAMTable Title and Text glow effect */
 .ipam-table-header .mantine-Title-root {
-  color: #66cdaa !important; /* Light teal color for text */
+  color: #66cdaa !important;
+  /* Light teal color for text */
   text-shadow: 0 0 5px rgba(102, 205, 170, 0.5), 0 0 10px rgba(102, 205, 170, 0.3), 0 0 15px rgba(102, 205, 170, 0.2);
   transition: all 0.3s ease;
   animation: table-title-glow 3s infinite alternate;
@@ -107,7 +118,8 @@ button:focus-visible {
 }
 
 .ipam-table-header .mantine-Text-root {
-  color: #5eead4 !important; /* Slightly brighter teal for subtitle */
+  color: #5eead4 !important;
+  /* Slightly brighter teal for subtitle */
   text-shadow: 0 0 3px rgba(102, 205, 170, 0.3), 0 0 7px rgba(102, 205, 170, 0.2);
   transition: all 0.3s ease;
   letter-spacing: 0.2px;
@@ -118,6 +130,7 @@ button:focus-visible {
   0% {
     text-shadow: 0 0 5px rgba(102, 205, 170, 0.5), 0 0 10px rgba(102, 205, 170, 0.3), 0 0 15px rgba(102, 205, 170, 0.2);
   }
+
   100% {
     text-shadow: 0 0 8px rgba(102, 205, 170, 0.7), 0 0 15px rgba(102, 205, 170, 0.5), 0 0 25px rgba(102, 205, 170, 0.3);
   }
@@ -514,12 +527,12 @@ h1 {
     height: auto;
     position: relative;
   }
-  
+
   .ipam-main {
     margin-left: 0;
     width: 100%;
   }
-  
+
   .ipam-container {
     flex-direction: column;
   }
@@ -527,7 +540,7 @@ h1 {
   .btn-group {
     flex-direction: column;
   }
-  
+
   .modal-dialog {
     margin: 0.5rem;
   }
@@ -538,9 +551,11 @@ h1 {
     color: #213547;
     background-color: #ffffff;
   }
+
   a:hover {
     color: #747bff;
   }
+
   button {
     background-color: #f9f9f9;
   }
@@ -551,14 +566,20 @@ h1 {
   0% {
     filter: drop-shadow(0 0 3px rgba(102, 205, 170, 0.5));
   }
+
   100% {
     filter: drop-shadow(0 0 5px rgba(102, 205, 170, 0.8));
   }
 }
 
 @keyframes rotate-refresh {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Table styling */

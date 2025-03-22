@@ -1,11 +1,6 @@
 import React, { CSSProperties } from 'react';
-import { Table, Badge } from '@mantine/core';
+import { Table } from '@mantine/core';
 import {
-  DARK_BG,
-  DARK_CARD_BG,
-  DARK_BORDER,
-  TEXT_SECONDARY,
-  TEXT_PRIMARY,
   STATUS_ACTIVE,
   STATUS_RESERVED,
   STATUS_DEPRECATED,
@@ -120,9 +115,9 @@ export const tableStyles: TableStyles = {
     padding: '48px'
   },
   filterCard: {
-    backgroundColor: '#25262B', // Dark background to match the theme
-    borderColor: '#374151', // Match the table border
-    color: '#f9fafb' // Light text color
+    backgroundColor: '#25262B',
+    borderColor: '#374151',
+    color: '#f9fafb'
   }
 };
 
@@ -149,8 +144,8 @@ export function StyledTable({ children, className }: { children: React.ReactNode
     display: 'table',
     width: '100%',
     tableLayout: 'fixed' as const,
-    backgroundColor: '#1A1B1E', // Dark background
-    color: '#f9fafb' // Light text
+    backgroundColor: '#1A1B1E',
+    color: '#f9fafb'
   };
 
   return (

@@ -3,10 +3,8 @@ import { AppShell, Title, MantineProvider, Group, Avatar, Text, Box, Burger, Scr
 import { Suspense, lazy, useState } from 'react';
 import { MainNavigation } from './components/MainNavigation';
 import { IconNetwork } from '@tabler/icons-react';
-import type { TableName } from './types';
 import {
   PRIMARY,
-  PRIMARY_LIGHT,
   DARK_BG,
   DARK_CARD_BG,
   DARK_BORDER,
@@ -143,7 +141,6 @@ function App() {
         primaryColor: 'teal',
         defaultRadius: 'md',
         colors: {
-          // Vibrant colors for dark theme
           blue: [
             '#e6f7ff',
             '#bae7ff',

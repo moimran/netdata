@@ -13,8 +13,7 @@ import {
   Select,
   Box,
   Loader,
-  Alert,
-  Badge
+  Alert
 } from '@mantine/core';
 import { StyledTable, TableHeader, tableStyles, StatusBadge } from '../TableStyles';
 import { IconEdit, IconTrash, IconPlus, IconSearch, IconFilter, IconRefresh } from '@tabler/icons-react';
