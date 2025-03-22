@@ -75,12 +75,20 @@ export const tableStyles: TableStyles = {
     padding: '14px 16px',
     textTransform: 'uppercase' as const,
     color: TEXT_PRIMARY,
-    borderBottom: `1px solid ${DARK_BORDER}`
+    borderBottom: `1px solid ${DARK_BORDER}`,
+    whiteSpace: 'nowrap' as const,
+    overflow: 'hidden' as const,
+    textOverflow: 'ellipsis' as const
   },
   cell: {
     padding: '12px 16px',
     borderBottom: `1px solid ${DARK_BORDER}`,
-    fontSize: '0.9rem'
+    fontSize: '0.9rem',
+    whiteSpace: 'nowrap' as const,
+    overflow: 'hidden' as const,
+    textOverflow: 'ellipsis' as const,
+    maxWidth: '0px',
+    height: '56px'
   },
   actionsCell: {
     width: '100px',
@@ -124,7 +132,7 @@ export function StyledTable({ children, className }: { children: React.ReactNode
     ...tableStyles.table,
     display: 'table',
     width: '100%',
-    tableLayout: 'auto' as const
+    tableLayout: 'fixed' as const
   };
 
   return (

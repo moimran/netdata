@@ -145,21 +145,21 @@ export function VRFDetailView() {
 
           <StyledTable>
             <tbody>
-              <tr>
-                <td style={{ ...tableStyles.cell, fontWeight: 'bold', width: '25%' }}>Name</td>
-                <td style={tableStyles.cell}>{vrf?.name}</td>
+              <tr className="ipam-table-row">
+                <td style={{ ...tableStyles.cell, fontWeight: 'bold', width: '25%' }} className="ipam-cell ipam-cell-label">Name</td>
+                <td style={tableStyles.cell} className="ipam-cell ipam-cell-value" title={vrf?.name || ''}>{vrf?.name}</td>
               </tr>
-              <tr>
-                <td style={{ ...tableStyles.cell, fontWeight: 'bold' }}>Route Distinguisher</td>
-                <td style={tableStyles.cell}>{vrf?.rd || '-'}</td>
+              <tr className="ipam-table-row">
+                <td style={{ ...tableStyles.cell, fontWeight: 'bold' }} className="ipam-cell ipam-cell-label">Route Distinguisher</td>
+                <td style={tableStyles.cell} className="ipam-cell ipam-cell-value" title={vrf?.rd || '-'}>{vrf?.rd || '-'}</td>
               </tr>
-              <tr>
-                <td style={{ ...tableStyles.cell, fontWeight: 'bold' }}>Enforce Unique</td>
-                <td style={tableStyles.cell}>{vrf?.enforce_unique ? 'Yes' : 'No'}</td>
+              <tr className="ipam-table-row">
+                <td style={{ ...tableStyles.cell, fontWeight: 'bold' }} className="ipam-cell ipam-cell-label">Enforce Unique</td>
+                <td style={tableStyles.cell} className="ipam-cell ipam-cell-value" title={vrf?.enforce_unique ? 'Yes' : 'No'}>{vrf?.enforce_unique ? 'Yes' : 'No'}</td>
               </tr>
-              <tr>
-                <td style={{ ...tableStyles.cell, fontWeight: 'bold' }}>Description</td>
-                <td style={tableStyles.cell}>{vrf?.description || '-'}</td>
+              <tr className="ipam-table-row">
+                <td style={{ ...tableStyles.cell, fontWeight: 'bold' }} className="ipam-cell ipam-cell-label">Description</td>
+                <td style={tableStyles.cell} className="ipam-cell ipam-cell-value" title={vrf?.description || '-'}>{vrf?.description || '-'}</td>
               </tr>
             </tbody>
           </StyledTable>
@@ -200,10 +200,10 @@ export function VRFDetailView() {
                   <TableHeader columns={['Name', 'Description', 'Actions']} />
                   <tbody>
                     {importTargets?.map((target: RouteTarget) => (
-                      <tr key={target.id}>
-                        <td style={tableStyles.cell}>{target.name}</td>
-                        <td style={tableStyles.cell}>{target.description || '-'}</td>
-                        <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}>
+                      <tr key={target.id} className="ipam-table-row">
+                        <td style={tableStyles.cell} className="ipam-cell ipam-cell-name" title={target.name}>{target.name}</td>
+                        <td style={tableStyles.cell} className="ipam-cell ipam-cell-description" title={target.description || '-'}>{target.description || '-'}</td>
+                        <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }} className="ipam-cell ipam-cell-actions">
                           <ActionIcon
                             color="red"
                             onClick={() => handleRemoveTarget(target.id, 'import')}
@@ -248,10 +248,10 @@ export function VRFDetailView() {
                   <TableHeader columns={['Name', 'Description', 'Actions']} />
                   <tbody>
                     {exportTargets?.map((target: RouteTarget) => (
-                      <tr key={target.id}>
-                        <td style={tableStyles.cell}>{target.name}</td>
-                        <td style={tableStyles.cell}>{target.description || '-'}</td>
-                        <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}>
+                      <tr key={target.id} className="ipam-table-row">
+                        <td style={tableStyles.cell} className="ipam-cell ipam-cell-name" title={target.name}>{target.name}</td>
+                        <td style={tableStyles.cell} className="ipam-cell ipam-cell-description" title={target.description || '-'}>{target.description || '-'}</td>
+                        <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }} className="ipam-cell ipam-cell-actions">
                           <ActionIcon
                             color="red"
                             onClick={() => handleRemoveTarget(target.id, 'export')}

@@ -240,14 +240,14 @@ export function VLANGroupDetailView() {
             <TableHeader columns={['Name', 'VID', 'Status', 'Description', 'Actions']} />
             <tbody>
               {vlansInGroup?.map((vlan: VLAN) => (
-                <tr key={vlan.id}>
-                  <td style={tableStyles.cell}>{vlan.name}</td>
-                  <td style={tableStyles.cell}>{vlan.vid}</td>
-                  <td style={tableStyles.cell}>
+                <tr key={vlan.id} className="ipam-table-row">
+                  <td style={tableStyles.cell} className="ipam-cell ipam-cell-name" title={vlan.name}>{vlan.name}</td>
+                  <td style={tableStyles.cell} className="ipam-cell ipam-cell-vid" title={vlan.vid.toString()}>{vlan.vid}</td>
+                  <td style={tableStyles.cell} className="ipam-cell ipam-cell-status" title={vlan.status}>
                     <StatusBadge status={vlan.status} />
                   </td>
-                  <td style={tableStyles.cell}>{vlan.description || '-'}</td>
-                  <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}>
+                  <td style={tableStyles.cell} className="ipam-cell ipam-cell-description" title={vlan.description || '-'}>{vlan.description || '-'}</td>
+                  <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }} className="ipam-cell ipam-cell-actions">
                     <ActionIcon
                       color="red"
                       onClick={() => handleRemoveVLAN(vlan.id)}

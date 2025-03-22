@@ -340,38 +340,53 @@ export const IPAMTable = memo(function IPAMTable({ tableName, customActionsRende
             </div>
           ) : (
             <>
-              <StyledTable>
-                <TableHeader
-                  columns={schema.map(column => column.name)}
-                />
-                <tbody>
-                  {data?.items && data.items.length > 0 ? (
-                    data.items.map((item, rowIndex) => (
-                      <tr key={rowIndex}>
-                        {schema.map((column, colIndex) => (
-                          <td key={colIndex} style={tableStyles.cell}>
-                            {formatTableCell(item, column)}
+              <Box className="ipam-table-container">
+                <StyledTable>
+                  <TableHeader
+                    columns={schema.map(column => column.name)}
+                  />
+                  <tbody>
+                    {data?.items && data.items.length > 0 ? (
+                      data.items.map((item, rowIndex) => (
+                        <tr key={rowIndex} className="ipam-table-row">
+                          {schema.map((column, colIndex) => {
+                            const cellContent = formatTableCell(item, column);
+                            const cellValue = typeof cellContent === 'string' ? cellContent : column.name === 'status' ? item[column.name] : '';
+                            
+                            return (
+                              <td
+                                key={colIndex}
+                                style={tableStyles.cell}
+                                className={`ipam-cell ipam-cell-${column.name}`}
+                                title={cellValue}
+                              >
+                                {cellContent}
+                              </td>
+                            );
+                          })}
+                          <td
+                            style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}
+                            className="ipam-cell ipam-cell-actions"
+                          >
+                            <TableActions
+                              item={item}
+                              handleEditClick={handleEditClick}
+                              handleDeleteClick={handleDeleteClick}
+                              customActionsRenderer={customActionsRenderer}
+                            />
                           </td>
-                        ))}
-                        <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }}>
-                          <TableActions
-                            item={item}
-                            handleEditClick={handleEditClick}
-                            handleDeleteClick={handleDeleteClick}
-                            customActionsRenderer={customActionsRenderer}
-                          />
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={schema.length + 1} style={tableStyles.emptyRow}>
+                          No data available
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={schema.length + 1} style={tableStyles.emptyRow}>
-                        No data available
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </StyledTable>
+                    )}
+                  </tbody>
+                </StyledTable>
+              </Box>
 
               {data?.total && data.total > pageSize && (
                 <Group position="right" mt="md">

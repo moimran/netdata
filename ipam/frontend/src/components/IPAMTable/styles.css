@@ -11,7 +11,9 @@
     display: table !important;
     width: 100%;
     border-collapse: collapse;
-    table-layout: auto;
+    table-layout: fixed;
+    min-width: 800px;
+    /* Prevent table from collapsing too much */
 }
 
 table.ipam-styled-table,
@@ -35,6 +37,8 @@ table.ipam-styled-table thead {
 .ipam-table-row {
     transition: background-color 0.2s ease;
     display: table-row;
+    height: 56px;
+    /* Increased height for better visibility */
 }
 
 .ipam-table-row:hover {
@@ -46,6 +50,11 @@ table.ipam-styled-table thead {
     border-bottom: 1px solid #e9ecef;
     vertical-align: middle;
     display: table-cell;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 0;
+    /* This forces text-overflow to work */
 }
 
 /* Table header formatting */
@@ -62,61 +71,96 @@ table.ipam-styled-table thead {
 
 thead tr {
     display: table-row !important;
+    height: 48px;
 }
 
 th {
     display: table-cell !important;
 }
 
-.ipam-header-actions {
-    width: 100px;
-    text-align: right;
+/* Specific column width settings */
+.ipam-header-id,
+.ipam-cell-id {
+    width: 60px;
 }
 
-.ipam-header-id {
-    width: 80px;
+.ipam-header-name,
+.ipam-cell-name {
+    width: 200px;
 }
 
-.ipam-header-status {
-    width: 120px;
-}
-
-.ipam-header-children,
-.ipam-header-utilization,
-.ipam-header-vrf {
+.ipam-header-slug,
+.ipam-cell-slug {
     width: 150px;
 }
 
-/* Specific column formatting */
-.ipam-cell-id {
-    width: 80px;
-    color: #495057;
-    font-weight: 500;
+.ipam-header-description,
+.ipam-cell-description {
+    width: 250px;
 }
 
-.ipam-cell-name {
-    font-weight: 500;
-    color: #212529;
-}
-
-.ipam-cell-prefix {
-    font-family: monospace;
-    font-weight: 500;
-}
-
+.ipam-header-status,
 .ipam-cell-status {
     width: 120px;
 }
 
+.ipam-header-parent_id,
+.ipam-cell-parent_id {
+    width: 150px;
+}
+
+.ipam-header-start,
+.ipam-cell-start,
+.ipam-header-end,
+.ipam-cell-end {
+    width: 100px;
+}
+
+.ipam-header-rir_id,
+.ipam-cell-rir_id {
+    width: 120px;
+}
+
+.ipam-header-actions,
 .ipam-cell-actions {
     width: 100px;
     text-align: right;
 }
 
+.ipam-header-children,
 .ipam-cell-children,
+.ipam-header-utilization,
 .ipam-cell-utilization,
+.ipam-header-vrf_id,
+.ipam-cell-vrf_id,
+.ipam-header-vrf,
 .ipam-cell-vrf {
     width: 150px;
+}
+
+.ipam-header-prefix,
+.ipam-cell-prefix {
+    width: 200px;
+}
+
+/* Tooltip on hover */
+.ipam-cell {
+    position: relative;
+}
+
+.ipam-cell:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 10;
+    display: none;
+    /* Will be shown through JavaScript */
 }
 
 /* Utilization bar styling */

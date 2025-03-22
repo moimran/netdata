@@ -532,13 +532,13 @@ export function PrefixTable() {
               <tbody className="ipam-table-body">
                 {paginatedPrefixes.map((prefix: Prefix) => (
                   <tr key={prefix.id} className="ipam-table-row">
-                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-prefix">
+                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-prefix" title={prefix.prefix}>
                       {renderIndentation(prefix.depth, prefix.prefix)}
                     </td>
-                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-status">
+                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-status" title={prefix.status}>
                       <StatusBadge status={prefix.status} />
                     </td>
-                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-children">
+                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-children" title={`${prefix.child_count} children`}>
                       {prefix.child_count > 0 ? (
                         <Badge color="blue" variant="light">
                           {prefix.child_count}
@@ -547,7 +547,7 @@ export function PrefixTable() {
                         <Text size="sm">0</Text>
                       )}
                     </td>
-                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-vrf">
+                    <td style={tableStyles.cell} className="ipam-cell ipam-cell-vrf" title={formatReferenceValue(prefix.vrf_id, referenceData, 'vrfs')}>
                       {formatReferenceValue(prefix.vrf_id, referenceData, 'vrfs')}
                     </td>
                     <td style={tableStyles.cell} className="ipam-cell ipam-cell-utilization">
@@ -558,21 +558,12 @@ export function PrefixTable() {
                         <ActionIcon
                           color="blue"
                           onClick={() => handleEditClick(prefix)}
-                          title="Edit"
-                          variant="light"
-                          radius="md"
-                          className="ipam-edit-button"
                         >
                           <IconEdit size={16} />
                         </ActionIcon>
                         <ActionIcon
                           color="red"
                           onClick={() => handleDeleteClick(prefix.id)}
-                          title="Delete"
-                          loading={deleteMutation.isPending}
-                          variant="light"
-                          radius="md"
-                          className="ipam-delete-button"
                         >
                           <IconTrash size={16} />
                         </ActionIcon>
