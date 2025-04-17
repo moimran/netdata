@@ -1,6 +1,5 @@
-// Migration wrapper for Mantine React Table
-// This ensures backward compatibility with existing imports
-import IPAMTableMRT from '../IPAMTable/IPAMTableMRT';
+// Re-export UnifiedTable for backward compatibility
+import UnifiedTable from './UnifiedTable';
 import type { TableName } from '../../types';
 
 // Props interface that matches the original IPAMTable
@@ -9,10 +8,15 @@ interface IPAMTableProps {
     customActionsRenderer?: (item: any) => React.ReactNode;
 }
 
-// Wrapper component that uses IPAMTableMRT internally
+/**
+ * IPAMTable - Now uses UnifiedTable internally
+ * This component is maintained for backward compatibility
+ * New code should use UnifiedTable directly
+ */
 export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) {
+    console.warn('IPAMTable is deprecated. Please use UnifiedTable instead.');
     return (
-        <IPAMTableMRT
+        <UnifiedTable
             tableName={tableName}
             customActionsRenderer={customActionsRenderer}
         />
@@ -22,5 +26,5 @@ export function IPAMTable({ tableName, customActionsRenderer }: IPAMTableProps) 
 // Re-export schemas for compatibility
 export { TABLE_SCHEMAS } from '../IPAMTable/schemas';
 
-// Default export for compatibility
-export default IPAMTable;
+// Re-export UnifiedTable as default for compatibility
+export default UnifiedTable;

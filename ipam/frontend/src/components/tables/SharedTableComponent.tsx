@@ -1,4 +1,4 @@
-import { IPAMTable } from './IPAMTable';
+import UnifiedTable from './UnifiedTable';
 import type { TableName } from '../../types';
 
 interface TableComponentProps {
@@ -7,15 +7,19 @@ interface TableComponentProps {
 }
 
 /**
- * SharedTableComponent - Now uses MRT implementation via IPAMTable wrapper
- * This component now acts as a simple pass-through to the MRT implementation
- * to complete the migration to Mantine React Table
+ * SharedTableComponent - Now uses UnifiedTable internally
+ * This component is maintained for backward compatibility
+ * New code should use UnifiedTable directly
  */
 export function SharedTableComponent({ tableName, customActionsRenderer }: TableComponentProps) {
+    console.warn('SharedTableComponent is deprecated. Please use UnifiedTable instead.');
     return (
-        <IPAMTable
+        <UnifiedTable
             tableName={tableName as TableName}
             customActionsRenderer={customActionsRenderer}
         />
     );
-} 
+}
+
+// Re-export UnifiedTable as default for compatibility
+export default UnifiedTable;
