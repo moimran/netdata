@@ -1,5 +1,5 @@
 import { Card, Title } from '@mantine/core';
-import IPAMTableMRT from '../IPAMTable/IPAMTableMRT';
+import { UnifiedTable } from '../tables';
 import type { TableName } from '../../types';
 
 interface IPAMTableMRTViewProps {
@@ -10,7 +10,7 @@ export function IPAMTableMRTView({ tableName }: IPAMTableMRTViewProps) {
     return (
         <Card p="md" radius="md" withBorder>
             <Title order={4} mb="md">Mantine React Table Implementation</Title>
-            <IPAMTableMRT tableName={tableName} />
+            <UnifiedTable tableName={tableName} />
         </Card>
     );
 }

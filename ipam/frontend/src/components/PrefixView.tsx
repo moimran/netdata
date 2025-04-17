@@ -1,5 +1,5 @@
-import { PrefixTable } from './PrefixTable';
+import { UnifiedTable } from './tables';
 
 export function PrefixView() {
-  return <PrefixTable />;
+  return <UnifiedTable tableName="prefixes" />;
 }

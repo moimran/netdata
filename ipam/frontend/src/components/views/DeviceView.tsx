@@ -1,10 +1,8 @@
-import { Stack, ActionIcon, Tooltip, Group } from '@mantine/core';
-import { IPAMTable } from '../tables/IPAMTable';
-import { TABLE_SCHEMAS } from '../IPAMTable/schemas';
+import { Stack, ActionIcon, Tooltip } from '@mantine/core';
+import { UnifiedTable } from '../tables';
 import { IPAMModal } from '../ui/IPAMModal';
-import { IconExternalLink, IconEdit, IconTrash } from '@tabler/icons-react';
-import { useState, useRef } from 'react';
-import { useBaseMutation } from '../../hooks';
+import { IconExternalLink } from '@tabler/icons-react';
+import { useState } from 'react';
 import TableContainer from '../tables/TableContainer';
 // Using the unified table styles from TableContainer
 
@@ -20,6 +18,7 @@ export function DeviceView() {
           <ActionIcon
             color="green"
             variant="light"
+            radius="md"
             onClick={async () => {
               try {
                 // Generate a random UUID for the session
@@ -50,14 +49,14 @@ export function DeviceView() {
                   window.open(
                     data.websocket_url,
                     '_blank',
-                    'noopener=yes,noreferrer=yes'
+                    'width=800,height=600,noopener,noreferrer'
                   );
                 } else {
                   // Fallback if no websocket_url is provided
                   window.open(
                     `http://localhost:8022/?device_id=${device.id}&session_id=${data.session_id || sessionId}`,
                     '_blank',
-                    'noopener=yes,noreferrer=yes'
+                    'width=800,height=600,noopener,noreferrer'
                   );
                 }
               } catch (error: any) {
@@ -65,8 +64,6 @@ export function DeviceView() {
                 alert(`Failed to connect to device: ${error.message || 'Unknown error'}`);
               }
             }}
-            variant="light"
-            radius="md"
           >
             <IconExternalLink size={16} />
           </ActionIcon>
@@ -84,7 +81,7 @@ export function DeviceView() {
     <Stack gap="md">
       {/* Device table */}
       <TableContainer title="Devices">
-        <IPAMTable
+        <UnifiedTable
           tableName="devices"
           customActionsRenderer={renderDeviceActions}
         />

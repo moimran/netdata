@@ -8,7 +8,7 @@ import {
   Tooltip
 } from '@mantine/core';
 import { IconEye } from '@tabler/icons-react';
-import { IPAMTable } from './IPAMTable';
+import { UnifiedTable } from './tables';
 
 export function VLANGroupView() {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ export function VLANGroupView() {
         </div>
       </Group>
       
-      <IPAMTable 
+      <UnifiedTable 
         tableName="vlan_groups" 
         customActionsRenderer={renderCustomActions}
       />
