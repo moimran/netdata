@@ -186,16 +186,30 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
     const columns = useMemo<MRT_ColumnDef<any>[]>(() =>
         schema.map(column => ({
             accessorKey: column.name,
+            // Required by TypeScript
             header: formatHeaderName(column.name),
+            // Custom header renderer to ensure text is visible
+            Header: () => (
+                <div style={{
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    fontSize: '12px',
+                    textTransform: 'uppercase',
+                    textAlign: 'center',
+                    width: '100%'
+                }}>
+                    {formatHeaderName(column.name)}
+                </div>
+            ),
             size: getColumnWidth(column.name, column.type, column.width as number | undefined),
-            enableColumnFilter: column.name !== 'id' && column.name !== 'description',
+            enableColumnFilter: false,
+            enableSorting: false,
+            enableColumnActions: false,
             mantineTableHeadCellProps: {
-                align: column.name === 'description' ? 'left' : 'center',
+                align: 'center',
                 style: {
-                    backgroundColor: '#1A1B1E',
-                    color: '#66cdaa',
-                    textAlign: column.name === 'description' ? 'left' : 'center',
-                    display: 'table-cell'
+                    backgroundColor: '#066a43',
+                    padding: '10px 6px',
                 }
             },
             mantineTableBodyCellProps: {
@@ -363,10 +377,17 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
         enableColumnResizing: true,
         enableColumnOrdering: true,
         enableRowSelection: false,
-        enableMultiSort: true,
+        enableMultiSort: false,
+        enableColumnActions: false, // Disable column actions menu
+        enableSorting: false, // Disable sorting globally
         positionActionsColumn: 'last',
         mantineTableHeadCellProps: {
-            align: 'center'
+            align: 'center',
+            style: {
+                backgroundColor: '#066a43',
+                color: '#ffffff',
+                fontWeight: 700
+            }
         },
         mantineTableBodyCellProps: {
             align: 'center'

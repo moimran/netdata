@@ -20,6 +20,15 @@
   display: table-header-group !important;
 }
 
+/* Ensure all header cells have proper background */
+.mrt-table-head th,
+.mrt-thead th,
+.mrt-table-head tr,
+.mrt-thead tr {
+  background-color: #066a43 !important;
+  color: #ffffff !important;
+}
+
 /* Table layout */
 .mrt-table {
   table-layout: fixed !important;
@@ -78,8 +87,29 @@
   z-index: 10 !important;
   height: 45px !important;
   white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+  overflow: visible !important; /* Make sure text is visible */
+}
+
+/* Ensure header text is visible */
+.mrt-header-content span,
+.mrt-header-cell span,
+.mrt-table-head-cell-content,
+.mrt-table-head-cell-labels,
+.mrt-header-content-wrapper,
+.mrt-header-content-wrapper span,
+.mrt-header-cell-text {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  text-transform: uppercase !important;
+  font-size: 12px !important;
+}
+
+/* Remove the after content approach as it causes duplication */
+.mrt-table-head th::after {
+  content: none;
 }
 
 /* Table header icons and content */
@@ -96,11 +126,21 @@
   gap: 4px !important;
 }
 
-/* Column header sort icons */
-.mrt-column-sorter {
-  color: #ffffff !important;
-  opacity: 0.8 !important;
-  margin-left: 2px !important;
+/* Hide only sort labels and action elements, not the header text */
+.mrt-column-actions,
+[aria-label*="Sort"],
+[aria-label*="Filter"],
+.mrt-column-drag-button,
+.mrt-column-actions-button {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Hide column header sort icons */
+.mrt-column-sorter,
+.mrt-sorting-indicator,
+.mrt-column-actions-button {
+  display: none !important;
 }
 
 /* Adjust spacing for header icons */
