@@ -68,3 +68,6 @@ Cargo.lock
 
 # Project specific
 ipam.db
+
+.cursorrules
+.cursor

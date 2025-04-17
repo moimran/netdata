@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
 
 // Define standard error structure
 export interface ApiError {
@@ -58,7 +58,7 @@ apiClient.interceptors.request.use(
     cleanupPendingRequests();
 
     // Generate request ID
-    const requestId = uuidv4();
+    const requestId = nanoid();
     
     // Add request ID to headers for tracing
     config.headers = {
