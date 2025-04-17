@@ -11,6 +11,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
 }
 
 a {
@@ -29,6 +30,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background-color: #f8f9fa;
   overflow-x: hidden;
+  min-height: 100vh;
 }
 
 #root {
@@ -724,4 +726,310 @@ h1 {
 
 .ipam-table-header {
   color: #66cdaa !important;
+}
+
+/* Mantine React Table custom styling */
+.mantine-react-table {
+  /* General table styling */
+  background-color: #1A1B1E !important;
+  color: #f9fafb !important;
+  border-radius: 8px !important;
+  border: 1px solid #374151 !important;
+  overflow: hidden !important;
+}
+
+.mrt-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Header row */
+.mantine-Table-root th {
+  background-color: #111827 !important;
+  color: #66cdaa !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid rgba(102, 205, 170, 0.3) !important;
+}
+
+/* Table cells */
+.mantine-Table-root td {
+  padding: 12px 16px !important;
+  color: #f9fafb !important;
+  border-bottom: 1px solid #374151 !important;
+}
+
+/* Row colors */
+.mantine-Table-tr {
+  background-color: #25262B !important;
+}
+
+.mantine-Table-tr:nth-of-type(odd) {
+  background-color: #2C2E33 !important;
+}
+
+/* Row hover */
+.mantine-Table-tr:hover td {
+  background-color: rgba(20, 184, 166, 0.15) !important;
+}
+
+/* Status badges */
+.ipam-status-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px 12px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: capitalize !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+  width: 100px !important;
+  color: white !important;
+}
+
+/* Status badge colors */
+.ipam-status-badge[data-color="teal"] {
+  background-color: #14b8a6 !important;
+}
+
+.ipam-status-badge[data-color="indigo"] {
+  background-color: #4f46e5 !important;
+}
+
+.ipam-status-badge[data-color="violet"] {
+  background-color: #8b5cf6 !important;
+}
+
+/* Toolbar */
+.mantine-react-table .mantine-Group-root {
+  background-color: #25262B !important;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid #374151 !important;
+}
+
+/* Title text */
+.mantine-react-table .mantine-Text-root {
+  color: #66cdaa !important;
+  text-shadow: 0 0 5px rgba(102, 205, 170, 0.3), 0 0 10px rgba(102, 205, 170, 0.2);
+}
+
+/* Search input */
+.mantine-react-table .mantine-TextInput-root input {
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(102, 205, 170, 0.3) !important;
+  transition: all 0.3s ease;
+}
+
+.mantine-react-table .mantine-TextInput-root input:focus {
+  border-color: #66cdaa !important;
+  box-shadow: 0 0 0 2px rgba(102, 205, 170, 0.2), 0 0 10px rgba(102, 205, 170, 0.3) !important;
+}
+
+/* Add button */
+.mantine-react-table .mantine-Button-filled {
+  background-color: #14b8a6 !important;
+  border-color: transparent !important;
+  transition: all 0.3s ease;
+}
+
+.mantine-react-table .mantine-Button-filled:hover {
+  background-color: #0d9488 !important;
+  box-shadow: 0 0 10px rgba(102, 205, 170, 0.5) !important;
+}
+
+/* Action buttons */
+.mantine-ActionIcon-root[data-variant="light"][data-color="blue"] {
+  color: #66cdaa !important;
+  background-color: rgba(102, 205, 170, 0.1) !important;
+  border: 1px solid rgba(102, 205, 170, 0.3) !important;
+}
+
+.mantine-ActionIcon-root[data-variant="light"][data-color="blue"]:hover {
+  background-color: rgba(102, 205, 170, 0.2) !important;
+  border-color: rgba(102, 205, 170, 0.5) !important;
+}
+
+.mantine-ActionIcon-root[data-variant="light"][data-color="red"] {
+  color: #f87171 !important;
+  background-color: rgba(248, 113, 113, 0.1) !important;
+  border: 1px solid rgba(248, 113, 113, 0.3) !important;
+}
+
+.mantine-ActionIcon-root[data-variant="light"][data-color="red"]:hover {
+  background-color: rgba(248, 113, 113, 0.2) !important;
+  border-color: rgba(248, 113, 113, 0.5) !important;
+}
+
+/* Utilization bar */
+.ipam-progress-bar {
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: rgba(20, 20, 20, 0.3);
+}
+
+.mantine-Progress-root {
+  background-color: rgba(20, 20, 20, 0.3) !important;
+}
+
+.mantine-Progress-bar {
+  height: 8px !important;
+}
+
+/* Pagination */
+.mantine-react-table .mantine-Pagination-root button {
+  background-color: rgba(20, 20, 20, 0.6) !important;
+  color: #f9fafb !important;
+  border: 1px solid rgba(102, 205, 170, 0.3) !important;
+  transition: all 0.3s ease;
+}
+
+.mantine-react-table .mantine-Pagination-root button[data-active="true"] {
+  background-color: #14b8a6 !important;
+  color: white !important;
+  border-color: transparent !important;
+}
+
+.mantine-react-table .mantine-Pagination-root button:hover:not([data-active="true"]) {
+  background-color: rgba(102, 205, 170, 0.1) !important;
+  border-color: rgba(102, 205, 170, 0.5) !important;
+}
+
+/* Mantine React Table Styles */
+.mantine-ReactTable {
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e0e0e0;
+}
+
+/* Header styling */
+.mantine-ReactTable-header {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #344054;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.mantine-ReactTable-header th {
+  padding: 12px 16px;
+}
+
+/* Table cell styling */
+.mantine-ReactTable-cell {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  color: #1f2937;
+}
+
+/* Alternating row colors */
+.mantine-ReactTable-row:nth-of-type(even) {
+  background-color: #f8fafc;
+}
+
+/* Hover effect */
+.mantine-ReactTable-row:hover {
+  background-color: rgba(236, 253, 245, 0.5);
+}
+
+/* Status badge styling */
+.ipam-status-badge {
+  text-transform: capitalize;
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  width: 100%;
+  text-align: center;
+  border-radius: 4px;
+}
+
+.ipam-status-badge[data-color="teal"] {
+  background-color: #14b8a6;
+  color: white;
+}
+
+.ipam-status-badge[data-color="indigo"] {
+  background-color: #6366f1;
+  color: white;
+}
+
+.ipam-status-badge[data-color="violet"] {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+/* Progress bar styling */
+.ipam-progress-bar {
+  width: 100%;
+  max-width: 150px;
+}
+
+.ipam-progress-bar .mantine-Progress-root {
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Toolbar styling */
+.mantine-ReactTable-toolbarInternalContainer {
+  padding: 12px 16px;
+  background-color: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  gap: 12px;
+}
+
+/* Search input styling */
+.mantine-ReactTable-toolbarInternalContainer .mantine-InputWrapper-root {
+  flex: 1;
+  max-width: 300px;
+}
+
+.mantine-ReactTable-toolbarInternalContainer .mantine-TextInput-input {
+  border-radius: 4px;
+  border-color: #d1d5db;
+}
+
+/* Button styling */
+.mantine-ReactTable-toolbarInternalContainer .mantine-Button-root {
+  border-radius: 4px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+/* Action icon styling */
+.mantine-ActionIcon-root {
+  border-radius: 4px;
+}
+
+.ipam-refresh-button {
+  margin-left: auto;
+}
+
+/* Pagination styling */
+.mantine-ReactTable-pagination {
+  padding: 8px 16px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #fff;
+}
+
+/* Add more specific styling for cells based on their type */
+.ipam-cell-type-number {
+  text-align: right;
+}
+
+.ipam-cell-id {
+  font-family: monospace;
+}
+
+.ipam-cell-description {
+  max-width: 300px;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
 }

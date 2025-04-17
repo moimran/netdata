@@ -754,3 +754,92 @@ th {
 .ipam-pagination .mantine-Pagination-control[data-active="true"]:hover {
     background-color: #0d9488 !important;
 }
+
+.ipam-toolbar-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    margin-right: auto;
+}
+
+.ipam-refresh-button {
+    margin-left: 4px;
+}
+
+/* Toolbar styling */
+.ipam-toolbar-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    margin-right: auto;
+}
+
+.ipam-toolbar-buttons button {
+    height: 36px !important;
+}
+
+.ipam-toolbar-buttons .mantine-ActionIcon-root {
+    height: 36px !important;
+    width: 36px !important;
+    background-color: #1e293b !important;
+    color: #f9fafb !important;
+    border-color: transparent !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.ipam-toolbar-buttons .mantine-ActionIcon-root:hover {
+    background-color: #334155 !important;
+}
+
+/* Center align all table cells and headers by default */
+.ipam-cell,
+.ipam-header,
+.mantine-Table-root td,
+.mantine-Table-root th {
+    text-align: center !important;
+    justify-content: center !important;
+}
+
+/* Center align MRT table cells and headers */
+.mrt-cell,
+.mrt-header-cell-content {
+    text-align: center !important;
+    justify-content: center !important;
+}
+
+/* Ensure content within cells is centered */
+.mantine-Table-root td > *,
+.mantine-Table-root th > *,
+.mrt-cell > *,
+.mrt-header-cell-content > * {
+    margin: 0 auto !important;
+    justify-content: center !important;
+}
+
+/* Keep description cells left-aligned for better readability */
+.ipam-cell-description,
+td[class*="ipam-cell-description"],
+.mrt-cell[data-column-id="description"] {
+    text-align: left !important;
+    justify-content: flex-start !important;
+}
+
+/* Keep action cells centered */
+.ipam-cell-actions,
+td[class*="ipam-cell-actions"],
+.mrt-cell[data-column-id="actions"] {
+    text-align: center !important;
+    justify-content: center !important;
+}
+
+/* Center align status badges */
+.ipam-status-badge {
+    margin: 0 auto !important;
+}
+
+/* Center align utilization bars */
+.ipam-progress-bar {
+    margin: 0 auto !important;
+}

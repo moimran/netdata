@@ -37,6 +37,7 @@ import { VRFImportTargetsView } from './components/views/VRFImportTargetsView';
 import { VRFExportTargetsView } from './components/views/VRFExportTargetsView';
 import { ASNRangeView } from './components/views/ASNRangeView';
 import { InterfacesView } from './components/views/InterfacesView';
+import { IPAMTableMRTView } from './components/views/IPAMTableMRTView';
 
 // Loading component for suspense fallback
 const LoadingComponent = () => (
@@ -130,6 +131,9 @@ function App() {
               <Route path="/tenants" element={<TenantView />} />
               <Route path="/users" element={<UserView />} />
               <Route path="/login" element={<LoginView />} />
+
+              {/* Migration to Mantine React Table is complete */}
+              {/* All views now use the MRT implementation through the compatibility wrapper */}
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

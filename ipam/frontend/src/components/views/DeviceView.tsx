@@ -5,6 +5,8 @@ import { IPAMModal } from '../ui/IPAMModal';
 import { IconExternalLink, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useState, useRef } from 'react';
 import { useBaseMutation } from '../../hooks';
+import TableContainer from '../tables/TableContainer';
+import '../IPAMTable/mrt-fixes.css'; // Import styling fixes
 
 export function DeviceView() {
   const [selectedDevice, setSelectedDevice] = useState<any>(null);
@@ -81,10 +83,12 @@ export function DeviceView() {
   return (
     <Stack gap="md">
       {/* Device table */}
-      <IPAMTable
-        tableName="devices"
-        customActionsRenderer={renderDeviceActions}
-      />
+      <TableContainer title="Devices">
+        <IPAMTable
+          tableName="devices"
+          customActionsRenderer={renderDeviceActions}
+        />
+      </TableContainer>
 
       {/* Edit device modal */}
       {showModal && (
