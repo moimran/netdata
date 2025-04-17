@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Card, Title, Stack, Text, Box } from '@mantine/core';
-import '../IPAMTable/mrt-fixes.css';
+// Styles imported in main.tsx
 
 interface TableContainerProps {
     children: ReactNode;

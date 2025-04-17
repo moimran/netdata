@@ -5,6 +5,7 @@ export interface Column {
   type: string;
   required?: boolean;
   reference?: string;
+  width?: number;
 }
 
 export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
@@ -182,5 +183,27 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'password', type: 'string', required: true },
     { name: 'enable_password', type: 'string' },
     { name: 'is_default', type: 'boolean' }
+  ],
+  
+  // Add missing table schemas
+  racks: [
+    { name: 'id', type: 'number' },
+    { name: 'name', type: 'string', required: true },
+    { name: 'site_id', type: 'number', reference: 'sites' },
+    { name: 'location_id', type: 'number', reference: 'locations' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants' },
+    { name: 'status', type: 'string', required: true },
+    { name: 'description', type: 'string' }
+  ],
+  
+  users: [
+    { name: 'id', type: 'number' },
+    { name: 'username', type: 'string', required: true },
+    { name: 'email', type: 'string', required: true },
+    { name: 'first_name', type: 'string' },
+    { name: 'last_name', type: 'string' },
+    { name: 'is_active', type: 'boolean' },
+    { name: 'is_staff', type: 'boolean' },
+    { name: 'is_superuser', type: 'boolean' }
   ]
 };

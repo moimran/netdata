@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import { Suspense } from 'react';
 import './App.css';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell, ScrollArea } from '@mantine/core';
@@ -37,7 +37,7 @@ import { VRFImportTargetsView } from './components/views/VRFImportTargetsView';
 import { VRFExportTargetsView } from './components/views/VRFExportTargetsView';
 import { ASNRangeView } from './components/views/ASNRangeView';
 import { InterfacesView } from './components/views/InterfacesView';
-import { IPAMTableMRTView } from './components/views/IPAMTableMRTView';
+// Import views as needed
 
 // Loading component for suspense fallback
 const LoadingComponent = () => (

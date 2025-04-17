@@ -23,7 +23,7 @@ import type { TableName } from '../../types';
 import { TABLE_SCHEMAS } from './schemas';
 import { formatCellValue, renderUtilizationBar } from './utils';
 import { ErrorBoundary } from '../common/ErrorBoundary';
-import './styles.css';
+// Styles imported in main.tsx
 
 interface IPAMTableProps {
   tableName: TableName;

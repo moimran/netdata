@@ -5,7 +5,9 @@ import {
     type MRT_ColumnDef,
     type MRT_ColumnFiltersState,
     type MRT_SortingState,
-    type MRT_PaginationState
+    type MRT_PaginationState,
+    type MRT_Row,
+    type MRT_Cell
 } from 'mantine-react-table';
 import { ActionIcon, Tooltip, Box, Button, Card, Text, Progress, Badge } from '@mantine/core';
 import { IconEdit, IconTrash, IconPlus, IconSearch, IconRefresh, IconDownload } from '@tabler/icons-react';
@@ -15,7 +17,8 @@ import type { TableName } from '../../types';
 import { TABLE_SCHEMAS } from './schemas';
 import { formatCellValue } from './utils';
 import { ErrorBoundary } from '../common/ErrorBoundary';
-import './mrt-fixes.css'; // Import the styling fixes
+// Styles imported in main.tsx
+import TableHeaderWrapper from './TableHeaderWrapper';
 
 // Helper function to determine the color of the utilization bar
 const getUtilizationColor = (percentage: number): string => {
@@ -96,7 +99,6 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
     const {
         data,
         isLoading,
-        isError,
         refetch
     } = useTableData(tableName, {
         page: pagination.pageIndex + 1, // Convert from 0-based to 1-based
@@ -185,29 +187,33 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
         schema.map(column => ({
             accessorKey: column.name,
             header: formatHeaderName(column.name),
-            size: getColumnWidth(column.name, column.type, column.width),
+            size: getColumnWidth(column.name, column.type, column.width as number | undefined),
             enableColumnFilter: column.name !== 'id' && column.name !== 'description',
             mantineTableHeadCellProps: {
+                align: column.name === 'description' ? 'left' : 'center',
                 style: {
                     backgroundColor: '#1A1B1E',
                     color: '#66cdaa',
-                    textAlign: 'center'
+                    textAlign: column.name === 'description' ? 'left' : 'center',
+                    display: 'table-cell'
                 }
             },
             mantineTableBodyCellProps: {
+                align: column.name === 'description' ? 'left' : 'center',
                 style: {
-                    textAlign: 'center'
+                    textAlign: column.name === 'description' ? 'left' : 'center',
+                    display: 'table-cell'
                 }
             },
-            Cell: ({ cell, row }) => {
+            Cell: ({ cell, row }: { cell: MRT_Cell<any>; row: MRT_Row<any> }) => {
                 const value = cell.getValue();
 
                 // Custom cell rendering based on column type
-                if (column.reference && referenceData) {
+                if (column.reference && referenceData && typeof value === 'number') {
                     return <div style={{ textAlign: 'center' }}>{formatReferenceValue(value, column.reference)}</div>;
                 }
 
-                if (column.name === 'status') {
+                if (column.name === 'status' && typeof value === 'string') {
                     return <StatusBadge status={value} />;
                 }
 
@@ -217,7 +223,7 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
 
                     return (
                         <div style={{ textAlign: 'center' }}>
-                            <Text ff="monospace" fw={500}>{value}</Text>
+                            <Text ff="monospace" fw={500}>{String(value)}</Text>
                             {utilizationPercentage > 0 && (
                                 <Box mt={8}>
                                     <UtilizationBar percentage={utilizationPercentage} />
@@ -231,12 +237,12 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
                     return <div style={{ textAlign: 'center' }}>••••••••</div>;
                 }
 
-                if (column.type === 'boolean') {
+                if (column.type === 'boolean' && typeof value === 'boolean') {
                     return <div style={{ textAlign: 'center' }}>{value ? 'Yes' : 'No'}</div>;
                 }
 
-                if (column.name === 'asn') {
-                    return <div style={{ textAlign: 'center' }}>AS{value}</div>;
+                if (column.name === 'asn' && value !== null && value !== undefined) {
+                    return <div style={{ textAlign: 'center' }}>AS{String(value)}</div>;
                 }
 
                 return <div style={{ textAlign: column.name === 'description' ? 'left' : 'center' }}>{formatCellValue(value, column.type)}</div>;
@@ -246,7 +252,7 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
     );
 
     // Helper function to determine appropriate column width
-    function getColumnWidth(name: string, type?: string, customWidth?: number): number {
+    function getColumnWidth(name: string, type?: string, customWidth?: number | undefined): number {
         if (customWidth) return customWidth;
 
         // Assign default widths based on column type
@@ -274,7 +280,7 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
     }
 
     // Add actions column
-    const columnsWithActions = useMemo(() => [
+    const columnsWithActions = useMemo<MRT_ColumnDef<any>[]>(() => [
         ...columns,
         {
             id: 'actions',
@@ -282,34 +288,40 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
             enableSorting: false,
             enableColumnFilter: false,
             size: 120,
-            Cell: ({ row }) => {
+            mantineTableHeadCellProps: {
+                align: 'center'
+            },
+            Cell: ({ row }: { row: MRT_Row<any> }) => {
                 const item = row.original;
                 return (
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                        <Tooltip label="Edit">
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', minWidth: '100px' }}>
+                        <Tooltip label="Edit" withArrow position="top">
                             <ActionIcon
-                                color="blue"
-                                variant="light"
+                                color="teal"
+                                variant="filled"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleEditClick(item);
                                 }}
                                 size="md"
+                                radius="sm"
+                                style={{ backgroundColor: '#066a43' }}
                             >
-                                <IconEdit size={18} />
+                                <IconEdit size={16} stroke={1.5} />
                             </ActionIcon>
                         </Tooltip>
-                        <Tooltip label="Delete">
+                        <Tooltip label="Delete" withArrow position="top">
                             <ActionIcon
                                 color="red"
-                                variant="light"
+                                variant="filled"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleDeleteClick(item.id);
                                 }}
                                 size="md"
+                                radius="sm"
                             >
-                                <IconTrash size={18} />
+                                <IconTrash size={16} stroke={1.5} />
                             </ActionIcon>
                         </Tooltip>
                         {customActionsRenderer && customActionsRenderer(item)}
@@ -354,62 +366,26 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
         enableMultiSort: true,
         positionActionsColumn: 'last',
         mantineTableHeadCellProps: {
-            style: {
-                backgroundColor: '#1A1B1E',
-                color: '#66cdaa',
-            },
+            align: 'center'
+        },
+        mantineTableBodyCellProps: {
+            align: 'center'
         },
         mantineTableProps: {
             striped: true,
             highlightOnHover: true,
-            withColumnBorders: true,
-            className: "ipam-styled-table",
-            styles: {
-                root: {
-                    backgroundColor: '#1A1B1E',
-                },
-                thead: {
-                    backgroundColor: '#1A1B1E',
-                },
-                th: {
-                    color: '#66cdaa',
-                    fontWeight: 600,
-                    padding: '12px 16px',
-                    backgroundColor: '#1A1B1E',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    fontSize: '13px',
-                    borderBottom: '2px solid #374151',
-                },
-                td: {
-                    color: '#ffffff',
-                    fontWeight: 500,
-                    padding: '12px 16px',
-                    fontSize: '14px',
-                    lineHeight: 1.5,
-                }
-            }
-        },
-        mantineTopToolbarProps: {
-            style: {
-                backgroundColor: '#1A1B1E',
-            }
-        },
-        mantineBottomToolbarProps: {
-            style: {
-                backgroundColor: '#1A1B1E',
-            }
+            withColumnBorders: true
         },
         renderTopToolbarCustomActions: () => (
             <div style={{
                 display: 'flex',
-                width: '100%',
-                alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '8px 16px'
+                alignItems: 'center',
+                padding: '12px 16px',
+                width: '100%'
             }}>
                 <Text c="#66cdaa" fw={600} size="lg">{formatTableName(tableName)}</Text>
-                <div className="ipam-toolbar-buttons">
+                <div style={{ display: 'flex', gap: '8px' }}>
                     <Button
                         variant="filled"
                         leftSection={<IconPlus size={16} />}
@@ -500,8 +476,7 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
             placeholder: "Search...",
             variant: "filled",
             size: "sm",
-            leftSection: <IconSearch size={16} />,
-            styles: { input: { color: '#ffffff' } }
+            leftSection: <IconSearch size={16} />
         },
         mantineTableBodyRowProps: ({ row }) => ({
             onClick: () => handleEditClick(row.original),
@@ -511,28 +486,25 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
             density: 'md',
         },
         mantinePaginationProps: {
-            size: "sm",
-            radius: "xs",
+            size: "md",
+            radius: "sm",
             withEdges: true,
+            className: "ipam-table-pagination",
         },
         enableStickyHeader: true,
     });
 
     return (
         <ErrorBoundary>
-            <Card
-                padding="0"
-                radius="md"
-                styles={{
-                    root: {
-                        backgroundColor: '#1A1B1E',
-                        borderColor: '#374151',
-                        overflow: 'hidden',
-                    }
-                }}
-            >
-                <MantineReactTable table={table} />
-            </Card>
+            <TableHeaderWrapper>
+                <Card
+                    padding="0"
+                    radius="md"
+                    className="ipam-table-container"
+                >
+                    <MantineReactTable table={table} />
+                </Card>
+            </TableHeaderWrapper>
 
             {showModal && (
                 <IPAMModal

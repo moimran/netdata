@@ -76,7 +76,8 @@ export const tableStyles: TableStyles = {
     whiteSpace: 'nowrap' as const,
     maxWidth: 0,
     borderBottom: '1px solid #e9ecef',
-    color: '#f9fafb'
+    color: '#f9fafb',
+    textAlign: 'center' as const
   },
   header: {
     backgroundColor: '#1f2937',
@@ -88,14 +89,15 @@ export const tableStyles: TableStyles = {
     borderBottom: '1px solid #374151',
     whiteSpace: 'nowrap' as const,
     overflow: 'hidden' as const,
-    textOverflow: 'ellipsis' as const
+    textOverflow: 'ellipsis' as const,
+    textAlign: 'center' as const
   },
   headerCell: {
     fontWeight: 600,
     backgroundColor: '#1f2937',
     color: '#f9fafb',
     padding: '12px 16px',
-    textAlign: 'left' as const
+    textAlign: 'center' as const
   },
   actionsCell: {
     display: 'flex',
@@ -223,7 +225,7 @@ export function TableHeader({ columns, children, tableName }: TableHeaderProps) 
     ...tableStyles.headerCell,
     display: 'table-cell',
     whiteSpace: 'nowrap' as const,
-    textAlign: 'left' as const
+    textAlign: 'center' as const
   };
 
   // If this is being used with direct children, just render the children
@@ -261,7 +263,20 @@ export function TableHeader({ columns, children, tableName }: TableHeaderProps) 
             );
           }
 
-          // Regular column styling
+          // Handle description column differently (left-aligned)
+          if (col.toLowerCase() === 'description') {
+            return (
+              <th
+                key={col}
+                style={{ ...headerStyle, textAlign: 'left' }}
+                className={`ipam-header ipam-header-${col}`}
+              >
+                {formatColumnHeader(col)}
+              </th>
+            );
+          }
+
+          // Regular column styling (center-aligned)
           return (
             <th key={col} style={headerStyle} className={`ipam-header ipam-header-${col}`}>
               {formatColumnHeader(col)}

@@ -22,7 +22,7 @@ import { IPAMModal } from '../ui/IPAMModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/client';
 import { TABLE_SCHEMAS } from '../IPAMTable/schemas';
-import '../IPAMTable/styles.css'; // Import the IPAM Table styles
+// Styles imported in main.tsx
 
 // Interface for prefix data
 interface Prefix {

@@ -6,7 +6,7 @@ import { IconExternalLink, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useState, useRef } from 'react';
 import { useBaseMutation } from '../../hooks';
 import TableContainer from '../tables/TableContainer';
-import '../IPAMTable/mrt-fixes.css'; // Import styling fixes
+// Using the unified table styles from TableContainer
 
 export function DeviceView() {
   const [selectedDevice, setSelectedDevice] = useState<any>(null);

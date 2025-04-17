@@ -16,7 +16,7 @@ import { useParams } from 'react-router-dom';
 import { SharedTableComponent } from '../tables/SharedTableComponent';
 import TableContainer from '../tables/TableContainer';
 import type { TableName } from '../../types';
-import '../IPAMTable/mrt-fixes.css'; // Import styling fixes
+// Using the unified table styles from TableContainer
 
 interface Prefix {
   id: number;
