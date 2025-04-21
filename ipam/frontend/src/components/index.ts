@@ -15,8 +15,6 @@ export * from './views/details/VLANGroupDetailView';
 
 // Table components
 export * from './tables/IPAMTable';
-export * from './tables/PrefixTable';
-
 // UI components
 export * from './ui/IPAMModal';
 

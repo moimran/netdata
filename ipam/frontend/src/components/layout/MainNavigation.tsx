@@ -1,5 +1,6 @@
-import { Box, NavLink, Text, Divider, Group, ThemeIcon, Stack } from '@mantine/core';
+import { Box, NavLink, Text, Divider, Group, ThemeIcon, Stack, UnstyledButton, Collapse } from '@mantine/core';
 import { Link, useLocation } from 'react-router-dom';
+import React from 'react';
 import {
   PRIMARY,
   PRIMARY_LIGHT,
@@ -25,6 +26,7 @@ import {
   IconMap2,
   IconDashboard,
   IconChevronRight,
+  IconChevronDown,
   IconBuildingSkyscraper,
   IconUsers,
   IconWifi,
@@ -33,6 +35,14 @@ import {
 
 export function MainNavigation() {
   const location = useLocation();
+  const [collapsedGroups, setCollapsedGroups] = React.useState<Record<string, boolean>>({});
+  
+  const toggleGroup = (groupTitle: string) => {
+    setCollapsedGroups(prev => ({
+      ...prev,
+      [groupTitle]: !prev[groupTitle]
+    }));
+  };
 
   const navigationGroups = [
     {
@@ -70,6 +80,13 @@ export function MainNavigation() {
       ]
     },
     {
+      title: 'Inventory',
+      items: [
+        { icon: IconServer, label: 'Device Inventory', path: '/device-inventory' },
+        { icon: IconDatabase, label: 'Hardware Inventory', path: '/hardware-inventory' }
+      ]
+    },
+    {
       title: 'Devices',
       items: [
         { icon: IconServer, label: 'Devices', path: '/devices' },
@@ -98,41 +115,58 @@ export function MainNavigation() {
 
       {navigationGroups.map((group, index) => (
         <Box key={index} mb="md">
-          <Text
-            tt="uppercase"
-            c={TEXT_BRIGHT}
-            fw={700}
-            size="xs"
+          <UnstyledButton 
+            onClick={() => toggleGroup(group.title)}
+            style={{ width: '100%' }}
             px="md"
             mb="xs"
           >
-            {group.title}
-          </Text>
+            <Group justify="space-between">
+              <Text
+                tt="uppercase"
+                c={TEXT_BRIGHT}
+                fw={700}
+                size="xs"
+              >
+                {group.title}
+              </Text>
+              <IconChevronDown 
+                size={14} 
+                color={TEXT_BRIGHT} 
+                style={{ 
+                  transform: collapsedGroups[group.title] ? 'rotate(-90deg)' : 'rotate(0deg)',
+                  transition: 'transform 200ms ease'
+                }}
+              />
+            </Group>
+          </UnstyledButton>
 
-          {group.items.map((item) => (
-            <NavLink
-              key={item.path}
-              component={Link}
-              to={item.path}
-              label={
-                <Text c={location.pathname === item.path ? TEXT_PRIMARY : TEXT_SECONDARY} fw={500}>
-                  {item.label}
-                </Text>
-              }
-              leftSection={
-                <ThemeIcon variant="light" color={location.pathname === item.path ? PRIMARY : 'dark'} size="md">
-                  <item.icon size={16} stroke={1.5} color={location.pathname === item.path ? ICON_ACTIVE : ICON_INACTIVE} />
-                </ThemeIcon>
-              }
-              rightSection={location.pathname === item.path && <IconChevronRight size={14} color={ICON_ACTIVE} />}
-              active={location.pathname === item.path}
-              color={location.pathname === item.path ? PRIMARY : "dark"}
-              pl="md"
-              py="xs"
-              mb={5}
-              className="main-nav-link"
-            />
-          ))}
+          <Collapse in={!collapsedGroups[group.title]}>
+            {group.items.map((item) => (
+              <NavLink
+                key={item.path}
+                component={Link}
+                to={item.path}
+                label={
+                  <Text c={location.pathname === item.path ? TEXT_PRIMARY : TEXT_SECONDARY} fw={500}>
+                    {item.label}
+                  </Text>
+                }
+                leftSection={
+                  <ThemeIcon variant="light" color={location.pathname === item.path ? PRIMARY : 'dark'} size="md">
+                    <item.icon size={16} stroke={1.5} color={location.pathname === item.path ? ICON_ACTIVE : ICON_INACTIVE} />
+                  </ThemeIcon>
+                }
+                rightSection={location.pathname === item.path && <IconChevronRight size={14} color={ICON_ACTIVE} />}
+                active={location.pathname === item.path}
+                color={location.pathname === item.path ? PRIMARY : "dark"}
+                pl="md"
+                py="xs"
+                mb={5}
+                className="main-nav-link"
+              />
+            ))}
+          </Collapse>
 
           {index < navigationGroups.length - 1 && <Divider my="sm" color={PRIMARY_LIGHT} />}
         </Box>
