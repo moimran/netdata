@@ -1,6 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from sqlmodel import inspect
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
+from uuid import UUID
+from datetime import datetime, timedelta
+from pydantic import BaseModel, Field
 from ..database import engine
 from ..models import (
     Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 
@@ -214,3 +217,96 @@ async def test_endpoint():
     
     # Serialize the test data
     return model_to_dict(test_data)
+
+# --- Network Device Schemas ---
+class PlatformTypeBase(BaseModel):
+    platform_signature: str = Field(..., max_length=100)
+    platform_type: str = Field(..., max_length=100)
+    command: Optional[str] = Field(None, max_length=100)
+    ignore_platform: bool = False
+
+class PlatformTypeCreate(PlatformTypeBase):
+    # Potentially add fields from BaseModel like name/slug if needed for creation API
+    name: Optional[str] = None # Example if inheriting from a base API schema
+    slug: Optional[str] = None # Example if inheriting from a base API schema
+
+class PlatformTypeRead(PlatformTypeBase):
+    id: int
+    # Add inherited fields if PlatformTypeBase doesn't include them
+    # name: Optional[str]
+    # slug: Optional[str]
+    # created_at: datetime
+    # updated_at: Optional[datetime]
+
+    class Config:
+        from_attributes=True
+
+
+# --- NetJob Schemas ---
+class NetJobBase(BaseModel):
+    job_name: str = Field(..., max_length=100) # Use job_name instead of generic 'name'
+    platform_type_id: Optional[int] = None # Use ID for linking on create/update
+    command_list: List[str]
+    is_scheduled: bool = False
+    schedule_interval: Optional[timedelta] = None
+    next_run: Optional[datetime] = None
+    last_run: Optional[datetime] = None
+    connection_protocol: str = Field('ssh', max_length=50)
+    connection_library: str = Field('NETMIKO', max_length=50)
+    is_encrypted: bool = False
+    is_parse: bool = True
+    extra_config: Optional[Dict[str, Any]] = None
+    status: str = Field('ACTIVE', max_length=50)
+
+class NetJobCreate(NetJobBase):
+    # Inherits all fields from NetJobBase
+    pass
+
+class NetJobRead(NetJobBase):
+    id: int
+    job_uuid: UUID
+    platform_type: Optional[PlatformTypeRead] = None # Nested read model
+    created_at: datetime
+    updated_at: Optional[datetime] # Allow Optional from BaseModel inheritance
+
+    class Config:
+        from_attributes=True
+
+
+# --- DeviceInventory Schemas ---
+class DeviceInventoryBase(BaseModel):
+    # UUID is primary key but required on input for Timescale usually
+    device_uuid: UUID
+    platform_type_id: Optional[int] = None
+    hostname: Optional[str] = Field(None, max_length=255)
+    config_register: Optional[Dict[str, Any]] = None
+    hardware: Optional[List[str]] = None
+    mac_address: Optional[List[str]] = None
+    release: Optional[str] = Field(None, max_length=50)
+    reload_reason: Optional[str] = None
+    restarted: Optional[datetime] = None
+    rommon: Optional[str] = Field(None, max_length=100)
+    running_image: Optional[str] = None
+    serial: Optional[List[str]] = None
+    software_image: Optional[str] = Field(None, max_length=255)
+    uptime_weeks: Optional[int] = None
+    uptime_days: Optional[int] = None
+    uptime_hours: Optional[int] = None
+    uptime_minutes: Optional[int] = None
+    uptime_years: Optional[int] = None
+    version: Optional[str] = Field(None, max_length=100)
+
+class DeviceInventoryCreate(DeviceInventoryBase):
+    # Time is usually set by DB or application logic on insert for Timescale
+    # If client needs to provide it, uncomment below:
+    # time: datetime = Field(default_factory=datetime.utcnow)
+    pass
+
+class DeviceInventoryRead(DeviceInventoryBase):
+    time: datetime # Time is crucial for reading Timescale data
+    platform_type: Optional[PlatformTypeRead] = None # Nested read model
+
+    class Config:
+        from_attributes=True
+
+# --- End Network Device Schemas ---

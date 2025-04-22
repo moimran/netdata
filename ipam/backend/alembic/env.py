@@ -1,17 +1,16 @@
 from logging.config import fileConfig
 import os
 import sys
-from sqlalchemy import engine_from_config, create_engine
-from sqlalchemy import pool
+from sqlalchemy import create_engine
 from alembic import context
 from urllib.parse import quote_plus
 
-# Add the parent directory to sys.path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add the parent directory to sys.path (insert at index 0 for priority)
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
 
 # Import models and database configuration
 from app.models import *  # This will register all models with SQLModel
-from app.models.fields import IPNetworkType  # Import the custom field type
 from sqlmodel import SQLModel
 
 # this is the Alembic Config object, which provides

@@ -30,6 +30,9 @@ from .credential import Credential
 from .device import Device
 from .interface import Interface
 
+# Network device models
+from .network_devices import PlatformType, NetJob, DeviceInventory
+
 __all__ = [
     # Base and Fields
     "BaseModel",
@@ -71,5 +74,9 @@ __all__ = [
     "IPAddress",
     "Device",
     "Interface",
-    "Credential"
+    "Credential",
+    # Network device models
+    "PlatformType",
+    "NetJob",
+    "DeviceInventory",
 ]

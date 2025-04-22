@@ -6,7 +6,8 @@ from ..models import (
     Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 
     Prefix, IPRange, IPAddress, Tenant, Device, Interface, VLAN, 
     VLANGroup, ASN, ASNRange, RouteTarget, VRFImportTargets, VRFExportTargets,
-    Credential
+    Credential,
+    PlatformType, NetJob
 )
 
 # Create main API router
@@ -42,3 +43,5 @@ crud_router.create_crud_routes(router, "route_targets", crud.route_target, Route
 crud_router.create_crud_routes(router, "vrf_import_targets", crud.vrf_import_targets, VRFImportTargets)
 crud_router.create_crud_routes(router, "vrf_export_targets", crud.vrf_export_targets, VRFExportTargets)
 crud_router.create_crud_routes(router, "credentials", crud.credential, Credential)
+crud_router.create_crud_routes(router, "platform_types", crud.platform_type, PlatformType)
+crud_router.create_crud_routes(router, "net_jobs", crud.net_job, NetJob)

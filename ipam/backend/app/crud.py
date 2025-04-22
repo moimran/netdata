@@ -4,18 +4,15 @@ This module provides generic and specific CRUD operations for database models.
 """
 
 from typing import Dict, Any, List, Optional, Type, TypeVar, Union, Generic
-from datetime import datetime
-import ipaddress
 from fastapi import HTTPException
-import sqlalchemy
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
-from sqlalchemy.sql import func
 from .utils import slugify
 from .models import (
     Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 
     Prefix, IPRange, IPAddress, Tenant, Device, Interface, VLAN, VLANGroup,
-    ASN, ASNRange, RouteTarget, VRFImportTargets, VRFExportTargets, Credential
+    ASN, ASNRange, RouteTarget, VRFImportTargets, VRFExportTargets, Credential,
+    PlatformType, NetJob
 )
 import logging
 
@@ -547,3 +544,7 @@ class CredentialCRUD(CRUDBase[Credential]):
 
 # Create CRUD instance for credentials
 credential = CredentialCRUD(Credential)
+
+# Create CRUD instances for PlatformType and NetJob
+platform_type = CRUDBase(PlatformType)
+net_job = CRUDBase(NetJob)
