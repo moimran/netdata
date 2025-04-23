@@ -10,95 +10,50 @@ from pydantic import BaseModel, Field, ConfigDict
 
 # Device (Core IPAM Network Device)
 class DeviceBase(BaseModel):
-    name: Optional[str] = Field(None, max_length=100)
-    device_type_id: int
-    role_id: int
+    name: Optional[str] = Field(None, max_length=100, description="Name of the device") # Kept Optional for Base/Update
+    description: Optional[str] = Field(default=None, description="Brief description") # Added from model
     tenant_id: Optional[int] = None
-    platform_id: Optional[int] = None
-    serial: Optional[str] = Field(None, max_length=50)
-    asset_tag: Optional[str] = Field(None, max_length=50)
-    site_id: int
+    site_id: Optional[int] = None # Changed from int to Optional[int] to match model
     location_id: Optional[int] = None
-    rack_id: Optional[int] = None # Assuming Rack model exists
-    position: Optional[int] = None
-    face: Optional[str] = None # e.g., 'front', 'rear'
-    primary_ip4_id: Optional[int] = None
-    primary_ip6_id: Optional[int] = None
-    cluster_id: Optional[int] = None # Assuming Cluster model exists
-    virtual_chassis_id: Optional[int] = None # Assuming VirtualChassis model exists
-    vc_position: Optional[int] = None
-    vc_priority: Optional[int] = None
-    status: str = Field(..., max_length=50)
-    comments: Optional[str] = None
-    custom_fields: Optional[Dict[str, Any]] = None
+    ip_address_id: Optional[int] = None # ADDED from model
+    credential_name: Optional[str] = None # ADDED from model
+    fallback_credential_name: Optional[str] = None # ADDED from model
 
 class DeviceCreate(DeviceBase):
+    name: str = Field(..., max_length=100, description="Name of the device") # Make name required for Create
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
                 "name": "core-router-01",
-                "device_type_id": 1,
-                "role_id": 1,
+                "description": "Main core router for NYC site.",
                 "tenant_id": 1,
-                "platform_id": 1,
-                "serial": "SNABC123",
-                "asset_tag": "ASSET123",
                 "site_id": 1,
                 "location_id": 1,
-                "rack_id": 1,
-                "position": 10,
-                "face": "front",
-                "primary_ip4_id": None, # Cannot know this ID beforehand
-                "primary_ip6_id": None,
-                "cluster_id": None,
-                "virtual_chassis_id": None,
-                "vc_position": None,
-                "vc_priority": None,
-                "status": "active",
-                "comments": "Main core router for NYC site.",
-                "custom_fields": {"purchase_date": "2023-01-15"}
+                "ip_address_id": 10, # Example IP Address ID
+                "credential_name": "global-creds",
+                "fallback_credential_name": None
             }
         }
     )
 
 class DeviceUpdate(DeviceBase):
-    name: Optional[str] = None
-    device_type_id: Optional[int] = None
-    role_id: Optional[int] = None
-    tenant_id: Optional[int] = None
-    platform_id: Optional[int] = None
-    serial: Optional[str] = None
-    asset_tag: Optional[str] = None
-    site_id: Optional[int] = None
-    location_id: Optional[int] = None
-    rack_id: Optional[int] = None
-    position: Optional[int] = None
-    face: Optional[str] = None
-    primary_ip4_id: Optional[int] = None
-    primary_ip6_id: Optional[int] = None
-    cluster_id: Optional[int] = None
-    virtual_chassis_id: Optional[int] = None
-    vc_position: Optional[int] = None
-    vc_priority: Optional[int] = None
-    status: Optional[str] = None
-    comments: Optional[str] = None
-    custom_fields: Optional[Dict[str, Any]] = None
+    # Fields are already optional in DeviceBase, no need to repeat Optional types here
+    pass # All fields are optional via inheritance
 
 class DeviceRead(DeviceBase):
     id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
-    # device_type: DeviceTypeRead # Assuming DeviceTypeRead exists
-    # role: RoleRead
+    # Relationships based on models/device.py
+    # site: Optional[SiteRead] = None
     # tenant: Optional[TenantRead] = None
-    # platform: Optional[PlatformRead] # Assuming PlatformRead exists
-    # site: SiteRead
     # location: Optional[LocationRead] = None
-    # rack: Optional[RackRead] = None
-    # primary_ip4: Optional[IPAddressRead] = None
-    # primary_ip6: Optional[IPAddressRead] = None
-    # cluster: Optional[ClusterRead] = None
-    # virtual_chassis: Optional[VirtualChassisRead] = None
+    # interfaces: List[InterfaceRead] = []
+    # ip_address: Optional[IPAddressRead] = None
+    # credential: Optional[CredentialRead] = None
+    # fallback_credential: Optional[CredentialRead] = None
+
     class Config:
         from_attributes = True
 

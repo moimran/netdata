@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # Generic Pydantic model for paginated responses
 T = TypeVar('T')
 
-class PaginatedResponse(Generic[T], BaseModel):
+class PaginatedResponse(BaseModel, Generic[T]):
     items: List[T]
     total: int
     page: int
@@ -30,7 +30,7 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type, 
         search: Optional[str] = None,
         session: Session = Depends(get_session),
         request: Request = None,
-    ):
+    ) -> PaginatedReadSchema:
         # Log all parameters for debugging
         logger.debug(f"GET /{path} - Parameters: skip={skip}, limit={limit}, search={search}")
         
@@ -65,33 +65,25 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type, 
             
             logger.debug(f"GET /{path} - Found {len(items)} items, total: {total}")
             
-            # Convert items to dictionaries with proper serialization
-            from ..serializers import model_to_dict
-            serialized_items = model_to_dict(items)
-            
-            # Return a PaginatedResponse object instead of a dict
+            # Return a PaginatedResponse object with the raw items
             return PaginatedResponse(
-                items=serialized_items,
+                items=items,
                 total=total,
                 page=skip // limit + 1,
                 size=limit
             )
         except Exception as e:
-            logger.error(f"Error in GET /{path}: {str(e)}", exc_info=True)  # Add exc_info for stack trace
+            logger.error(f"Error in GET /{path}: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-    @router.get(f"/{path}/{{item_id}}", tags=tags)
+    @router.get(f"/{path}/{{item_id}}", tags=tags, response_model=ReadSchema)
     def get_one(item_id: int, session: Session = Depends(get_session)):
         item = crud_instance.get_by_id(session, item_id)
         if not item:
             raise HTTPException(status_code=404, detail=f"{path} not found")
-        
-        # Convert item to dictionary with proper serialization
-        from ..serializers import model_to_dict
-        serialized_item = model_to_dict(item)
-        return serialized_item
+        return item
 
-    @router.post(f"/{path}", status_code=201, tags=tags)
+    @router.post(f"/{path}", status_code=201, tags=tags, response_model=ReadSchema)
     def create_item(item: CreateSchema, session: Session = Depends(get_session)):
         # Convert empty strings to None for fields that should be integers or floats
         item_dict = item.model_dump() if hasattr(item, 'model_dump') else item.dict()
@@ -113,12 +105,9 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type, 
                         pass
         
         created_item = crud_instance.create(session, obj_in=item_dict)
-        # Convert created item to dictionary with proper serialization
-        from ..serializers import model_to_dict
-        serialized_item = model_to_dict(created_item)
-        return serialized_item
+        return created_item
 
-    @router.put(f"/{path}/{{item_id}}", tags=tags)
+    @router.put(f"/{path}/{{item_id}}", tags=tags, response_model=ReadSchema)
     def update_item(item_id: int, item: UpdateSchema, session: Session = Depends(get_session)):
         # Convert empty strings to None for fields that should be integers or floats
         item_dict = item.model_dump(exclude_unset=True) if hasattr(item, 'model_dump') else item.dict(exclude_unset=True)
@@ -146,11 +135,7 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type, 
         updated_item = crud_instance.update(session, db_obj=db_obj, obj_in=item_dict)
         if not updated_item:
             raise HTTPException(status_code=404, detail=f"Item with id {item_id} not found")
-        
-        # Convert updated item to dictionary with proper serialization
-        from ..serializers import model_to_dict
-        serialized_item = model_to_dict(updated_item)
-        return serialized_item
+        return updated_item
 
     @router.delete(f"/{path}/{{item_id}}", status_code=204, tags=tags)
     def delete_item(item_id: int, session: Session = Depends(get_session)):

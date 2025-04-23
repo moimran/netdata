@@ -1156,6 +1156,32 @@ export interface components {
             /** Description */
             description?: string | null;
         };
+        /** ASNRangeRead */
+        ASNRangeRead: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug?: string | null;
+            /** Rir Id */
+            rir_id: number;
+            /** Start Asn */
+            start_asn: number;
+            /** End Asn */
+            end_asn: number;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /** Description */
+            description?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
+        };
         /** ASNRangeUpdate */
         ASNRangeUpdate: {
             /** Name */
@@ -1172,6 +1198,28 @@ export interface components {
             tenant_id?: number | null;
             /** Description */
             description?: string | null;
+        };
+        /** ASNRead */
+        ASNRead: {
+            /** Asn */
+            asn: number;
+            /** Rir Id */
+            rir_id: number;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /** Description */
+            description?: string | null;
+            /** Custom Fields */
+            custom_fields?: Record<string, never> | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** ASNUpdate */
         ASNUpdate: {
@@ -1210,6 +1258,30 @@ export interface components {
             description?: string | null;
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
+        };
+        /** AggregateRead */
+        AggregateRead: {
+            /** Prefix */
+            prefix: string;
+            /** Rir Id */
+            rir_id: number;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /** Date Added */
+            date_added?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Custom Fields */
+            custom_fields?: Record<string, never> | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** AggregateUpdate */
         AggregateUpdate: {
@@ -1308,6 +1380,28 @@ export interface components {
             /** Data */
             data?: Record<string, never> | null;
         };
+        /** CredentialRead */
+        CredentialRead: {
+            /** Name */
+            name: string;
+            /** Credential Type Id */
+            credential_type_id: number;
+            /** Description */
+            description?: string | null;
+            /** Comments */
+            comments?: string | null;
+            /** Custom Fields */
+            custom_fields?: Record<string, never> | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
+        };
         /** CredentialUpdate */
         CredentialUpdate: {
             /** Name */
@@ -1336,68 +1430,38 @@ export interface components {
         /**
          * DeviceCreate
          * @example {
-         *       "asset_tag": "ASSET123",
-         *       "comments": "Main core router for NYC site.",
-         *       "custom_fields": {
-         *         "purchase_date": "2023-01-15"
-         *       },
-         *       "device_type_id": 1,
-         *       "face": "front",
+         *       "credential_name": "global-creds",
+         *       "description": "Main core router for NYC site.",
+         *       "ip_address_id": 10,
          *       "location_id": 1,
          *       "name": "core-router-01",
-         *       "platform_id": 1,
-         *       "position": 10,
-         *       "rack_id": 1,
-         *       "role_id": 1,
-         *       "serial": "SNABC123",
          *       "site_id": 1,
-         *       "status": "active",
          *       "tenant_id": 1
          *     }
          */
         DeviceCreate: {
-            /** Name */
-            name?: string | null;
-            /** Device Type Id */
-            device_type_id: number;
-            /** Role Id */
-            role_id: number;
+            /**
+             * Name
+             * @description Name of the device
+             */
+            name: string;
+            /**
+             * Description
+             * @description Brief description
+             */
+            description?: string | null;
             /** Tenant Id */
             tenant_id?: number | null;
-            /** Platform Id */
-            platform_id?: number | null;
-            /** Serial */
-            serial?: string | null;
-            /** Asset Tag */
-            asset_tag?: string | null;
             /** Site Id */
-            site_id: number;
+            site_id?: number | null;
             /** Location Id */
             location_id?: number | null;
-            /** Rack Id */
-            rack_id?: number | null;
-            /** Position */
-            position?: number | null;
-            /** Face */
-            face?: string | null;
-            /** Primary Ip4 Id */
-            primary_ip4_id?: number | null;
-            /** Primary Ip6 Id */
-            primary_ip6_id?: number | null;
-            /** Cluster Id */
-            cluster_id?: number | null;
-            /** Virtual Chassis Id */
-            virtual_chassis_id?: number | null;
-            /** Vc Position */
-            vc_position?: number | null;
-            /** Vc Priority */
-            vc_priority?: number | null;
-            /** Status */
-            status: string;
-            /** Comments */
-            comments?: string | null;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
+            /** Ip Address Id */
+            ip_address_id?: number | null;
+            /** Credential Name */
+            credential_name?: string | null;
+            /** Fallback Credential Name */
+            fallback_credential_name?: string | null;
         };
         /**
          * DeviceInventoryCreate
@@ -1499,50 +1563,64 @@ export interface components {
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
         };
-        /** DeviceUpdate */
-        DeviceUpdate: {
-            /** Name */
+        /** DeviceRead */
+        DeviceRead: {
+            /**
+             * Name
+             * @description Name of the device
+             */
             name?: string | null;
-            /** Device Type Id */
-            device_type_id?: number | null;
-            /** Role Id */
-            role_id?: number | null;
+            /**
+             * Description
+             * @description Brief description
+             */
+            description?: string | null;
             /** Tenant Id */
             tenant_id?: number | null;
-            /** Platform Id */
-            platform_id?: number | null;
-            /** Serial */
-            serial?: string | null;
-            /** Asset Tag */
-            asset_tag?: string | null;
             /** Site Id */
             site_id?: number | null;
             /** Location Id */
             location_id?: number | null;
-            /** Rack Id */
-            rack_id?: number | null;
-            /** Position */
-            position?: number | null;
-            /** Face */
-            face?: string | null;
-            /** Primary Ip4 Id */
-            primary_ip4_id?: number | null;
-            /** Primary Ip6 Id */
-            primary_ip6_id?: number | null;
-            /** Cluster Id */
-            cluster_id?: number | null;
-            /** Virtual Chassis Id */
-            virtual_chassis_id?: number | null;
-            /** Vc Position */
-            vc_position?: number | null;
-            /** Vc Priority */
-            vc_priority?: number | null;
-            /** Status */
-            status?: string | null;
-            /** Comments */
-            comments?: string | null;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
+            /** Ip Address Id */
+            ip_address_id?: number | null;
+            /** Credential Name */
+            credential_name?: string | null;
+            /** Fallback Credential Name */
+            fallback_credential_name?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
+        };
+        /** DeviceUpdate */
+        DeviceUpdate: {
+            /**
+             * Name
+             * @description Name of the device
+             */
+            name?: string | null;
+            /**
+             * Description
+             * @description Brief description
+             */
+            description?: string | null;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /** Site Id */
+            site_id?: number | null;
+            /** Location Id */
+            location_id?: number | null;
+            /** Ip Address Id */
+            ip_address_id?: number | null;
+            /** Credential Name */
+            credential_name?: string | null;
+            /** Fallback Credential Name */
+            fallback_credential_name?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1587,6 +1665,38 @@ export interface components {
             comments?: string | null;
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
+        };
+        /** IPAddressRead */
+        IPAddressRead: {
+            /** Address */
+            address: string;
+            /** Vrf Id */
+            vrf_id?: number | null;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /** Status */
+            status: string;
+            /** Role */
+            role?: string | null;
+            /** Interface Id */
+            interface_id?: number | null;
+            /** Dns Name */
+            dns_name?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Comments */
+            comments?: string | null;
+            /** Custom Fields */
+            custom_fields?: Record<string, never> | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** IPAddressUpdate */
         IPAddressUpdate: {
@@ -1652,6 +1762,40 @@ export interface components {
             comments?: string | null;
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
+        };
+        /** IPRangeRead */
+        IPRangeRead: {
+            /** Start Address */
+            start_address: string;
+            /** End Address */
+            end_address: string;
+            /** Size */
+            size?: number | null;
+            /** Prefix Id */
+            prefix_id?: number | null;
+            /** Vrf Id */
+            vrf_id?: number | null;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /** Status */
+            status: string;
+            /** Role Id */
+            role_id?: number | null;
+            /** Description */
+            description?: string | null;
+            /** Comments */
+            comments?: string | null;
+            /** Custom Fields */
+            custom_fields?: Record<string, never> | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** IPRangeUpdate */
         IPRangeUpdate: {
@@ -1748,6 +1892,67 @@ export interface components {
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
         };
+        /** InterfaceRead */
+        InterfaceRead: {
+            /** Device Id */
+            device_id: number;
+            /** Name */
+            name: string;
+            /** Label */
+            label?: string | null;
+            /** Type */
+            type: string;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /** Parent Id */
+            parent_id?: number | null;
+            /** Mtu */
+            mtu?: number | null;
+            /** Mac Address */
+            mac_address?: string | null;
+            /** Wwn */
+            wwn?: string | null;
+            /**
+             * Mgmt Only
+             * @default false
+             */
+            mgmt_only: boolean;
+            /** Description */
+            description?: string | null;
+            /** Mode */
+            mode?: string | null;
+            /** Rf Role */
+            rf_role?: string | null;
+            /** Rf Channel */
+            rf_channel?: string | null;
+            /** Rf Channel Frequency */
+            rf_channel_frequency?: number | null;
+            /** Rf Channel Width */
+            rf_channel_width?: number | null;
+            /** Tx Power */
+            tx_power?: number | null;
+            /** Untagged Vlan Id */
+            untagged_vlan_id?: number | null;
+            /**
+             * Mark Connected
+             * @default false
+             */
+            mark_connected: boolean;
+            /** Custom Fields */
+            custom_fields?: Record<string, never> | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
+        };
         /** InterfaceUpdate */
         InterfaceUpdate: {
             /** Device Id */
@@ -1813,6 +2018,23 @@ export interface components {
             description?: string | null;
             /** Tenant Id */
             tenant_id?: number | null;
+        };
+        /** LocationRead */
+        LocationRead: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug?: string | null;
+            /** Site Id */
+            site_id: number;
+            /** Parent Id */
+            parent_id?: number | null;
+            /** Description */
+            description?: string | null;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /** Id */
+            id: number;
         };
         /** LocationUpdate */
         LocationUpdate: {
@@ -1932,6 +2154,103 @@ export interface components {
             status: string;
         };
         /**
+         * NetJobRead
+         * @description Schema for reading NetJob data, including generated fields.
+         */
+        NetJobRead: {
+            /**
+             * Name
+             * @description Job name
+             */
+            name: string;
+            /**
+             * Slug
+             * @description URL-friendly slug
+             */
+            slug?: string | null;
+            /**
+             * Description
+             * @description Detailed description of the job
+             */
+            description?: string | null;
+            /**
+             * Platform Type Id
+             * @description ID of the associated PlatformType
+             */
+            platform_type_id?: number | null;
+            /**
+             * Command List
+             * @description List of commands to execute
+             */
+            command_list: string[];
+            /**
+             * Is Scheduled
+             * @description Whether the job is scheduled to run periodically
+             * @default false
+             */
+            is_scheduled: boolean;
+            /**
+             * Next Run
+             * @description Timestamp of the next scheduled run
+             */
+            next_run?: string | null;
+            /**
+             * Last Run
+             * @description Timestamp of the last execution
+             */
+            last_run?: string | null;
+            /**
+             * Connection Protocol
+             * @description Connection protocol (e.g., ssh, telnet)
+             * @default ssh
+             */
+            connection_protocol: string;
+            /**
+             * Connection Library
+             * @description Library used for connection (e.g., NETMIKO, NAPALM)
+             * @default NETMIKO
+             */
+            connection_library: string;
+            /**
+             * Is Encrypted
+             * @description Whether connection details are encrypted
+             * @default false
+             */
+            is_encrypted: boolean;
+            /**
+             * Is Parse
+             * @description Whether to parse the command output
+             * @default true
+             */
+            is_parse: boolean;
+            /**
+             * Extra Config
+             * @description Additional configuration parameters
+             */
+            extra_config?: Record<string, never> | null;
+            /**
+             * Status
+             * @description Job status (e.g., ACTIVE, INACTIVE)
+             * @default ACTIVE
+             */
+            status: string;
+            /** Id */
+            id: number;
+            /**
+             * Job Uuid
+             * Format: uuid
+             */
+            job_uuid: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
+            platform_type?: components["schemas"]["PlatformTypeRead"] | null;
+        };
+        /**
          * NetJobUpdate
          * @description Schema for updating an existing NetJob. All fields are optional.
          */
@@ -1965,10 +2284,252 @@ export interface components {
             /** Status */
             status?: string | null;
         };
-        /** PaginatedResponse */
-        PaginatedResponse: {
+        /** PaginatedResponse[ASNRangeRead] */
+        PaginatedResponse_ASNRangeRead_: {
             /** Items */
-            items: unknown[];
+            items: components["schemas"]["ASNRangeRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[ASNRead] */
+        PaginatedResponse_ASNRead_: {
+            /** Items */
+            items: components["schemas"]["ASNRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[AggregateRead] */
+        PaginatedResponse_AggregateRead_: {
+            /** Items */
+            items: components["schemas"]["AggregateRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[CredentialRead] */
+        PaginatedResponse_CredentialRead_: {
+            /** Items */
+            items: components["schemas"]["CredentialRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[DeviceInventoryRead] */
+        PaginatedResponse_DeviceInventoryRead_: {
+            /** Items */
+            items: components["schemas"]["DeviceInventoryRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[DeviceRead] */
+        PaginatedResponse_DeviceRead_: {
+            /** Items */
+            items: components["schemas"]["DeviceRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[IPAddressRead] */
+        PaginatedResponse_IPAddressRead_: {
+            /** Items */
+            items: components["schemas"]["IPAddressRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[IPRangeRead] */
+        PaginatedResponse_IPRangeRead_: {
+            /** Items */
+            items: components["schemas"]["IPRangeRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[InterfaceRead] */
+        PaginatedResponse_InterfaceRead_: {
+            /** Items */
+            items: components["schemas"]["InterfaceRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[LocationRead] */
+        PaginatedResponse_LocationRead_: {
+            /** Items */
+            items: components["schemas"]["LocationRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[NetJobRead] */
+        PaginatedResponse_NetJobRead_: {
+            /** Items */
+            items: components["schemas"]["NetJobRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[PlatformTypeRead] */
+        PaginatedResponse_PlatformTypeRead_: {
+            /** Items */
+            items: components["schemas"]["PlatformTypeRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[PrefixRead] */
+        PaginatedResponse_PrefixRead_: {
+            /** Items */
+            items: components["schemas"]["PrefixRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[RIRRead] */
+        PaginatedResponse_RIRRead_: {
+            /** Items */
+            items: components["schemas"]["RIRRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[RegionRead] */
+        PaginatedResponse_RegionRead_: {
+            /** Items */
+            items: components["schemas"]["RegionRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[RoleRead] */
+        PaginatedResponse_RoleRead_: {
+            /** Items */
+            items: components["schemas"]["RoleRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[RouteTargetRead] */
+        PaginatedResponse_RouteTargetRead_: {
+            /** Items */
+            items: components["schemas"]["RouteTargetRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[SiteGroupRead] */
+        PaginatedResponse_SiteGroupRead_: {
+            /** Items */
+            items: components["schemas"]["SiteGroupRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[SiteRead] */
+        PaginatedResponse_SiteRead_: {
+            /** Items */
+            items: components["schemas"]["SiteRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[TenantRead] */
+        PaginatedResponse_TenantRead_: {
+            /** Items */
+            items: components["schemas"]["TenantRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[VLANGroupRead] */
+        PaginatedResponse_VLANGroupRead_: {
+            /** Items */
+            items: components["schemas"]["VLANGroupRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[VLANRead] */
+        PaginatedResponse_VLANRead_: {
+            /** Items */
+            items: components["schemas"]["VLANRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[VRFRead] */
+        PaginatedResponse_VRFRead_: {
+            /** Items */
+            items: components["schemas"]["VRFRead"][];
             /** Total */
             total: number;
             /** Page */
@@ -2006,6 +2567,28 @@ export interface components {
              * @default false
              */
             ignore_platform: boolean;
+        };
+        /** PlatformTypeRead */
+        PlatformTypeRead: {
+            /** Name */
+            name?: string | null;
+            /** Slug */
+            slug?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Platform Signature */
+            platform_signature: string;
+            /** Platform Type */
+            platform_type: string;
+            /** Command */
+            command?: string | null;
+            /**
+             * Ignore Platform
+             * @default false
+             */
+            ignore_platform: boolean;
+            /** Id */
+            id: number;
         };
         /** PlatformTypeUpdate */
         PlatformTypeUpdate: {
@@ -2091,6 +2674,48 @@ export interface components {
             /** Vrf Id */
             vrf_id?: number | null;
         };
+        /** PrefixRead */
+        PrefixRead: {
+            /** Prefix */
+            prefix: string;
+            /** Site Id */
+            site_id?: number | null;
+            /** Vrf Id */
+            vrf_id?: number | null;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /** Vlan Id */
+            vlan_id?: number | null;
+            /** Status */
+            status: string;
+            /** Role Id */
+            role_id?: number | null;
+            /**
+             * Is Pool
+             * @default false
+             */
+            is_pool: boolean;
+            /**
+             * Is Critical
+             * @default false
+             */
+            is_critical: boolean;
+            /** Description */
+            description?: string | null;
+            /** Comments */
+            comments?: string | null;
+            /** Custom Fields */
+            custom_fields?: Record<string, never> | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
+        };
         /** PrefixUpdate */
         PrefixUpdate: {
             /** Prefix */
@@ -2140,6 +2765,22 @@ export interface components {
             /** Description */
             description?: string | null;
         };
+        /** RIRRead */
+        RIRRead: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug?: string | null;
+            /**
+             * Is Private
+             * @default false
+             */
+            is_private: boolean;
+            /** Description */
+            description?: string | null;
+            /** Id */
+            id: number;
+        };
         /** RIRUpdate */
         RIRUpdate: {
             /** Name */
@@ -2168,6 +2809,19 @@ export interface components {
             description?: string | null;
             /** Parent Id */
             parent_id?: number | null;
+        };
+        /** RegionRead */
+        RegionRead: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Parent Id */
+            parent_id?: number | null;
+            /** Id */
+            id: number;
         };
         /** RegionUpdate */
         RegionUpdate: {
@@ -2202,6 +2856,22 @@ export interface components {
             /** Description */
             description?: string | null;
         };
+        /** RoleRead */
+        RoleRead: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug?: string | null;
+            /**
+             * Weight
+             * @default 1000
+             */
+            weight: number;
+            /** Description */
+            description?: string | null;
+            /** Id */
+            id: number;
+        };
         /** RoleUpdate */
         RoleUpdate: {
             /** Name */
@@ -2233,6 +2903,26 @@ export interface components {
             description?: string | null;
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
+        };
+        /** RouteTargetRead */
+        RouteTargetRead: {
+            /** Name */
+            name: string;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /** Description */
+            description?: string | null;
+            /** Custom Fields */
+            custom_fields?: Record<string, never> | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** RouteTargetUpdate */
         RouteTargetUpdate: {
@@ -2328,6 +3018,19 @@ export interface components {
             /** Parent Id */
             parent_id?: number | null;
         };
+        /** SiteGroupRead */
+        SiteGroupRead: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Parent Id */
+            parent_id?: number | null;
+            /** Id */
+            id: number;
+        };
         /** SiteGroupUpdate */
         SiteGroupUpdate: {
             /** Name */
@@ -2338,6 +3041,56 @@ export interface components {
             description?: string | null;
             /** Parent Id */
             parent_id?: number | null;
+        };
+        /** SiteRead */
+        SiteRead: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug?: string | null;
+            /** Status */
+            status: string;
+            /** Region Id */
+            region_id?: number | null;
+            /** Site Group Id */
+            site_group_id?: number | null;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /** Facility */
+            facility?: string | null;
+            /** Asn Id */
+            asn_id?: number | null;
+            /** Time Zone */
+            time_zone?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Physical Address */
+            physical_address?: string | null;
+            /** Shipping Address */
+            shipping_address?: string | null;
+            /** Latitude */
+            latitude?: number | null;
+            /** Longitude */
+            longitude?: number | null;
+            /** Contact Name */
+            contact_name?: string | null;
+            /** Contact Phone */
+            contact_phone?: string | null;
+            /** Contact Email */
+            contact_email?: string | null;
+            /** Comments */
+            comments?: string | null;
+            /** Custom Fields */
+            custom_fields?: Record<string, never> | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** SiteUpdate */
         SiteUpdate: {
@@ -2403,6 +3156,28 @@ export interface components {
             comments?: string | null;
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
+        };
+        /** TenantRead */
+        TenantRead: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Comments */
+            comments?: string | null;
+            /** Custom Fields */
+            custom_fields?: Record<string, never> | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** TenantUpdate */
         TenantUpdate: {
@@ -2484,6 +3259,32 @@ export interface components {
             /** Description */
             description?: string | null;
         };
+        /** VLANGroupRead */
+        VLANGroupRead: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug?: string | null;
+            /** Scope Type */
+            scope_type?: string | null;
+            /** Scope Id */
+            scope_id?: number | null;
+            /** Min Vid */
+            min_vid?: number | null;
+            /** Max Vid */
+            max_vid?: number | null;
+            /** Description */
+            description?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
+        };
         /** VLANGroupUpdate */
         VLANGroupUpdate: {
             /** Name */
@@ -2500,6 +3301,38 @@ export interface components {
             max_vid?: number | null;
             /** Description */
             description?: string | null;
+        };
+        /** VLANRead */
+        VLANRead: {
+            /** Site Id */
+            site_id?: number | null;
+            /** Group Id */
+            group_id?: number | null;
+            /** Vid */
+            vid: number;
+            /** Name */
+            name: string;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /** Status */
+            status: string;
+            /** Role Id */
+            role_id?: number | null;
+            /** Description */
+            description?: string | null;
+            /** Comments */
+            comments?: string | null;
+            /** Custom Fields */
+            custom_fields?: Record<string, never> | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** VLANUpdate */
         VLANUpdate: {
@@ -2553,6 +3386,33 @@ export interface components {
             description?: string | null;
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
+        };
+        /** VRFRead */
+        VRFRead: {
+            /** Name */
+            name: string;
+            /** Rd */
+            rd?: string | null;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /**
+             * Enforce Unique
+             * @default true
+             */
+            enforce_unique: boolean;
+            /** Description */
+            description?: string | null;
+            /** Custom Fields */
+            custom_fields?: Record<string, never> | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** VRFUpdate */
         VRFUpdate: {
@@ -3062,7 +3922,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_RegionRead_"];
                 };
             };
             /** @description Validation Error */
@@ -3095,7 +3955,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RegionRead"];
                 };
             };
             /** @description Validation Error */
@@ -3126,7 +3986,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RegionRead"];
                 };
             };
             /** @description Validation Error */
@@ -3161,7 +4021,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RegionRead"];
                 };
             };
             /** @description Validation Error */
@@ -3223,7 +4083,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_SiteGroupRead_"];
                 };
             };
             /** @description Validation Error */
@@ -3256,7 +4116,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SiteGroupRead"];
                 };
             };
             /** @description Validation Error */
@@ -3287,7 +4147,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SiteGroupRead"];
                 };
             };
             /** @description Validation Error */
@@ -3322,7 +4182,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SiteGroupRead"];
                 };
             };
             /** @description Validation Error */
@@ -3384,7 +4244,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_SiteRead_"];
                 };
             };
             /** @description Validation Error */
@@ -3417,7 +4277,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SiteRead"];
                 };
             };
             /** @description Validation Error */
@@ -3448,7 +4308,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SiteRead"];
                 };
             };
             /** @description Validation Error */
@@ -3483,7 +4343,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SiteRead"];
                 };
             };
             /** @description Validation Error */
@@ -3545,7 +4405,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_LocationRead_"];
                 };
             };
             /** @description Validation Error */
@@ -3578,7 +4438,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["LocationRead"];
                 };
             };
             /** @description Validation Error */
@@ -3609,7 +4469,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["LocationRead"];
                 };
             };
             /** @description Validation Error */
@@ -3644,7 +4504,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["LocationRead"];
                 };
             };
             /** @description Validation Error */
@@ -3706,7 +4566,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_VRFRead_"];
                 };
             };
             /** @description Validation Error */
@@ -3739,7 +4599,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["VRFRead"];
                 };
             };
             /** @description Validation Error */
@@ -3770,7 +4630,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["VRFRead"];
                 };
             };
             /** @description Validation Error */
@@ -3805,7 +4665,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["VRFRead"];
                 };
             };
             /** @description Validation Error */
@@ -3867,7 +4727,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_RIRRead_"];
                 };
             };
             /** @description Validation Error */
@@ -3900,7 +4760,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RIRRead"];
                 };
             };
             /** @description Validation Error */
@@ -3931,7 +4791,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RIRRead"];
                 };
             };
             /** @description Validation Error */
@@ -3966,7 +4826,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RIRRead"];
                 };
             };
             /** @description Validation Error */
@@ -4028,7 +4888,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_AggregateRead_"];
                 };
             };
             /** @description Validation Error */
@@ -4061,7 +4921,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AggregateRead"];
                 };
             };
             /** @description Validation Error */
@@ -4092,7 +4952,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AggregateRead"];
                 };
             };
             /** @description Validation Error */
@@ -4127,7 +4987,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AggregateRead"];
                 };
             };
             /** @description Validation Error */
@@ -4189,7 +5049,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_RoleRead_"];
                 };
             };
             /** @description Validation Error */
@@ -4222,7 +5082,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RoleRead"];
                 };
             };
             /** @description Validation Error */
@@ -4253,7 +5113,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RoleRead"];
                 };
             };
             /** @description Validation Error */
@@ -4288,7 +5148,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RoleRead"];
                 };
             };
             /** @description Validation Error */
@@ -4350,7 +5210,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_PrefixRead_"];
                 };
             };
             /** @description Validation Error */
@@ -4383,7 +5243,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["PrefixRead"];
                 };
             };
             /** @description Validation Error */
@@ -4414,7 +5274,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["PrefixRead"];
                 };
             };
             /** @description Validation Error */
@@ -4449,7 +5309,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["PrefixRead"];
                 };
             };
             /** @description Validation Error */
@@ -4511,7 +5371,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_IPRangeRead_"];
                 };
             };
             /** @description Validation Error */
@@ -4544,7 +5404,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["IPRangeRead"];
                 };
             };
             /** @description Validation Error */
@@ -4575,7 +5435,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["IPRangeRead"];
                 };
             };
             /** @description Validation Error */
@@ -4610,7 +5470,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["IPRangeRead"];
                 };
             };
             /** @description Validation Error */
@@ -4672,7 +5532,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_IPAddressRead_"];
                 };
             };
             /** @description Validation Error */
@@ -4705,7 +5565,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["IPAddressRead"];
                 };
             };
             /** @description Validation Error */
@@ -4736,7 +5596,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["IPAddressRead"];
                 };
             };
             /** @description Validation Error */
@@ -4771,7 +5631,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["IPAddressRead"];
                 };
             };
             /** @description Validation Error */
@@ -4833,7 +5693,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_VLANRead_"];
                 };
             };
             /** @description Validation Error */
@@ -4866,7 +5726,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["VLANRead"];
                 };
             };
             /** @description Validation Error */
@@ -4897,7 +5757,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["VLANRead"];
                 };
             };
             /** @description Validation Error */
@@ -4932,7 +5792,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["VLANRead"];
                 };
             };
             /** @description Validation Error */
@@ -4994,7 +5854,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_VLANGroupRead_"];
                 };
             };
             /** @description Validation Error */
@@ -5027,7 +5887,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["VLANGroupRead"];
                 };
             };
             /** @description Validation Error */
@@ -5058,7 +5918,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["VLANGroupRead"];
                 };
             };
             /** @description Validation Error */
@@ -5093,7 +5953,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["VLANGroupRead"];
                 };
             };
             /** @description Validation Error */
@@ -5155,7 +6015,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_TenantRead_"];
                 };
             };
             /** @description Validation Error */
@@ -5188,7 +6048,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["TenantRead"];
                 };
             };
             /** @description Validation Error */
@@ -5219,7 +6079,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["TenantRead"];
                 };
             };
             /** @description Validation Error */
@@ -5254,7 +6114,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["TenantRead"];
                 };
             };
             /** @description Validation Error */
@@ -5316,7 +6176,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_DeviceRead_"];
                 };
             };
             /** @description Validation Error */
@@ -5349,7 +6209,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DeviceRead"];
                 };
             };
             /** @description Validation Error */
@@ -5380,7 +6240,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DeviceRead"];
                 };
             };
             /** @description Validation Error */
@@ -5415,7 +6275,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DeviceRead"];
                 };
             };
             /** @description Validation Error */
@@ -5477,7 +6337,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_InterfaceRead_"];
                 };
             };
             /** @description Validation Error */
@@ -5510,7 +6370,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["InterfaceRead"];
                 };
             };
             /** @description Validation Error */
@@ -5541,7 +6401,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["InterfaceRead"];
                 };
             };
             /** @description Validation Error */
@@ -5576,7 +6436,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["InterfaceRead"];
                 };
             };
             /** @description Validation Error */
@@ -5638,7 +6498,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_DeviceInventoryRead_"];
                 };
             };
             /** @description Validation Error */
@@ -5671,7 +6531,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DeviceInventoryRead"];
                 };
             };
             /** @description Validation Error */
@@ -5702,7 +6562,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DeviceInventoryRead"];
                 };
             };
             /** @description Validation Error */
@@ -5737,7 +6597,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DeviceInventoryRead"];
                 };
             };
             /** @description Validation Error */
@@ -5799,7 +6659,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_ASNRead_"];
                 };
             };
             /** @description Validation Error */
@@ -5832,7 +6692,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ASNRead"];
                 };
             };
             /** @description Validation Error */
@@ -5863,7 +6723,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ASNRead"];
                 };
             };
             /** @description Validation Error */
@@ -5898,7 +6758,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ASNRead"];
                 };
             };
             /** @description Validation Error */
@@ -5960,7 +6820,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_ASNRangeRead_"];
                 };
             };
             /** @description Validation Error */
@@ -5993,7 +6853,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ASNRangeRead"];
                 };
             };
             /** @description Validation Error */
@@ -6024,7 +6884,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ASNRangeRead"];
                 };
             };
             /** @description Validation Error */
@@ -6059,7 +6919,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ASNRangeRead"];
                 };
             };
             /** @description Validation Error */
@@ -6121,7 +6981,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_RouteTargetRead_"];
                 };
             };
             /** @description Validation Error */
@@ -6154,7 +7014,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RouteTargetRead"];
                 };
             };
             /** @description Validation Error */
@@ -6185,7 +7045,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RouteTargetRead"];
                 };
             };
             /** @description Validation Error */
@@ -6220,7 +7080,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RouteTargetRead"];
                 };
             };
             /** @description Validation Error */
@@ -6282,7 +7142,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_CredentialRead_"];
                 };
             };
             /** @description Validation Error */
@@ -6315,7 +7175,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CredentialRead"];
                 };
             };
             /** @description Validation Error */
@@ -6346,7 +7206,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CredentialRead"];
                 };
             };
             /** @description Validation Error */
@@ -6381,7 +7241,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CredentialRead"];
                 };
             };
             /** @description Validation Error */
@@ -6443,7 +7303,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_PlatformTypeRead_"];
                 };
             };
             /** @description Validation Error */
@@ -6476,7 +7336,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["PlatformTypeRead"];
                 };
             };
             /** @description Validation Error */
@@ -6507,7 +7367,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["PlatformTypeRead"];
                 };
             };
             /** @description Validation Error */
@@ -6542,7 +7402,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["PlatformTypeRead"];
                 };
             };
             /** @description Validation Error */
@@ -6604,7 +7464,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_NetJobRead_"];
                 };
             };
             /** @description Validation Error */
@@ -6637,7 +7497,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["NetJobRead"];
                 };
             };
             /** @description Validation Error */
@@ -6668,7 +7528,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["NetJobRead"];
                 };
             };
             /** @description Validation Error */
@@ -6703,7 +7563,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["NetJobRead"];
                 };
             };
             /** @description Validation Error */

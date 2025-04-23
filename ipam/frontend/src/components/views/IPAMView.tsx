@@ -1,4 +1,4 @@
-import UnifiedTable from '../IPAMTable';
+import UnifiedTable from '../tables/UnifiedTable';
 import TableContainer from '../tables/TableContainer';
 import type { TableName } from '../../types';
 

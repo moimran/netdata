@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Card,
@@ -7,22 +7,18 @@ import {
   Text,
   Stack,
   Button,
-  Badge,
   Box,
   ActionIcon,
   Modal,
   TextInput,
-  Grid,
   Alert,
   Loader,
   MultiSelect
 } from '@mantine/core';
-import { IconArrowLeft, IconPlus, IconTrash, IconSearch, IconRefresh } from '@tabler/icons-react';
+import { IconArrowLeft, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../../api/client';
-import { StyledTable, TableHeader, tableStyles } from '../../tables/TableStyles';
-import { StatusBadge } from '../../tables/TableStyles';
-import { ErrorBoundary } from '../../common/ErrorBoundary';
+import UnifiedTable from '../../tables/UnifiedTable';
 
 interface VLAN {
   id: number;
@@ -32,15 +28,6 @@ interface VLAN {
   status: string;
   description: string | null;
   group_id: number | null;
-}
-
-interface VLANGroup {
-  id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  min_vid: number;
-  max_vid: number;
 }
 
 export function VLANGroupDetailView() {
@@ -133,6 +120,19 @@ export function VLANGroupDetailView() {
       removeVLANMutation.mutate(vlanId);
     }
   };
+
+  const renderVlanActions = (vlan: VLAN) => (
+    <ActionIcon
+      color="red"
+      onClick={() => handleRemoveVLAN(vlan.id)}
+      title="Remove from group"
+      loading={removeVLANMutation.isPending && removeVLANMutation.variables === vlan.id}
+      variant="light"
+      radius="md"
+    >
+      <IconTrash size={16} />
+    </ActionIcon>
+  );
 
   if (isLoadingGroup) {
     return (
@@ -239,33 +239,7 @@ export function VLANGroupDetailView() {
             No VLANs in this group. Add VLANs using the button above.
           </Text>
         ) : (
-          <StyledTable>
-            <TableHeader columns={['Name', 'VID', 'Status', 'Description', 'Actions']} />
-            <tbody>
-              {vlansInGroup?.map((vlan: VLAN) => (
-                <tr key={vlan.id} className="ipam-table-row">
-                  <td style={tableStyles.cell} className="ipam-cell ipam-cell-name" title={vlan.name}>{vlan.name}</td>
-                  <td style={tableStyles.cell} className="ipam-cell ipam-cell-vid" title={vlan.vid.toString()}>{vlan.vid}</td>
-                  <td style={tableStyles.cell} className="ipam-cell ipam-cell-status" title={vlan.status}>
-                    <StatusBadge status={vlan.status} />
-                  </td>
-                  <td style={tableStyles.cell} className="ipam-cell ipam-cell-description" title={vlan.description || '-'}>{vlan.description || '-'}</td>
-                  <td style={{ ...tableStyles.cell, ...tableStyles.actionsCell }} className="ipam-cell ipam-cell-actions">
-                    <ActionIcon
-                      color="red"
-                      onClick={() => handleRemoveVLAN(vlan.id)}
-                      title="Remove from group"
-                      loading={removeVLANMutation.isPending}
-                      variant="light"
-                      radius="md"
-                    >
-                      <IconTrash size={16} />
-                    </ActionIcon>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </StyledTable>
+          <UnifiedTable tableName="vlans" customActionsRenderer={renderVlanActions} />
         )}
       </Card>
 
