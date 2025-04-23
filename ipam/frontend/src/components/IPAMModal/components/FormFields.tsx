@@ -183,11 +183,30 @@ const ReferenceField = memo(({
   formatReferenceValue: (value: number | string | null, tableName: string) => string;
   allowMultiple?: boolean;
 }) => {
-  // Get the data for the reference table
-  const options = (referenceData[referenceTable] || []).map(item => ({
-    value: item.id.toString(),
-    label: item.name || item.display_name || item.rd || formatReferenceValue(item.id, referenceTable)
-  }));
+  // Debug the reference data
+  console.log(`ReferenceField for ${name} (${referenceTable}):`, { 
+    availableTables: Object.keys(referenceData),
+    tableData: referenceData[referenceTable] || [],
+    currentValue: value
+  });
+  
+  // Special handling for self-references (like parent_id in regions)
+  // If this is a self-reference field (like parent_id in regions table),
+  // we need to make sure we don't include the current item in the options
+  // to avoid circular references
+  const options = (referenceData[referenceTable] || [])
+    .filter(item => {
+      // For self-references in edit mode, filter out the current item
+      // to prevent selecting itself as a parent
+      if (name === 'parent_id' && referenceTable === 'regions' && value !== null) {
+        return item.id !== value;
+      }
+      return true;
+    })
+    .map(item => ({
+      value: item.id.toString(),
+      label: item.name || item.display_name || item.rd || formatReferenceValue(item.id, referenceTable)
+    }));
 
   if (allowMultiple) {
     return (
@@ -241,7 +260,85 @@ export const FormField = memo(function FormField({
 
   // Generate label for the field
   const label = getFieldLabel(column.name);
+  
+  // Special handling for parent_id in regions table
+  if (tableName === 'regions' && column.name === 'parent_id') {
+    console.log('Rendering parent_id field for regions:', {
+      availableRegions: referenceData.regions || [],
+      currentValue: formData.parent_id
+    });
+    
+    // Create options from available regions
+    const options = (referenceData.regions || []).map(region => ({
+      value: region.id.toString(),
+      label: region.name || `Region #${region.id}`
+    }));
+    
+    // Filter out the current region to prevent circular references
+    const filteredOptions = formData.id 
+      ? options.filter(option => option.value !== formData.id.toString())
+      : options;
+    
+    return (
+      <Select
+        label="Parent Region"
+        data={filteredOptions}
+        value={formData.parent_id ? formData.parent_id.toString() : null}
+        onChange={(value) => handleChange('parent_id', value ? Number(value) : null)}
+        error={validationErrors.parent_id}
+        placeholder="Select Parent Region"
+        searchable
+        clearable
+      />
+    );
+  }
 
+  // Log the current field being rendered
+  console.log(`Rendering field: ${column.name} (${column.type})`, {
+    hasReference: !!column.reference,
+    referenceTable: column.reference,
+    currentValue: formData[column.name],
+    availableReferenceData: column.reference ? referenceData[column.reference] : null
+  });
+  
+  // Special handling for parent_id in regions
+  if (column.name === 'parent_id' && column.reference === 'regions') {
+    console.log('Rendering parent_id field with regions reference', {
+      regions: referenceData.regions || [],
+      regionsCount: referenceData.regions ? referenceData.regions.length : 0
+    });
+    
+    // Check if we have any regions available
+    const hasRegions = referenceData.regions && referenceData.regions.length > 0;
+    
+    // Create options from the regions data
+    const options = hasRegions 
+      ? referenceData.regions.map(region => ({
+          value: region.id.toString(),
+          label: region.name || `Region #${region.id}`
+        }))
+      : [];
+    
+    // Filter out the current region to prevent circular references
+    const filteredOptions = formData.id 
+      ? options.filter(option => option.value !== formData.id.toString())
+      : options;
+    
+    return (
+      <Select
+        label="Parent Region"
+        data={filteredOptions}
+        value={formData.parent_id ? formData.parent_id.toString() : null}
+        onChange={(value) => handleChange('parent_id', value ? Number(value) : null)}
+        error={validationErrors.parent_id}
+        placeholder={hasRegions ? "Select Parent Region" : "No parent regions available"}
+        searchable
+        clearable
+        disabled={!hasRegions}
+      />
+    );
+  }
+  
   // Generate field based on column type
   switch (column.type) {
     case 'boolean':

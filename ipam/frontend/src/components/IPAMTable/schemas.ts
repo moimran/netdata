@@ -14,7 +14,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
     { name: 'slug', type: 'string' },
-    { name: 'parent_id', type: 'number', reference: 'regions' },
+    { name: 'parent_id', type: 'number', reference: 'regions', header: 'Parent Region' },
     { name: 'description', type: 'string' }
   ],
   site_groups: [

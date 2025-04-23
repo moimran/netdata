@@ -93,7 +93,7 @@ class RegionCRUD:
             # Re-raise the exception for other errors
             raise
     
-    def update_region(self, db: Session, id: int, obj_in: Dict[str, Any]) -> Optional[Region]:
+    def update_region(self, db: Session, id: int, obj_in) -> Optional[Region]:
         """
         Update a region by ID.
         """
@@ -101,7 +101,18 @@ class RegionCRUD:
         if not db_obj:
             return None
             
-        for key, value in obj_in.items():
+        # Convert Pydantic model to dict if it's not already a dict
+        update_data = obj_in
+        if not isinstance(obj_in, dict):
+            update_data = obj_in.dict(exclude_unset=True)
+            
+        # Auto-generate slug if name is updated and slug is not provided
+        if 'name' in update_data and update_data['name'] and ('slug' not in update_data or not update_data['slug']):
+            update_data['slug'] = slugify(update_data['name'])
+            logger.debug(f"Auto-generated slug '{update_data['slug']}' from updated name '{update_data['name']}'")
+            
+        # Update object attributes
+        for key, value in update_data.items():
             if hasattr(db_obj, key):
                 setattr(db_obj, key, value)
                 
@@ -493,7 +504,7 @@ class SiteGroupCRUD:
             logger.error(f"Error creating site group: {str(e)}", exc_info=True)
             raise
     
-    def update_site_group(self, db: Session, id: int, obj_in: Dict[str, Any]) -> Optional[SiteGroup]:
+    def update_site_group(self, db: Session, id: int, obj_in) -> Optional[SiteGroup]:
         """
         Update a site group by ID.
         """
@@ -501,7 +512,18 @@ class SiteGroupCRUD:
         if not db_obj:
             return None
             
-        for key, value in obj_in.items():
+        # Convert Pydantic model to dict if it's not already a dict
+        update_data = obj_in
+        if not isinstance(obj_in, dict):
+            update_data = obj_in.dict(exclude_unset=True)
+            
+        # Auto-generate slug if name is updated and slug is not provided
+        if 'name' in update_data and update_data['name'] and ('slug' not in update_data or not update_data['slug']):
+            update_data['slug'] = slugify(update_data['name'])
+            logger.debug(f"Auto-generated slug '{update_data['slug']}' from updated name '{update_data['name']}'")
+            
+        # Update object attributes
+        for key, value in update_data.items():
             if hasattr(db_obj, key):
                 setattr(db_obj, key, value)
                 
@@ -726,6 +748,13 @@ class BaseCRUD:
         Create a new record.
         """
         try:
+            # Auto-generate slug if model has name and slug fields and slug is not provided
+            if ('name' in obj_in and obj_in['name'] and 
+                hasattr(self.model_class, 'slug') and 
+                ('slug' not in obj_in or not obj_in['slug'])):
+                obj_in['slug'] = slugify(obj_in['name'])
+                logger.debug(f"Auto-generated slug '{obj_in['slug']}' from name '{obj_in['name']}'")
+            
             db_obj = self.model_class(**obj_in)
             session.add(db_obj)
             session.commit()
@@ -734,6 +763,36 @@ class BaseCRUD:
         except Exception as e:
             session.rollback()
             logger.error(f"Error creating {self.model_class.__name__}: {str(e)}", exc_info=True)
+            raise
+    
+    def update(self, session: Session, id: int, obj_in: Dict[str, Any]) -> Optional[Any]:
+        """
+        Update a record by ID with automatic slug generation.
+        """
+        try:
+            db_obj = session.get(self.model_class, id)
+            if not db_obj:
+                return None
+                
+            # Auto-generate slug if name is updated and model has slug field
+            if ('name' in obj_in and obj_in['name'] and 
+                hasattr(self.model_class, 'slug') and 
+                ('slug' not in obj_in or not obj_in['slug'])):
+                obj_in['slug'] = slugify(obj_in['name'])
+                logger.debug(f"Auto-generated slug '{obj_in['slug']}' from updated name '{obj_in['name']}'")
+            
+            # Update the object with the new values
+            for key, value in obj_in.items():
+                if hasattr(db_obj, key):
+                    setattr(db_obj, key, value)
+            
+            session.add(db_obj)
+            session.commit()
+            session.refresh(db_obj)
+            return db_obj
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Error updating {self.model_class.__name__}: {str(e)}", exc_info=True)
             raise
     
     def remove(self, db: Session, *, id: int) -> Optional[Any]:

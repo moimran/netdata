@@ -27,21 +27,99 @@ export function useReferenceData(
       // Use Promise.all to fetch all reference data in parallel
       await Promise.all(referenceTableNames.map(async (refTableName) => {
         try {
-          const response = await apiClient.get(`${refTableName}`);
-          // Ensure we have a consistent data structure
-          const responseData = response.data;
+          // Use the maximum limit the API allows (100)
+          const limit = 100;
+          let allItems: any[] = [];
+          let page = 0;
+          let hasMore = true;
           
-          // Store data in a consistent format
+          // Fetch first page
+          const firstResponse = await apiClient.get(`${refTableName}`, {
+            params: {
+              limit: limit,
+              skip: 0
+            }
+          });
+          
+          // Process the first page response
+          let responseData = firstResponse.data;
+          let items: any[] = [];
+          
+          // Extract items based on response structure
           if (Array.isArray(responseData)) {
-            results[refTableName] = responseData;
+            items = responseData;
           } else if (responseData?.items && Array.isArray(responseData.items)) {
-            results[refTableName] = responseData.items;
+            items = responseData.items;
+            // If we have pagination info, use it
+            if (responseData.total !== undefined) {
+              hasMore = items.length < responseData.total;
+            } else {
+              hasMore = items.length === limit;
+            }
           } else if (responseData?.data && Array.isArray(responseData.data)) {
-            results[refTableName] = responseData.data;
+            items = responseData.data;
           } else {
-            // Default to empty array if we can't determine the structure
-            results[refTableName] = [];
+            items = [];
+            hasMore = false;
           }
+          
+          // Add first page items to our collection
+          allItems = [...allItems, ...items];
+          page++;
+          
+          console.log(`Fetched page ${page} for ${refTableName}: ${items.length} items`);
+          
+          // If we need more pages and have fewer than 500 items total (to avoid excessive requests)
+          while (hasMore && allItems.length < 500) {
+            try {
+              const nextResponse = await apiClient.get(`${refTableName}`, {
+                params: {
+                  limit: limit,
+                  skip: page * limit
+                }
+              });
+              
+              // Process the next page
+              responseData = nextResponse.data;
+              
+              // Extract items based on response structure
+              if (Array.isArray(responseData)) {
+                items = responseData;
+                hasMore = items.length === limit;
+              } else if (responseData?.items && Array.isArray(responseData.items)) {
+                items = responseData.items;
+                // If we have pagination info, use it
+                if (responseData.total !== undefined) {
+                  hasMore = allItems.length + items.length < responseData.total;
+                } else {
+                  hasMore = items.length === limit;
+                }
+              } else if (responseData?.data && Array.isArray(responseData.data)) {
+                items = responseData.data;
+                hasMore = items.length === limit;
+              } else {
+                items = [];
+                hasMore = false;
+              }
+              
+              // If we got no items, we're done
+              if (items.length === 0) {
+                hasMore = false;
+              } else {
+                // Add items to our collection
+                allItems = [...allItems, ...items];
+                console.log(`Fetched page ${page + 1} for ${refTableName}: ${items.length} items, total so far: ${allItems.length}`);
+                page++;
+              }
+            } catch (error) {
+              console.error(`Error fetching page ${page + 1} for ${refTableName}:`, error);
+              hasMore = false;
+            }
+          }
+          
+          // Store all items in the results
+          results[refTableName] = allItems;
+          console.log(`Processed ${results[refTableName].length} total items for ${refTableName}`);
         } catch (error) {
           console.error(`Error fetching ${refTableName}:`, error);
           results[refTableName] = [];

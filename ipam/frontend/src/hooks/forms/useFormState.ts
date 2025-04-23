@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { generateSlug } from '../../utils/slugify';
 
 export interface ValidationErrors {
   [key: string]: string;
@@ -29,10 +30,19 @@ export function useFormState<T extends Record<string, any>>({
    * Handle input change for form fields
    */
   const handleChange = useCallback((name: keyof T, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => {
+      const newFormData = { ...prev, [name]: value };
+      
+      // Automatically generate slug when name changes
+      if (name === 'name' && value && typeof value === 'string') {
+        // Always generate a slug when the name changes, regardless of whether
+        // the slug field exists in the form data yet
+        (newFormData as any).slug = generateSlug(value);
+        console.log(`Generated slug '${(newFormData as any).slug}' from name '${value}'`);
+      }
+      
+      return newFormData;
+    });
     
     // Clear error for this field when it changes
     if (validationErrors[name as string]) {
