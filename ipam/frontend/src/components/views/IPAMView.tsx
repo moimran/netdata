@@ -1,36 +1,6 @@
-import { useState } from 'react';
-import {
-  Group,
-  Button,
-  TextInput,
-  Select,
-  Modal,
-  Stack,
-  Text,
-  Badge,
-  Card,
-} from '@mantine/core';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import { useParams } from 'react-router-dom';
-import { SharedTableComponent } from '../tables/SharedTableComponent';
+import UnifiedTable from '../IPAMTable';
 import TableContainer from '../tables/TableContainer';
 import type { TableName } from '../../types';
-// Using the unified table styles from TableContainer
-
-interface Prefix {
-  id: number;
-  prefix: string;
-  vrf_id: number | null;
-  status: string;
-  description: string | null;
-}
-
-interface VRF {
-  id: number;
-  name: string;
-  rd: string;
-}
 
 interface IPAMViewProps {
   tableName: TableName;
@@ -51,7 +21,7 @@ export function IPAMView({ tableName }: IPAMViewProps) {
 
   return (
     <TableContainer title={formattedTitle}>
-      <SharedTableComponent tableName={tableName} />
+      <UnifiedTable tableName={tableName} />
     </TableContainer>
   );
 }

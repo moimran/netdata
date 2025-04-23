@@ -25,6 +25,24 @@ from app.schemas import (
     platform,
     automation
 )
+from app.schemas.devices import DeviceInventoryRead
+
+# Import necessary Read schemas
+from app.schemas.organizational import (
+    RegionRead, SiteGroupRead, SiteRead, LocationRead
+)
+from app.schemas.ipam import (
+    VRFRead, RIRRead, AggregateRead, RoleRead, PrefixRead,
+    IPRangeRead, IPAddressRead, VLANRead, VLANGroupRead
+)
+from app.schemas.tenancy import TenantRead
+from app.schemas.devices import (
+    DeviceRead, InterfaceRead
+)
+from app.schemas.bgp import ASNRead, ASNRangeRead, RouteTargetRead
+from app.schemas.credentials import CredentialRead
+from app.schemas.platform import PlatformTypeRead
+from app.schemas.automation import NetJobRead
 
 router = APIRouter(prefix="/api/v1")
 
@@ -221,29 +239,55 @@ def delete_device_inventory_by_device(
     device_uuid: UUID,
     db: Session = Depends(get_session)
 ) -> dict:
-    deleted_count = crud.device_inventory.remove_by_device_uuid(db=db, device_uuid=device_uuid)
-    return {"message": "Device inventory deleted successfully", "deleted_count": deleted_count}
+    db_device = crud.device.get_by_uuid(db=db, uuid=device_uuid)
+    if not db_device:
+        raise HTTPException(status_code=404, detail="Device not found")
+    num_deleted = crud.device_inventory.remove_by_device_id(db=db, device_id=db_device.id)
+    if num_deleted == 0:
+        # Optionally raise 404 if no inventory existed, or just return 204
+        pass # Successfully processed (even if nothing to delete)
+    return {"message": "Device inventory deleted successfully", "deleted_count": num_deleted}
 
-crud_router.create_crud_routes(router, "regions", crud.region, Region, organizational.RegionCreate, organizational.RegionUpdate, tags=["Regions"])
-crud_router.create_crud_routes(router, "site_groups", crud.site_group, SiteGroup, organizational.SiteGroupCreate, organizational.SiteGroupUpdate, tags=["Site Groups"])
-crud_router.create_crud_routes(router, "sites", crud.site, Site, organizational.SiteCreate, organizational.SiteUpdate, tags=["Sites"])
-crud_router.create_crud_routes(router, "locations", crud.location, Location, organizational.LocationCreate, organizational.LocationUpdate, tags=["Locations"])
-crud_router.create_crud_routes(router, "vrfs", crud.vrf, VRF, ipam.VRFCreate, ipam.VRFUpdate, tags=["VRFs"])
-crud_router.create_crud_routes(router, "rirs", crud.rir, RIR, ipam.RIRCreate, ipam.RIRUpdate, tags=["RIRs"])
-crud_router.create_crud_routes(router, "aggregates", crud.aggregate, Aggregate, ipam.AggregateCreate, ipam.AggregateUpdate, tags=["Aggregates"])
-crud_router.create_crud_routes(router, "roles", crud.role, Role, ipam.RoleCreate, ipam.RoleUpdate, tags=["Roles"])
-crud_router.create_crud_routes(router, "prefixes", crud.prefix, Prefix, ipam.PrefixCreate, ipam.PrefixUpdate, tags=["Prefixes"])
-crud_router.create_crud_routes(router, "ip_ranges", crud.ip_range, IPRange, ipam.IPRangeCreate, ipam.IPRangeUpdate, tags=["IP Ranges"])
-crud_router.create_crud_routes(router, "ip_addresses", crud.ip_address, IPAddress, ipam.IPAddressCreate, ipam.IPAddressUpdate, tags=["IP Addresses"])
-crud_router.create_crud_routes(router, "tenants", crud.tenant, Tenant, tenancy.TenantCreate, tenancy.TenantUpdate, tags=["Tenants"])
-crud_router.create_crud_routes(router, "devices", crud.device, Device, devices.DeviceCreate, devices.DeviceUpdate, tags=["Devices"])
-crud_router.create_crud_routes(router, "interfaces", crud.interface, Interface, devices.InterfaceCreate, devices.InterfaceUpdate, tags=["Interfaces"])
-crud_router.create_crud_routes(router, "vlans", crud.vlan, VLAN, ipam.VLANCreate, ipam.VLANUpdate, tags=["VLANs"])
-crud_router.create_crud_routes(router, "vlan_groups", crud.vlan_group, VLANGroup, ipam.VLANGroupCreate, ipam.VLANGroupUpdate, tags=["VLAN Groups"])
-crud_router.create_crud_routes(router, "asns", crud.asn, ASN, bgp.ASNCreate, bgp.ASNUpdate, tags=["ASNs"])
-crud_router.create_crud_routes(router, "asn_ranges", crud.asn_range, ASNRange, bgp.ASNRangeCreate, bgp.ASNRangeUpdate, tags=["ASN Ranges"])
-crud_router.create_crud_routes(router, "route_targets", crud.route_target, RouteTarget, bgp.RouteTargetCreate, bgp.RouteTargetUpdate, tags=["Route Targets"])
-crud_router.create_crud_routes(router, "credentials", crud.credential, Credential, credentials.CredentialCreate, credentials.CredentialUpdate, tags=["Credentials"])
-crud_router.create_crud_routes(router, "platform_types", crud.platform_type, PlatformType, platform.PlatformTypeCreate, platform.PlatformTypeUpdate, tags=["Platform Types"])
-crud_router.create_crud_routes(router, "net_jobs", crud.net_job, NetJob, automation.NetJobCreate, automation.NetJobUpdate, tags=["Net Jobs"])
-crud_router.create_crud_routes(router, "device_inventory", crud.device_inventory, DeviceInventory, devices.DeviceInventoryCreate, devices.DeviceInventoryUpdate, tags=["Device Inventory"])
+# Organizational Routes
+crud_router.create_crud_routes(router, "regions", crud.region, Region, organizational.RegionCreate, organizational.RegionUpdate, ReadSchema=organizational.RegionRead, tags=["Regions"])
+crud_router.create_crud_routes(router, "site_groups", crud.site_group, SiteGroup, organizational.SiteGroupCreate, organizational.SiteGroupUpdate, ReadSchema=organizational.SiteGroupRead, tags=["Site Groups"])
+crud_router.create_crud_routes(router, "sites", crud.site, Site, organizational.SiteCreate, organizational.SiteUpdate, ReadSchema=organizational.SiteRead, tags=["Sites"])
+crud_router.create_crud_routes(router, "locations", crud.location, Location, organizational.LocationCreate, organizational.LocationUpdate, ReadSchema=organizational.LocationRead, tags=["Locations"])
+
+# IPAM Routes
+crud_router.create_crud_routes(router, "vrfs", crud.vrf, VRF, ipam.VRFCreate, ipam.VRFUpdate, ReadSchema=ipam.VRFRead, tags=["VRFs"])
+crud_router.create_crud_routes(router, "rirs", crud.rir, RIR, ipam.RIRCreate, ipam.RIRUpdate, ReadSchema=ipam.RIRRead, tags=["RIRs"])
+crud_router.create_crud_routes(router, "aggregates", crud.aggregate, Aggregate, ipam.AggregateCreate, ipam.AggregateUpdate, ReadSchema=ipam.AggregateRead, tags=["Aggregates"])
+crud_router.create_crud_routes(router, "roles", crud.role, Role, ipam.RoleCreate, ipam.RoleUpdate, ReadSchema=ipam.RoleRead, tags=["Roles"])
+crud_router.create_crud_routes(router, "prefixes", crud.prefix, Prefix, ipam.PrefixCreate, ipam.PrefixUpdate, ReadSchema=ipam.PrefixRead, tags=["Prefixes"])
+crud_router.create_crud_routes(router, "ip_ranges", crud.ip_range, IPRange, ipam.IPRangeCreate, ipam.IPRangeUpdate, ReadSchema=ipam.IPRangeRead, tags=["IP Ranges"])
+crud_router.create_crud_routes(router, "ip_addresses", crud.ip_address, IPAddress, ipam.IPAddressCreate, ipam.IPAddressUpdate, ReadSchema=ipam.IPAddressRead, tags=["IP Addresses"])
+crud_router.create_crud_routes(router, "vlans", crud.vlan, VLAN, ipam.VLANCreate, ipam.VLANUpdate, ReadSchema=ipam.VLANRead, tags=["VLANs"])
+crud_router.create_crud_routes(router, "vlan_groups", crud.vlan_group, VLANGroup, ipam.VLANGroupCreate, ipam.VLANGroupUpdate, ReadSchema=ipam.VLANGroupRead, tags=["VLAN Groups"])
+
+# Tenancy Routes
+crud_router.create_crud_routes(router, "tenants", crud.tenant, Tenant, tenancy.TenantCreate, tenancy.TenantUpdate, ReadSchema=tenancy.TenantRead, tags=["Tenants"])
+
+# Devices Routes (Core Device, not Inventory)
+crud_router.create_crud_routes(router, "devices", crud.device, Device, devices.DeviceCreate, devices.DeviceUpdate, ReadSchema=devices.DeviceRead, tags=["Devices"])
+crud_router.create_crud_routes(router, "interfaces", crud.interface, Interface, devices.InterfaceCreate, devices.InterfaceUpdate, ReadSchema=devices.InterfaceRead, tags=["Interfaces"])
+
+# Device Inventory Routes (Components/Modules of Devices)
+crud_router.create_crud_routes(router, "device_inventory", crud.device_inventory, DeviceInventory, devices.DeviceInventoryCreate, devices.DeviceInventoryUpdate, ReadSchema=devices.DeviceInventoryRead, tags=["Device Inventory"])
+
+# BGP Routes
+crud_router.create_crud_routes(router, "asns", crud.asn, ASN, bgp.ASNCreate, bgp.ASNUpdate, ReadSchema=bgp.ASNRead, tags=["ASNs"])
+crud_router.create_crud_routes(router, "asn_ranges", crud.asn_range, ASNRange, bgp.ASNRangeCreate, bgp.ASNRangeUpdate, ReadSchema=bgp.ASNRangeRead, tags=["ASN Ranges"])
+crud_router.create_crud_routes(router, "route_targets", crud.route_target, RouteTarget, bgp.RouteTargetCreate, bgp.RouteTargetUpdate, ReadSchema=bgp.RouteTargetRead, tags=["Route Targets"])
+
+# Credential Routes
+crud_router.create_crud_routes(router, "credentials", crud.credential, Credential, credentials.CredentialCreate, credentials.CredentialUpdate, ReadSchema=credentials.CredentialRead, tags=["Credentials"])
+
+# Platform Routes
+crud_router.create_crud_routes(router, "platform_types", crud.platform_type, PlatformType, platform.PlatformTypeCreate, platform.PlatformTypeUpdate, ReadSchema=platform.PlatformTypeRead, tags=["Platform Types"])
+
+# Automation Routes
+crud_router.create_crud_routes(router, "net_jobs", crud.net_job, NetJob, automation.NetJobCreate, automation.NetJobUpdate, ReadSchema=automation.NetJobRead, tags=["Net Jobs"])
+
+# Include specialized endpoints router (e.g., for connection details)
+router.include_router(endpoints.router, tags=["Specialized Operations"])

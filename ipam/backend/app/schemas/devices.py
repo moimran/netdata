@@ -1,10 +1,14 @@
 # Schemas for Device and Inventory Models (Device, Interface, DeviceInventory)
 
+# NOTE: 'Device' represents the core network device tracked in IPAM (e.g., router, switch).
+#       'DeviceInventory' represents components *of* a Device (e.g., modules, power supplies)
+#       often discovered through network automation.
+
 from typing import Optional, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 
-# Device
+# Device (Core IPAM Network Device)
 class DeviceBase(BaseModel):
     name: Optional[str] = Field(None, max_length=100)
     device_type_id: int
@@ -183,7 +187,7 @@ class InterfaceRead(InterfaceBase):
     class Config:
         from_attributes = True
 
-# DeviceInventory
+# DeviceInventory (Component/Module of a Device)
 class DeviceInventoryBase(BaseModel):
     device_id: int
     name: str = Field(..., max_length=100)

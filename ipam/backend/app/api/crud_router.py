@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from sqlmodel import Session, select
-from typing import Optional, List
+from typing import Optional, List, TypeVar, Generic
 from pydantic import BaseModel
 from ..database import get_session
 import logging
@@ -9,9 +9,21 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+# Generic Pydantic model for paginated responses
+T = TypeVar('T')
+
+class PaginatedResponse(Generic[T], BaseModel):
+    items: List[T]
+    total: int
+    page: int
+    size: int
+
 # Generic CRUD endpoints for each model
-def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type, CreateSchema: type[BaseModel], UpdateSchema: type[BaseModel], tags: Optional[List[str]] = None):
-    @router.get(f"/{path}", tags=tags)
+def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type, CreateSchema: type[BaseModel], UpdateSchema: type[BaseModel], ReadSchema: type[BaseModel], tags: Optional[List[str]] = None):
+    # Define the specific response model for this route
+    PaginatedReadSchema = PaginatedResponse[ReadSchema]
+
+    @router.get(f"/{path}", tags=tags, response_model=PaginatedReadSchema)
     def get_all(
         skip: int = Query(0, ge=0),
         limit: int = Query(20, ge=1, le=100),
@@ -57,12 +69,13 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type, 
             from ..serializers import model_to_dict
             serialized_items = model_to_dict(items)
             
-            return {
-                "items": serialized_items,
-                "total": total,
-                "page": skip // limit + 1,
-                "size": limit
-            }
+            # Return a PaginatedResponse object instead of a dict
+            return PaginatedResponse(
+                items=serialized_items,
+                total=total,
+                page=skip // limit + 1,
+                size=limit
+            )
         except Exception as e:
             logger.error(f"Error in GET /{path}: {str(e)}", exc_info=True)  # Add exc_info for stack trace
             raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

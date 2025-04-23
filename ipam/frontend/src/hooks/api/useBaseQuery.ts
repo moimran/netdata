@@ -8,7 +8,7 @@ export interface BaseQueryOptions<TData = unknown> extends Omit<UseQueryOptions<
   transformation?: (data: any) => TData;
   keyParts?: any[];
   staleTime?: number;
-  cacheTime?: number;
+  gcTime?: number; // Renamed from cacheTime for React Query v5+
 }
 
 /**
@@ -23,7 +23,7 @@ export function useBaseQuery<TData = unknown>({
   transformation,
   keyParts = [],
   staleTime = 5 * 60 * 1000,
-  cacheTime = 10 * 60 * 1000,
+  gcTime = 10 * 60 * 1000, // Renamed from cacheTime
   ...restOptions
 }: BaseQueryOptions<TData>): UseQueryResult<TData, AxiosError> {
   const queryKey = ['data', url, params, ...keyParts];
@@ -31,17 +31,24 @@ export function useBaseQuery<TData = unknown>({
   return useQuery<TData, AxiosError>({
     queryKey,
     queryFn: async () => {
-      const response = await apiClient.get(url, { params });
-      
-      // Transform the data if transformation function is provided
-      if (transformation) {
-        return transformation(response.data);
+      console.log(`---> Entering queryFn for url: ${url}`); // DEBUG
+      try {
+        const response = await apiClient.get(url, { params });
+        console.log(`---> apiClient.get successful for url: ${url}`); // DEBUG
+        
+        // Transform the data if transformation function is provided
+        if (transformation) {
+          return transformation(response.data);
+        }
+        
+        return response.data;
+      } catch (error) {
+        console.error(`---> Error in queryFn for url: ${url}`, error); // DEBUG
+        throw error; // Re-throw error for react-query to handle
       }
-      
-      return response.data;
     },
     staleTime,
-    cacheTime,
+    gcTime, // Renamed from cacheTime
     retry: 1,
     refetchOnWindowFocus: false,
     ...restOptions

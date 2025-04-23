@@ -26,7 +26,8 @@ export type TableName =
   | 'locations'
   | 'vrf_import_targets'
   | 'vrf_export_targets'
-  | 'asn_ranges';
+  | 'asn_ranges'
+  | 'device_inventory';
 
 export interface TableSchema {
   columns: Array<{

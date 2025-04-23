@@ -123,6 +123,7 @@ function App() {
 
               {/* Devices */}
               <Route path="/devices" element={<DeviceView />} />
+              <Route path="/device-inventory" element={<DeviceView />} />
               <Route path="/interfaces" element={<InterfacesView />} />
               <Route path="/credentials" element={<CredentialView />} />
               <Route path="/racks" element={<RackView />} />

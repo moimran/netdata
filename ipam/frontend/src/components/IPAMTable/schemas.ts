@@ -6,6 +6,7 @@ export interface Column {
   required?: boolean;
   reference?: string;
   width?: number;
+  header?: string;
 }
 
 export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
@@ -184,7 +185,24 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'enable_password', type: 'string' },
     { name: 'is_default', type: 'boolean' }
   ],
-  
+
+  // Add definition for device_inventory
+  device_inventory: [
+    { name: 'time', type: 'datetime' }, // Use datetime type
+    { name: 'device_uuid', type: 'string', width: 300 }, // Treat UUID as string
+    { name: 'hostname', type: 'string' },
+    { name: 'platform_type_id', type: 'number', header: 'Platform Type ID' }, // Added
+    { name: 'release', type: 'string' },
+    { name: 'running_image', type: 'string' },
+    { name: 'version', type: 'string' },
+    { name: 'restarted', type: 'datetime' }, // Added
+    { name: 'reload_reason', type: 'string' }, // Added
+    { name: 'rommon', type: 'string' }, // Added
+    { name: 'serial', type: 'string' }, // Added (Assuming string for now, might need adjustment for Array)
+    { name: 'software_image', type: 'string' }, // Added
+    // Note: More fields like serial, mac, uptime, config_register, hardware could be added later or handled with custom renderers
+  ],
+
   // Add missing table schemas
   racks: [
     { name: 'id', type: 'number' },

@@ -79,11 +79,18 @@ export function DeviceView() {
 
   return (
     <Stack gap="md">
-      {/* Device table */}
-      <TableContainer title="Devices">
+      {/* Device table - Temporarily Commented Out */}
+      {/* <TableContainer title="Devices">
         <UnifiedTable
           tableName="devices"
           customActionsRenderer={renderDeviceActions}
+        />
+      </TableContainer> */}
+
+      {/* Device Inventory table */}
+      <TableContainer title="Device Inventory">
+        <UnifiedTable
+          tableName="device_inventory"
         />
       </TableContainer>
 
