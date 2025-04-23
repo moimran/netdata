@@ -31,7 +31,9 @@ from .device import Device
 from .interface import Interface
 
 # Network device models
-from .network_devices import PlatformType, NetJob, DeviceInventory
+from .platform import PlatformType
+from .automation import NetJob
+from .deviceinventory import DeviceInventory
 
 __all__ = [
     # Base and Fields

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from sqlmodel import Session, select
-from typing import Dict, Any, Optional
+from typing import Optional, List
+from pydantic import BaseModel
 from ..database import get_session
 import logging
 
@@ -9,8 +10,8 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Generic CRUD endpoints for each model
-def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type):
-    @router.get(f"/{path}")
+def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type, CreateSchema: type[BaseModel], UpdateSchema: type[BaseModel], tags: Optional[List[str]] = None):
+    @router.get(f"/{path}", tags=tags)
     def get_all(
         skip: int = Query(0, ge=0),
         limit: int = Query(20, ge=1, le=100),
@@ -66,7 +67,7 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type):
             logger.error(f"Error in GET /{path}: {str(e)}", exc_info=True)  # Add exc_info for stack trace
             raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-    @router.get(f"/{path}/{{item_id}}")
+    @router.get(f"/{path}/{{item_id}}", tags=tags)
     def get_one(item_id: int, session: Session = Depends(get_session)):
         item = crud_instance.get_by_id(session, item_id)
         if not item:
@@ -77,53 +78,59 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type):
         serialized_item = model_to_dict(item)
         return serialized_item
 
-    @router.post(f"/{path}", status_code=201)
-    def create_item(item: Dict[str, Any], session: Session = Depends(get_session)):
+    @router.post(f"/{path}", status_code=201, tags=tags)
+    def create_item(item: CreateSchema, session: Session = Depends(get_session)):
         # Convert empty strings to None for fields that should be integers or floats
-        for key, value in item.items():
+        item_dict = item.model_dump() if hasattr(item, 'model_dump') else item.dict()
+        for key, value in item_dict.items():
             if value == "":
                 # Check if the field is an integer or float by looking at the model's __annotations__
                 field_type = getattr(model_type, "__annotations__", {}).get(key, None)
                 # Simple check for int and float types
                 if field_type in (int, float):
-                    item[key] = None
+                    item_dict[key] = None
                 # Check for Optional[int] and Optional[float]
                 elif field_type is not None and hasattr(field_type, "__origin__"):
                     try:
                         from typing import Union
                         if field_type.__origin__ is Union and any(arg in (int, float) for arg in field_type.__args__):
-                            item[key] = None
+                            item_dict[key] = None
                     except (AttributeError, TypeError):
                         # If any error occurs during type checking, keep the original value
                         pass
         
-        created_item = crud_instance.create(session, item)
+        created_item = crud_instance.create(session, obj_in=item_dict)
         # Convert created item to dictionary with proper serialization
         from ..serializers import model_to_dict
         serialized_item = model_to_dict(created_item)
         return serialized_item
 
-    @router.put(f"/{path}/{{item_id}}")
-    def update_item(item_id: int, item: Dict[str, Any], session: Session = Depends(get_session)):
+    @router.put(f"/{path}/{{item_id}}", tags=tags)
+    def update_item(item_id: int, item: UpdateSchema, session: Session = Depends(get_session)):
         # Convert empty strings to None for fields that should be integers or floats
-        for key, value in item.items():
+        item_dict = item.model_dump(exclude_unset=True) if hasattr(item, 'model_dump') else item.dict(exclude_unset=True)
+        for key, value in item_dict.items():
             if value == "":
                 # Check if the field is an integer or float by looking at the model's __annotations__
                 field_type = getattr(model_type, "__annotations__", {}).get(key, None)
                 # Simple check for int and float types
                 if field_type in (int, float):
-                    item[key] = None
+                    item_dict[key] = None
                 # Check for Optional[int] and Optional[float]
                 elif field_type is not None and hasattr(field_type, "__origin__"):
                     try:
                         from typing import Union
                         if field_type.__origin__ is Union and any(arg in (int, float) for arg in field_type.__args__):
-                            item[key] = None
+                            item_dict[key] = None
                     except (AttributeError, TypeError):
                         # If any error occurs during type checking, keep the original value
                         pass
         
-        updated_item = crud_instance.update(session, item_id, item)
+        db_obj = crud_instance.get_by_id(session, id=item_id)
+        if not db_obj:
+            raise HTTPException(status_code=404, detail=f"Item with id {item_id} not found")
+        
+        updated_item = crud_instance.update(session, db_obj=db_obj, obj_in=item_dict)
         if not updated_item:
             raise HTTPException(status_code=404, detail=f"Item with id {item_id} not found")
         
@@ -132,7 +139,7 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type):
         serialized_item = model_to_dict(updated_item)
         return serialized_item
 
-    @router.delete(f"/{path}/{{item_id}}", status_code=204)
+    @router.delete(f"/{path}/{{item_id}}", status_code=204, tags=tags)
     def delete_item(item_id: int, session: Session = Depends(get_session)):
         success = crud_instance.delete(session, item_id)
         if not success:

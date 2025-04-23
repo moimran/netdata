@@ -3,7 +3,7 @@ CRUD operations for all models in the IPAM system.
 This module provides generic and specific CRUD operations for database models.
 """
 
-from typing import Dict, Any, List, Optional, Type, TypeVar, Union, Generic
+from typing import Dict, Any, Union, TypeVar, Generic, Type, Optional
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
@@ -12,9 +12,10 @@ from .models import (
     Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 
     Prefix, IPRange, IPAddress, Tenant, Device, Interface, VLAN, VLANGroup,
     ASN, ASNRange, RouteTarget, VRFImportTargets, VRFExportTargets, Credential,
-    PlatformType, NetJob
+    PlatformType, NetJob, DeviceInventory
 )
 import logging
+from uuid import UUID
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ class CRUDBase(Generic[T]):
     def __init__(self, model: Type[T]):
         self.model = model
 
-    def get_all(self, session: Session, skip: int = 0, limit: int = 100, **kwargs) -> List[T]:
+    def get_all(self, session: Session, skip: int = 0, limit: int = 100, **kwargs) -> list[T]:
         """
         Get all records of the model, with optional pagination and filtering.
         """
@@ -212,7 +213,7 @@ class CRUDBase(Generic[T]):
             # Re-raise the exception to be handled by the global exception handler
             raise
 
-    def search(self, session: Session, query: str, skip: int = 0, limit: int = 100) -> List[T]:
+    def search(self, session: Session, query: str, skip: int = 0, limit: int = 100) -> list[T]:
         """
         Search for records matching the query string.
         This is a basic implementation that should be overridden by specific models.
@@ -255,27 +256,6 @@ class RegionCRUD(CRUDBase[Region]):
             
             # Re-raise the exception for other errors
             raise
-
-region = RegionCRUD(Region)
-site_group = CRUDBase(SiteGroup)
-site = CRUDBase(Site)
-location = CRUDBase(Location)
-vrf = CRUDBase(VRF)
-rir = CRUDBase(RIR)
-aggregate = CRUDBase(Aggregate)
-role = CRUDBase(Role)
-prefix = CRUDBase(Prefix)
-ip_range = CRUDBase(IPRange)
-tenant = CRUDBase(Tenant)
-device = CRUDBase(Device)
-interface = CRUDBase(Interface)
-vlan = CRUDBase(VLAN)
-vlan_group = CRUDBase(VLANGroup)
-asn = CRUDBase(ASN)
-asn_range = CRUDBase(ASNRange)
-route_target = CRUDBase(RouteTarget)
-vrf_import_targets = CRUDBase(VRFImportTargets)
-vrf_export_targets = CRUDBase(VRFExportTargets)
 
 class PrefixCRUD(CRUDBase[Prefix]):
     """
@@ -415,7 +395,7 @@ class PrefixCRUD(CRUDBase[Prefix]):
             # Re-raise the exception to be handled by the global exception handler
             raise
     
-    def get_hierarchy(self, session: Session, vrf_id: Optional[int] = None) -> List[Dict[str, Any]]:
+    def get_hierarchy(self, session: Session, vrf_id: Optional[int] = None) -> list[Dict[str, Any]]:
         """
         Get prefixes in a hierarchical structure.
         
@@ -504,10 +484,6 @@ class IPAddressCRUD(CRUDBase[IPAddress]):
             # Re-raise the exception for other errors
             raise
 
-# Replace the default prefix CRUD with our specialized version
-prefix = PrefixCRUD(Prefix)
-ip_address = IPAddressCRUD(IPAddress)
-
 class CredentialCRUD(CRUDBase[Credential]):
     """
     CRUD operations for Credentials.
@@ -542,9 +518,76 @@ class CredentialCRUD(CRUDBase[Credential]):
             # Re-raise the exception for other errors
             raise
 
-# Create CRUD instance for credentials
-credential = CredentialCRUD(Credential)
+class PlatformTypeCRUD(CRUDBase[PlatformType]):
+    """
+    CRUD operations for PlatformTypes.
+    """
+    pass
 
-# Create CRUD instances for PlatformType and NetJob
-platform_type = CRUDBase(PlatformType)
-net_job = CRUDBase(NetJob)
+class NetJobCRUD(CRUDBase[NetJob]):
+    """
+    CRUD operations for NetJobs.
+    """
+    pass
+
+class DeviceInventoryCRUD(CRUDBase[DeviceInventory]):
+    """
+    CRUD operations for DeviceInventory.
+    """
+    def get_by_device_uuid(self, session: Session, *, device_uuid: UUID) -> list[DeviceInventory]:
+        """
+        Get all inventory records for a specific device UUID.
+        """
+        statement = select(self.model).where(self.model.device_uuid == device_uuid).order_by(self.model.time.desc())
+        return session.exec(statement).all()
+
+    def remove_by_device_uuid(self, session: Session, *, device_uuid: UUID) -> int:
+        """
+        Delete all inventory records for a specific device UUID.
+        """
+        # Note: This deletes ALL history for the device.
+        # Consider adding time range constraints if needed.
+        statement = select(self.model).where(self.model.device_uuid == device_uuid)
+        results = session.exec(statement).all()
+        count = len(results)
+        if count > 0:
+            for obj in results:
+                session.delete(obj)
+            session.commit()
+        return count
+
+    # Override create and update to prevent usage
+    def create(self, session: Session, *, obj_in: Dict[str, Any]) -> DeviceInventory:
+        raise NotImplementedError("DeviceInventory cannot be created via API.")
+
+    def update(
+        self, session: Session, *, db_obj: DeviceInventory, obj_in: Dict[str, Any]
+    ) -> DeviceInventory:
+        raise NotImplementedError("DeviceInventory cannot be updated via API.")
+
+# Instantiate CRUD objects
+region = RegionCRUD(Region)
+site_group = CRUDBase(SiteGroup)
+site = CRUDBase(Site)
+location = CRUDBase(Location)
+vrf = CRUDBase(VRF)
+rir = CRUDBase(RIR)
+aggregate = CRUDBase(Aggregate)
+role = CRUDBase(Role)
+prefix = PrefixCRUD(Prefix)
+ip_range = CRUDBase(IPRange)
+tenant = CRUDBase(Tenant)
+device = CRUDBase(Device)
+interface = CRUDBase(Interface)
+vlan = CRUDBase(VLAN)
+vlan_group = CRUDBase(VLANGroup)
+asn = CRUDBase(ASN)
+asn_range = CRUDBase(ASNRange)
+route_target = CRUDBase(RouteTarget)
+vrf_import_targets = CRUDBase(VRFImportTargets)
+vrf_export_targets = CRUDBase(VRFExportTargets)
+credential = CredentialCRUD(Credential)
+platform_type = PlatformTypeCRUD(PlatformType)
+net_job = NetJobCRUD(NetJob)
+device_inventory = DeviceInventoryCRUD(DeviceInventory)
+ip_address = IPAddressCRUD(IPAddress)
