@@ -5,11 +5,12 @@ import {
   LoadingOverlay,
   Group,
   Button,
-  Alert
+  Alert,
+  MultiSelect
 } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { IPAMModalProps } from './types';
-import { useIPAMForm, useReferenceData } from '../../hooks';
+import { useIPAMForm, useReferenceData, useAllRouteTargets, RouteTarget } from '../../hooks';
 import { FormField, VlanIdRangesField } from './components/FormFields';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 import { TABLE_SCHEMAS } from '../IPAMTable/schemas';
@@ -48,6 +49,18 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
     getReferenceItem,
     formatReferenceValue
   } = useReferenceData(referenceTableNames);
+
+  // --- Add VRF target fetching ---
+  const { data: allRouteTargets, isLoading: isLoadingTargets, isError: isErrorTargets } = useAllRouteTargets();
+  // Format data for MultiSelect
+  const routeTargetOptions = useMemo(() => {
+    if (!allRouteTargets) return [];
+    return allRouteTargets.map((rt: RouteTarget) => ({
+      value: String(rt.id),
+      label: `${rt.name} (${rt.slug || 'no slug'})`
+    }));
+  }, [allRouteTargets]);
+  // --- End VRF target fetching ---
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,6 +147,44 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
                 formatReferenceValue={formatReferenceValue}
               />
             ))}
+
+            {/* --- Add VRF target selection --- */}
+            {tableName === 'vrfs' && (
+              <Stack gap="md">
+                <LoadingOverlay visible={isLoadingTargets} />
+                {isErrorTargets ? (
+                  <Alert color="red" title="Error loading Route Targets">
+                    Could not load available Route Targets. Please try again.
+                  </Alert>
+                ) : (
+                  <>
+                    <MultiSelect
+                      label="Import Route Targets"
+                      placeholder="Select import targets"
+                      data={routeTargetOptions}
+                      value={formData.import_target_ids || []} // Ensure value is array
+                      onChange={(value) => handleChange('import_target_ids', value)}
+                      searchable
+                      clearable
+                      nothingFoundMessage="No targets found"
+                      error={validationErrors['import_target_ids']}
+                    />
+                    <MultiSelect
+                      label="Export Route Targets"
+                      placeholder="Select export targets"
+                      data={routeTargetOptions}
+                      value={formData.export_target_ids || []} // Ensure value is array
+                      onChange={(value) => handleChange('export_target_ids', value)}
+                      searchable
+                      clearable
+                      nothingFoundMessage="No targets found"
+                      error={validationErrors['export_target_ids']}
+                    />
+                  </>
+                )}
+              </Stack>
+            )}
+            {/* --- End VRF target selection --- */}
 
             <Group justify="flex-end" mt="xl">
               <Button

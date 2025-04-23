@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from sqlmodel import Session, select
 from typing import Optional, List, TypeVar, Generic
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from ..database import get_session
+# Import CRUDBase only when needed for type checking
 import logging
 
 # Configure logging
@@ -19,7 +20,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
     size: int
 
 # Generic CRUD endpoints for each model
-def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type, CreateSchema: type[BaseModel], UpdateSchema: type[BaseModel], ReadSchema: type[BaseModel], tags: Optional[List[str]] = None):
+def create_crud_routes(router: APIRouter, path: str, crud_module, crud_instance, model_type, CreateSchema: type[BaseModel], UpdateSchema: type[BaseModel], ReadSchema: type[BaseModel], tags: Optional[List[str]] = None):
     # Define the specific response model for this route
     PaginatedReadSchema = PaginatedResponse[ReadSchema]
 
@@ -107,39 +108,89 @@ def create_crud_routes(router: APIRouter, path: str, crud_instance, model_type, 
         created_item = crud_instance.create(session, obj_in=item_dict)
         return created_item
 
-    @router.put(f"/{path}/{{item_id}}", tags=tags, response_model=ReadSchema)
-    def update_item(item_id: int, item: UpdateSchema, session: Session = Depends(get_session)):
-        # Convert empty strings to None for fields that should be integers or floats
-        item_dict = item.model_dump(exclude_unset=True) if hasattr(item, 'model_dump') else item.dict(exclude_unset=True)
-        for key, value in item_dict.items():
-            if value == "":
-                # Check if the field is an integer or float by looking at the model's __annotations__
-                field_type = getattr(model_type, "__annotations__", {}).get(key, None)
-                # Simple check for int and float types
-                if field_type in (int, float):
-                    item_dict[key] = None
-                # Check for Optional[int] and Optional[float]
-                elif field_type is not None and hasattr(field_type, "__origin__"):
-                    try:
-                        from typing import Union
-                        if field_type.__origin__ is Union and any(arg in (int, float) for arg in field_type.__args__):
-                            item_dict[key] = None
-                    except (AttributeError, TypeError):
-                        # If any error occurs during type checking, keep the original value
-                        pass
-        
-        db_obj = crud_instance.get_by_id(session, id=item_id)
-        if not db_obj:
-            raise HTTPException(status_code=404, detail=f"Item with id {item_id} not found")
-        
-        updated_item = crud_instance.update(session, db_obj=db_obj, obj_in=item_dict)
-        if not updated_item:
-            raise HTTPException(status_code=404, detail=f"Item with id {item_id} not found")
-        return updated_item
+    @router.put(f"/{path}/{{item_id}}", response_model=ReadSchema, tags=tags)
+    def update_item(
+        item_id: int,
+        item: UpdateSchema, 
+        session: Session = Depends(get_session),
+        current_crud_module = crud_module,
+        current_UpdateSchema = UpdateSchema,
+        current_path = path
+    ):
+        logger.debug(f"PUT /{current_path}/{{item_id}} - ID: {item_id}")
+        logger.debug(f"PUT /{current_path}/{{item_id}} - Received data: {item}")
 
-    @router.delete(f"/{path}/{{item_id}}", status_code=204, tags=tags)
-    def delete_item(item_id: int, session: Session = Depends(get_session)):
-        success = crud_instance.delete(session, item_id)
-        if not success:
-            raise HTTPException(status_code=404, detail=f"Item with id {item_id} not found")
+        # Fetch the existing item to ensure it exists before update attempt
+        db_obj = session.get(model_type, item_id)
+        if not db_obj:
+             logger.warning(f"PUT /{current_path}/{{item_id}} - Item with ID {item_id} not found.")
+             raise HTTPException(status_code=404, detail=f"{current_path.capitalize().rstrip('s')} with id {item_id} not found")
+
+        # Get the raw data from the input schema
+        item_data = item.model_dump(exclude_unset=True)
+        logger.debug(f"PUT /{current_path}/{{item_id}} - Parsed update data: {item_data}")
+
+        # Validate the incoming data using the correct UpdateSchema for this route
+        try:
+            validated_data = current_UpdateSchema(**item_data)
+            logger.debug(f"PUT /{current_path}/{{item_id}} - Validated data: {validated_data}")
+        except ValidationError as e:
+            logger.error(f"PUT /{current_path}/{{item_id}} - Validation Error: {e.errors()}")
+            raise HTTPException(status_code=422, detail=e.errors())
+
+        # Get the specific update function from the correct crud_module for this route
+        resource_name = current_path 
+        update_func_name = f"update_{resource_name.rstrip('s')}"
+        if not hasattr(current_crud_module, update_func_name):
+            logger.error(f"Specific CRUD function '{update_func_name}' not found in provided crud_module '{getattr(current_crud_module, '__name__', 'N/A')}' for path '{current_path}'.")
+            raise HTTPException(status_code=500, detail=f"Internal configuration error: Update function not found for {current_path}.")
+        update_func = getattr(current_crud_module, update_func_name)
+
+        # Call the fetched update function with appropriate arguments
+        try:
+            if resource_name == "vrfs":
+                 logger.debug(f"Calling {update_func_name} with db, vrf_id={item_id}, vrf_in=validated_data")
+                 updated_item = update_func(db=session, vrf_id=item_id, vrf_in=validated_data)
+            elif resource_name == "route_targets": 
+                 logger.debug(f"Calling {update_func_name} with db, rt_id={item_id}, rt_in=validated_data")
+                 updated_item = update_func(db=session, rt_id=item_id, rt_in=validated_data)
+            else:
+                 logger.warning(f"Unhandled resource type '{resource_name}' in generic update router. Attempting generic call with id={item_id}, obj_in=validated_data.")
+                 try:
+                     updated_item = update_func(db=session, id=item_id, obj_in=validated_data)
+                 except AttributeError:
+                     logger.error(f"Update function '{update_func_name}' does not match expected generic signature for resource '{resource_name}'.")
+                     raise HTTPException(status_code=500, detail="Internal server error: Update function signature mismatch.")
+
+        except TypeError as e:
+            logger.error(f"TypeError calling {update_func_name} for {resource_name} ID {item_id}: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error: Argument mismatch calling update function.")
+        except Exception as e:
+             logger.error(f"Unexpected error calling {update_func_name} for {resource_name} ID {item_id}: {e}", exc_info=True)
+             raise HTTPException(status_code=500, detail=f"Internal server error during update of {resource_name}.")
+
+        if updated_item is None:
+            logger.warning(f"Update operation returned None for {resource_name} ID {item_id}.")
+            raise HTTPException(status_code=404, detail=f"{resource_name.capitalize().rstrip('s')} with id {item_id} not found during update.")
+
+        logger.debug(f"PUT /{current_path}/{{item_id}} - Update successful for ID: {item_id}")
+        return ReadSchema.from_orm(updated_item)
+
+    @router.delete(f"/{path}/{{item_id}}", status_code=204, tags=tags, response_model=None)
+    def delete_item(
+        item_id: int,
+        session: Session = Depends(get_session),
+        current_crud_instance = crud_instance,
+        current_path: str = path
+    ):
+        logger.debug(f"DELETE /{current_path}/{{item_id}} - ID: {item_id}")
+        try:
+            current_crud_instance.remove(db=session, id=item_id)
+            logger.debug(f"DELETE /{current_path}/{{item_id}} - Deletion successful for ID: {item_id}")
+        except Exception as e:
+            logger.error(f"Error deleting {current_path} ID {item_id}: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Error deleting {current_path.capitalize().rstrip('s')}.")
+
         return None
+
+    return router

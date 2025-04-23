@@ -1,10 +1,9 @@
-import { Box, NavLink, Text, Divider, Group, ThemeIcon, Stack, UnstyledButton, Collapse } from '@mantine/core';
+import { Box, NavLink, Text, Divider, Group, ThemeIcon, UnstyledButton, Collapse } from '@mantine/core';
 import { Link, useLocation } from 'react-router-dom';
 import React from 'react';
 import {
   PRIMARY,
   PRIMARY_LIGHT,
-  DARK_HOVER,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
   TEXT_BRIGHT,
@@ -70,8 +69,6 @@ export function MainNavigation() {
         { icon: IconDeviceDesktopAnalytics, label: 'IP Addresses', path: '/ip-addresses' },
         { icon: IconRouter, label: 'VRFs', path: '/vrfs' },
         { icon: IconLayersIntersect, label: 'Route Targets', path: '/route-targets' },
-        { icon: IconLayersIntersect, label: 'VRF Import Targets', path: '/vrf-import-targets' },
-        { icon: IconLayersIntersect, label: 'VRF Export Targets', path: '/vrf-export-targets' },
         { icon: IconShield, label: 'Roles', path: '/roles' },
         { icon: IconWifi, label: 'VLANs', path: '/vlans' },
         { icon: IconBorderAll, label: 'VLAN Groups', path: '/vlan-groups' },

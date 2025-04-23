@@ -1,5 +1,13 @@
 /* IPAM Unified Table Styles */
 
+/* Override for the title provided by TableContainer */
+.ipam-table-title {
+  background-color: transparent !important;
+  color: #E5E7EB !important; /* Use light gray color for visibility */
+  padding: 0 !important; /* Remove any padding that might cause background issues */
+  margin-bottom: 8px !important; /* Ensure some space below title */
+}
+
 /* Table Container */
 .ipam-table-container,
 .mantine-MantineReactTable-root,
@@ -78,9 +86,9 @@
   text-transform: uppercase !important;
   font-size: 12px !important;
   font-weight: 700 !important;
-  text-align: center !important;
+  text-align: left !important;
   border-bottom: none !important;
-  padding: 8px 6px !important;
+  padding: 12px 10px !important;
   letter-spacing: 0.05em !important;
   position: sticky !important;
   top: 0 !important;
@@ -161,6 +169,7 @@
 .mrt-header-cell[data-column-id="actions"] {
   width: 100px !important;
   max-width: 100px !important;
+  text-align: center !important;
 }
 
 /* Table Cells */
@@ -168,9 +177,9 @@
 .mrt-table-cell,
 .mrt-cell {
   color: #FFFFFF !important; /* Bright white for maximum visibility */
-  text-align: center !important;
+  text-align: left !important;
   border-bottom: 1px solid #2C2E33 !important; /* Subtle cell borders */
-  padding: 12px 6px !important;
+  padding: 12px 10px !important;
   font-size: 14px !important;
   font-weight: 400 !important;
   line-height: 1.5 !important;
@@ -200,7 +209,7 @@
 .mantine-Table-root tr:hover,
 .mrt-table-body tr:hover,
 .mrt-tbody tr:hover {
-  background-color: #2C2E33 !important; /* Slightly lighter on hover */
+  background-color: #373A40 !important; /* Slightly lighter on hover */
 }
 
 /* Description column alignment */
@@ -254,6 +263,12 @@ td[data-column-id="slug"] {
   color: #e5e7eb; /* Lighter gray for better visibility */
   font-style: italic;
   opacity: 1;
+}
+
+/* Center align actions cell content */
+td[data-column-id="actions"],
+.mrt-cell[data-column-id="actions"] {
+    text-align: center !important;
 }
 
 /* Status Badge */
@@ -327,6 +342,40 @@ td:empty::after {
 .mantine-Table-root th svg {
   color: #ffffff;
   opacity: 0.8;
+}
+
+/* Styling for Toolbar Buttons (Add, Export, etc.) */
+.mrt-top-toolbar button {
+  background-color: #066a43 !important; /* Match header green */
+  color: #ffffff !important;
+  border: none !important;
+  transition: background-color 0.2s ease;
+}
+
+.mrt-top-toolbar button:hover {
+  background-color: #044a2f !important; /* Darker green on hover */
+}
+
+/* Specifically target Mantine Button component if needed */
+.mrt-top-toolbar .mantine-Button-root {
+    background-color: #066a43 !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+.mrt-top-toolbar .mantine-Button-root:hover {
+    background-color: #044a2f !important;
+}
+
+/* Adjust ActionIcon colors in toolbar if necessary */
+.mrt-top-toolbar .mantine-ActionIcon-root {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.mrt-top-toolbar .mantine-ActionIcon-root:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Table Footer/Pagination Styling */

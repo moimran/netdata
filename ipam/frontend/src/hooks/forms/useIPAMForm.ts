@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useFormState, ValidationErrors } from './useFormState';
 import { useBaseMutation } from '../api/useBaseMutation';
 import { Column } from '../../components/IPAMTable/schemas';
@@ -20,7 +19,7 @@ export interface IPAMFormProps {
  */
 export function useIPAMForm({ tableName, schema, item, onSuccess }: IPAMFormProps) {
   // Generate initial values from schema and item
-  const initialValues = {};
+  const initialValues: Record<string, any> = {};
   
   // Add default values for each field in the schema
   schema.forEach(field => {
@@ -44,6 +43,12 @@ export function useIPAMForm({ tableName, schema, item, onSuccess }: IPAMFormProp
   // Special fields for different table types
   if (tableName === 'vlan_groups') {
     initialValues['vlanIdRanges'] = item?.vlan_id_ranges || '1-4094';
+  }
+  if (tableName === 'vrfs') {
+    // Initialize from item data if editing, otherwise empty array
+    // Ensure values are strings for MultiSelect
+    initialValues['import_target_ids'] = item?.import_targets?.map((rt: any) => String(rt.id)) || [];
+    initialValues['export_target_ids'] = item?.export_targets?.map((rt: any) => String(rt.id)) || [];
   }
   
   // Validate form based on schema
@@ -94,6 +99,12 @@ export function useIPAMForm({ tableName, schema, item, onSuccess }: IPAMFormProp
         submissionData[field.name] = null;
       }
     });
+    
+    if (tableName === 'vrfs') {
+      // Convert string arrays back to number arrays for API
+      submissionData.import_target_ids = (submissionData.import_target_ids || []).map(Number);
+      submissionData.export_target_ids = (submissionData.export_target_ids || []).map(Number);
+    }
     
     // Special handling for VLAN groups
     if (tableName === 'vlan_groups' && submissionData.vlanIdRanges) {
@@ -191,5 +202,6 @@ export function useIPAMForm({ tableName, schema, item, onSuccess }: IPAMFormProp
     submitForm: handleSubmit,
     vlanIdRanges: formState.formData.vlanIdRanges as string,
     setVlanIdRanges: (value: string) => formState.handleChange('vlanIdRanges', value)
+    // Note: import/export_target_ids are already accessible via formState.formData
   };
-} 
+}

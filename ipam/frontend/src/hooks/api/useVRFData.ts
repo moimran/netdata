@@ -1,6 +1,6 @@
 import { useBaseQuery } from './useBaseQuery';
-import { useBaseMutation } from './useBaseMutation';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { apiClient } from '../../api/client';
 
 export interface VRF {
   id: number;
@@ -9,6 +9,11 @@ export interface VRF {
   description: string | null;
   enforce_unique: boolean;
   tenant_id: number | null;
+}
+
+export interface VRFReadWithTargets extends VRF {
+  import_targets: RouteTarget[];
+  export_targets: RouteTarget[];
 }
 
 export interface RouteTarget {
@@ -33,33 +38,18 @@ export function useVRFDetail(id: string | number | undefined) {
  * Hook for fetching route targets associated with a VRF
  */
 export function useVRFRouteTargets(vrfId: string | number | undefined, type: 'import' | 'export') {
-  const tableName = type === 'import' ? 'vrf_import_targets' : 'vrf_export_targets';
-  
-  return useBaseQuery<RouteTarget[]>({
-    url: tableName,
-    params: { vrf_id: vrfId },
-    keyParts: [tableName, vrfId],
+  // Fetch the full VRF details, which now includes the targets
+  return useBaseQuery<RouteTarget[]>({ // The generic type is the FINAL type after transformation
+    url: `vrfs/${vrfId}`, // Fetch the specific VRF
+    keyParts: ['vrfs', vrfId, 'targets', type], // Unique key including type
     enabled: !!vrfId,
-    transformation: async (data) => {
-      // Get the junction table entries
-      const junctionItems = data.items || [];
-      
-      if (junctionItems.length === 0) {
+    transformation: (data: VRFReadWithTargets): RouteTarget[] => { // Type the INPUT data and ensure sync return
+      // Data is the VRF object with import_targets and export_targets arrays
+      if (!data) {
         return [];
       }
-      
-      // Extract the route target IDs
-      const targetIds = junctionItems.map((item: any) => item.route_target_id);
-      
-      // Fetch each route target individually
-      const targetsPromises = targetIds.map((targetId: number) => 
-        fetch(`/api/v1/route_targets/${targetId}`)
-          .then(res => res.json())
-      );
-      
-      // Wait for all promises to resolve
-      const targets = await Promise.all(targetsPromises);
-      return targets;
+      // Return the correct list based on the type
+      return type === 'import' ? data.import_targets || [] : data.export_targets || [];
     }
   });
 }
@@ -94,69 +84,98 @@ export function useAvailableRouteTargets(
  */
 export function useAddVRFRouteTargets(vrfId: string | number | undefined, type: 'import' | 'export') {
   const queryClient = useQueryClient();
-  const tableName = type === 'import' ? 'vrf_import_targets' : 'vrf_export_targets';
-  
-  return useBaseMutation<any, { targetIds: number[] }>({
-    url: tableName,
-    type: 'create',
-    invalidateQueries: [tableName, 'vrfs'],
-    mutationFn: async ({ targetIds }) => {
-      // Create junction table entries for each target ID
-      const results = await Promise.all(targetIds.map(targetId => 
-        fetch(`/api/v1/${tableName}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            vrf_id: Number(vrfId), 
-            route_target_id: targetId 
-          })
-        }).then(res => res.json())
-      ));
-      
-      return results;
+
+  // Correct types: <TData, TError, TVariables>
+  return useMutation<VRFReadWithTargets, Error, { targetIds: number[] }>({ 
+    mutationFn: async ({ targetIds }: { targetIds: number[] }) => { // Explicitly type variables
+      if (!vrfId) throw new Error('VRF ID is required');
+
+      // 1. Fetch current VRF data to get existing target IDs
+      const currentVRF = await queryClient.fetchQuery<VRFReadWithTargets>({ 
+        queryKey: ['vrfs', vrfId],
+        queryFn: async () => { // Provide the actual fetch logic
+          const response = await apiClient.get(`/api/v1/vrfs/${vrfId}`);
+          return response.data;
+        },
+        staleTime: 0 // Ensure fresh data is fetched for the mutation
+      });
+
+      if (!currentVRF) throw new Error('Could not fetch current VRF data');
+
+      // 2. Calculate new list of target IDs
+      const existingTargetIds = type === 'import' 
+        ? (currentVRF.import_targets || []).map(t => t.id) // Handle null/undefined targets
+        : (currentVRF.export_targets || []).map(t => t.id);
+        
+      const combinedIds = [...existingTargetIds, ...targetIds];
+      const uniqueNewTargetIds = Array.from(new Set(combinedIds)); // Ensure uniqueness
+
+      // 3. Prepare PUT payload
+      const payload = type === 'import'
+        ? { import_target_ids: uniqueNewTargetIds }
+        : { export_target_ids: uniqueNewTargetIds };
+
+      // 4. Send PUT request
+      const response = await apiClient.put(`/api/v1/vrfs/${vrfId}`, payload);
+      return response.data; // This will be the updated VRF object
     },
-    onSuccess: () => {
-      // Invalidate specific queries
-      queryClient.invalidateQueries({ queryKey: [tableName, vrfId] });
-      queryClient.invalidateQueries({ queryKey: ['route_targets', 'available_for_vrf'] });
+    onSuccess: (updatedVRF) => { // Data returned by mutationFn is passed here
+      // Update the cache with the new VRF data
+      queryClient.setQueryData(['vrfs', vrfId], updatedVRF);
+
+      // Invalidate queries to refetch updated data
+      queryClient.invalidateQueries({ queryKey: ['vrfs', vrfId, 'targets', type] }); 
+      queryClient.invalidateQueries({ queryKey: ['route_targets', 'available_for_vrf', vrfId, type] }); 
+      // Optionally invalidate the main VRF list if needed: queryClient.invalidateQueries({ queryKey: ['vrfs'] });
     }
   });
 }
 
 /**
- * Hook for removing a route target from a VRF
+ * Hook for removing a route target from a VRF (new implementation)
  */
-export function useRemoveVRFRouteTarget(vrfId: string | number | undefined) {
+export function useRemoveVRFRouteTarget(vrfId: string | number | undefined, type: 'import' | 'export') {
   const queryClient = useQueryClient();
-  
-  return useBaseMutation<any, { targetId: number, type: 'import' | 'export' }>({
-    url: '', // URL will be determined in the mutation function
-    type: 'delete',
-    invalidateQueries: ['vrf_import_targets', 'vrf_export_targets', 'vrfs'],
-    mutationFn: async ({ targetId, type }) => {
-      const tableName = type === 'import' ? 'vrf_import_targets' : 'vrf_export_targets';
-      
-      // Find the junction table entry
-      const response = await fetch(`/api/v1/${tableName}?vrf_id=${vrfId}&route_target_id=${targetId}`);
-      const data = await response.json();
-      const junctionItems = data.items || [];
-      
-      if (junctionItems.length === 0) {
-        throw new Error('Junction table entry not found');
-      }
-      
-      // Delete the junction table entry
-      const junctionId = junctionItems[0].id;
-      await fetch(`/api/v1/${tableName}/${junctionId}`, {
-        method: 'DELETE'
+
+  return useMutation<VRFReadWithTargets, Error, { targetId: number }>({ // Correct types
+    mutationFn: async ({ targetId }: { targetId: number }) => { // Correctly typed variables
+      if (!vrfId) throw new Error('VRF ID is required');
+
+      // 1. Fetch current VRF data
+      const currentVRF = await queryClient.fetchQuery<VRFReadWithTargets>({ 
+        queryKey: ['vrfs', vrfId],
+        queryFn: async () => { 
+          const response = await apiClient.get(`/api/v1/vrfs/${vrfId}`);
+          return response.data;
+        },
+        staleTime: 0
       });
-      
-      return { success: true };
+
+      if (!currentVRF) throw new Error('Could not fetch current VRF data');
+
+      // 2. Calculate new list of target IDs (filter out the one to remove)
+      const existingTargetIds = type === 'import' 
+        ? (currentVRF.import_targets || []).map(t => t.id)
+        : (currentVRF.export_targets || []).map(t => t.id);
+
+      const updatedTargetIds = existingTargetIds.filter(id => id !== targetId);
+
+      // 3. Prepare PUT payload
+      const payload = type === 'import'
+        ? { import_target_ids: updatedTargetIds }
+        : { export_target_ids: updatedTargetIds };
+
+      // 4. Send PUT request
+      const response = await apiClient.put(`/api/v1/vrfs/${vrfId}`, payload);
+      return response.data; // Return updated VRF
     },
-    onSuccess: (_, variables) => {
-      const tableName = variables.type === 'import' ? 'vrf_import_targets' : 'vrf_export_targets';
-      queryClient.invalidateQueries({ queryKey: [tableName, vrfId] });
-      queryClient.invalidateQueries({ queryKey: ['route_targets', 'available_for_vrf'] });
+    onSuccess: (updatedVRF) => { // Use the 'type' argument from the hook's scope
+      // Update the cache
+      queryClient.setQueryData(['vrfs', vrfId], updatedVRF);
+
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: ['vrfs', vrfId, 'targets', type] });
+      queryClient.invalidateQueries({ queryKey: ['route_targets', 'available_for_vrf', vrfId, type] });
     }
   });
-} 
+}

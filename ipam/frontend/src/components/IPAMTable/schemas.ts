@@ -70,18 +70,10 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'tenant_id', type: 'number', reference: 'tenants' }
   ],
   route_targets: [
-    { name: 'id', type: 'number' },
-    { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string' },
+    { name: 'id', type: 'number', width: 80 },
+    { name: 'name', type: 'string', required: true, width: 200 },
+    { name: 'slug', type: 'string', width: 150 },
     { name: 'description', type: 'string' }
-  ],
-  vrf_import_targets: [
-    { name: 'vrf_id', type: 'number', reference: 'vrfs', required: true },
-    { name: 'route_target_id', type: 'number', reference: 'route_targets', required: true }
-  ],
-  vrf_export_targets: [
-    { name: 'vrf_id', type: 'number', reference: 'vrfs', required: true },
-    { name: 'route_target_id', type: 'number', reference: 'route_targets', required: true }
   ],
   rirs: [
     { name: 'id', type: 'number' },

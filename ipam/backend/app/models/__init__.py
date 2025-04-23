@@ -60,7 +60,7 @@ __all__ = [
     "Role",
     "VRF",
     "RouteTarget",
-    "VRFImportTargets", 
+    "VRFImportTargets",
     "VRFExportTargets",
     "Site",
     "Location",

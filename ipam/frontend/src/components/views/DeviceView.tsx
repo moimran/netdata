@@ -91,6 +91,7 @@ export function DeviceView() {
       <TableContainer title="Device Inventory">
         <UnifiedTable
           tableName="device_inventory"
+          enableTopToolbar={false} // Disable the table's internal toolbar
         />
       </TableContainer>
 

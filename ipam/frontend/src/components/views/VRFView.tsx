@@ -1,6 +1,5 @@
-import { SharedTableComponent } from '../tables/SharedTableComponent';
-import { useBaseMutation } from '../../hooks';
-import { Stack, ActionIcon, Tooltip, Group } from '@mantine/core';
+import { UnifiedTable } from '../tables/UnifiedTable';
+import { Stack, ActionIcon, Tooltip } from '@mantine/core';
 import { IconExternalLink } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 
@@ -23,7 +22,7 @@ export function VRFView() {
 
   return (
     <Stack>
-      <SharedTableComponent
+      <UnifiedTable
         tableName="vrfs"
         customActionsRenderer={renderCustomActions}
       />

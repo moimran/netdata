@@ -1,5 +1,5 @@
-import { SharedTableComponent } from '../tables/SharedTableComponent';
+import { UnifiedTable } from '../tables/UnifiedTable';
 
-export function PrefixView() {
-  return <SharedTableComponent tableName="prefixes" />;
+export default function PrefixView() {
+  return <UnifiedTable tableName="prefixes" />;
 }

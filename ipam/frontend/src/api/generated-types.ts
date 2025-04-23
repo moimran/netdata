@@ -380,43 +380,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/vrfs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get All */
-        get: operations["get_all_api_v1_vrfs_get"];
-        put?: never;
-        /** Create Item */
-        post: operations["create_item_api_v1_vrfs_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/vrfs/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_vrfs__item_id__get"];
-        /** Update Item */
-        put: operations["update_item_api_v1_vrfs__item_id__put"];
-        post?: never;
-        /** Delete Item */
-        delete: operations["delete_item_api_v1_vrfs__item_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/rirs": {
         parameters: {
             query?: never;
@@ -486,6 +449,80 @@ export interface paths {
         post?: never;
         /** Delete Item */
         delete: operations["delete_item_api_v1_aggregates__item_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/vrfs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get All */
+        get: operations["get_all_api_v1_vrfs_get"];
+        put?: never;
+        /** Create Item */
+        post: operations["create_item_api_v1_vrfs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/vrfs/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_vrfs__item_id__get"];
+        /** Update Item */
+        put: operations["update_item_api_v1_vrfs__item_id__put"];
+        post?: never;
+        /** Delete Item */
+        delete: operations["delete_item_api_v1_vrfs__item_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/route_targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get All */
+        get: operations["get_all_api_v1_route_targets_get"];
+        put?: never;
+        /** Create Item */
+        post: operations["create_item_api_v1_route_targets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/route_targets/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_route_targets__item_id__get"];
+        /** Update Item */
+        put: operations["update_item_api_v1_route_targets__item_id__put"];
+        post?: never;
+        /** Delete Item */
+        delete: operations["delete_item_api_v1_route_targets__item_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -930,43 +967,6 @@ export interface paths {
         post?: never;
         /** Delete Item */
         delete: operations["delete_item_api_v1_asn_ranges__item_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/route_targets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get All */
-        get: operations["get_all_api_v1_route_targets_get"];
-        put?: never;
-        /** Create Item */
-        post: operations["create_item_api_v1_route_targets_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/route_targets/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_route_targets__item_id__get"];
-        /** Update Item */
-        put: operations["update_item_api_v1_route_targets__item_id__put"];
-        post?: never;
-        /** Delete Item */
-        delete: operations["delete_item_api_v1_route_targets__item_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2526,10 +2526,10 @@ export interface components {
             /** Size */
             size: number;
         };
-        /** PaginatedResponse[VRFRead] */
-        PaginatedResponse_VRFRead_: {
+        /** PaginatedResponse[VRFReadWithTargets] */
+        PaginatedResponse_VRFReadWithTargets_: {
             /** Items */
-            items: components["schemas"]["VRFRead"][];
+            items: components["schemas"]["VRFReadWithTargets"][];
             /** Total */
             total: number;
             /** Page */
@@ -2883,57 +2883,28 @@ export interface components {
             /** Description */
             description?: string | null;
         };
-        /**
-         * RouteTargetCreate
-         * @example {
-         *       "custom_fields": {
-         *         "site_code": "NYC01"
-         *       },
-         *       "description": "RT for VRF Blue",
-         *       "name": "65000:1234",
-         *       "tenant_id": 1
-         *     }
-         */
+        /** RouteTargetCreate */
         RouteTargetCreate: {
             /** Name */
             name: string;
-            /** Tenant Id */
-            tenant_id?: number | null;
             /** Description */
             description?: string | null;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
         };
         /** RouteTargetRead */
         RouteTargetRead: {
             /** Name */
             name: string;
-            /** Tenant Id */
-            tenant_id?: number | null;
             /** Description */
             description?: string | null;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
             /** Id */
             id: number;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Updated At */
-            updated_at?: string | null;
         };
         /** RouteTargetUpdate */
         RouteTargetUpdate: {
             /** Name */
             name?: string | null;
-            /** Tenant Id */
-            tenant_id?: number | null;
             /** Description */
             description?: string | null;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
         };
         /**
          * SiteCreate
@@ -3357,62 +3328,59 @@ export interface components {
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
         };
-        /**
-         * VRFCreate
-         * @example {
-         *       "custom_fields": {
-         *         "sla": "gold"
-         *       },
-         *       "description": "VRF for Customer A",
-         *       "enforce_unique": true,
-         *       "name": "Customer-A-VRF",
-         *       "rd": "65000:100",
-         *       "tenant_id": 1
-         *     }
-         */
+        /** VRFCreate */
         VRFCreate: {
             /** Name */
             name: string;
             /** Rd */
             rd?: string | null;
-            /** Tenant Id */
-            tenant_id?: number | null;
+            /** Description */
+            description?: string | null;
             /**
              * Enforce Unique
              * @default true
              */
             enforce_unique: boolean;
-            /** Description */
-            description?: string | null;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /**
+             * Import Target Ids
+             * @default []
+             */
+            import_target_ids: number[] | null;
+            /**
+             * Export Target Ids
+             * @default []
+             */
+            export_target_ids: number[] | null;
         };
-        /** VRFRead */
-        VRFRead: {
+        /** VRFReadWithTargets */
+        VRFReadWithTargets: {
             /** Name */
             name: string;
             /** Rd */
             rd?: string | null;
-            /** Tenant Id */
-            tenant_id?: number | null;
+            /** Description */
+            description?: string | null;
             /**
              * Enforce Unique
              * @default true
              */
             enforce_unique: boolean;
-            /** Description */
-            description?: string | null;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
+            /** Tenant Id */
+            tenant_id?: number | null;
             /** Id */
             id: number;
             /**
-             * Created At
-             * Format: date-time
+             * Import Targets
+             * @default []
              */
-            created_at: string;
-            /** Updated At */
-            updated_at?: string | null;
+            import_targets: components["schemas"]["RouteTargetRead"][];
+            /**
+             * Export Targets
+             * @default []
+             */
+            export_targets: components["schemas"]["RouteTargetRead"][];
         };
         /** VRFUpdate */
         VRFUpdate: {
@@ -3420,14 +3388,16 @@ export interface components {
             name?: string | null;
             /** Rd */
             rd?: string | null;
-            /** Tenant Id */
-            tenant_id?: number | null;
-            /** Enforce Unique */
-            enforce_unique?: boolean | null;
             /** Description */
             description?: string | null;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
+            /** Enforce Unique */
+            enforce_unique?: boolean | null;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /** Import Target Ids */
+            import_target_ids?: number[] | null;
+            /** Export Target Ids */
+            export_target_ids?: number[] | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -4547,167 +4517,6 @@ export interface operations {
             };
         };
     };
-    get_all_api_v1_vrfs_get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-                search?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_VRFRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_item_api_v1_vrfs_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VRFCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["VRFRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_one_api_v1_vrfs__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["VRFRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_item_api_v1_vrfs__item_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VRFUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["VRFRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_item_api_v1_vrfs__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_all_api_v1_rirs_get: {
         parameters: {
             query?: {
@@ -5002,6 +4811,328 @@ export interface operations {
         };
     };
     delete_item_api_v1_aggregates__item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_all_api_v1_vrfs_get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_VRFReadWithTargets_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_item_api_v1_vrfs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VRFCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VRFReadWithTargets"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_vrfs__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VRFReadWithTargets"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_item_api_v1_vrfs__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VRFUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VRFReadWithTargets"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_item_api_v1_vrfs__item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_all_api_v1_route_targets_get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_RouteTargetRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_item_api_v1_route_targets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RouteTargetCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteTargetRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_route_targets__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteTargetRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_item_api_v1_route_targets__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RouteTargetUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteTargetRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_item_api_v1_route_targets__item_id__delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -6934,167 +7065,6 @@ export interface operations {
         };
     };
     delete_item_api_v1_asn_ranges__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_all_api_v1_route_targets_get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-                search?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_RouteTargetRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_item_api_v1_route_targets_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RouteTargetCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RouteTargetRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_one_api_v1_route_targets__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RouteTargetRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_item_api_v1_route_targets__item_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RouteTargetUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RouteTargetRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_item_api_v1_route_targets__item_id__delete: {
         parameters: {
             query?: never;
             header?: never;

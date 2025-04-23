@@ -9,13 +9,15 @@ import {
     type MRT_Row,
     type MRT_Cell
 } from 'mantine-react-table';
-import { ActionIcon, Tooltip, Box, Button, Card, Text, Progress, Badge } from '@mantine/core';
+import { ActionIcon, Tooltip, Box, Button, Card, Text, Progress, Badge, Loader } from '@mantine/core';
 import { IconEdit, IconTrash, IconPlus, IconSearch, IconRefresh, IconDownload } from '@tabler/icons-react';
 import { IPAMModal } from '../ui/IPAMModal';
 import { useBaseMutation, useTableData, useReferenceData } from '../../hooks';
 import type { TableName } from '../../types';
 import { TABLE_SCHEMAS } from './schemas';
 import { formatCellValue } from './utils';
+import { useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '../../api/client';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 // Styles imported in main.tsx
 import TableHeaderWrapper from './TableHeaderWrapper';
@@ -74,6 +76,9 @@ interface IPAMTableMRTProps {
 export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTProps) => {
     const [showModal, setShowModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState<any>(null);
+    const [editingItemId, setEditingItemId] = useState<number | null>(null); // Track which item's detail is being fetched
+    const [isFetchingDetail, setIsFetchingDetail] = useState(false);
+    const queryClient = useQueryClient();
 
     // Get table schema
     const schema = useMemo(() => TABLE_SCHEMAS[tableName] || [], [tableName]);
@@ -138,10 +143,31 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
         setShowModal(true);
     }, []);
 
-    const handleEditClick = useCallback((item: any) => {
-        setSelectedItem(item);
-        setShowModal(true);
-    }, []);
+    const handleEditClick = useCallback(async (item: any) => {
+        if (!item || !item.id) return;
+        setEditingItemId(item.id);
+        setIsFetchingDetail(true);
+        try {
+            // Fetch the full item details using its ID
+            const fullItemData = await queryClient.fetchQuery({
+                queryKey: [tableName, item.id],
+                queryFn: async () => {
+                    const response = await apiClient.get(`/${tableName}/${item.id}`); // Remove duplicate prefix
+                    return response.data; // Assuming API returns the object directly
+                },
+                staleTime: 0 // Fetch fresh data for editing
+            });
+
+            setSelectedItem(fullItemData);
+            setShowModal(true);
+        } catch (error) {
+            console.error(`Error fetching details for ${tableName} ID ${item.id}:`, error);
+            // Optionally show an error message to the user
+        } finally {
+            setIsFetchingDetail(false);
+            setEditingItemId(null);
+        }
+    }, [tableName, queryClient]);
 
     const handleDeleteClick = useCallback((id: number) => {
         if (window.confirm('Are you sure you want to delete this item?')) {
@@ -309,22 +335,20 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
                 const item = row.original;
                 return (
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', minWidth: '100px' }}>
-                        <Tooltip label="Edit" withArrow position="top">
+                        <Tooltip label={isFetchingDetail && editingItemId === row.original.id ? "Loading..." : "Edit"}>
                             <ActionIcon
-                                color="teal"
-                                variant="filled"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditClick(item);
-                                }}
-                                size="md"
-                                radius="sm"
-                                style={{ backgroundColor: '#066a43' }}
+                                onClick={() => handleEditClick(row.original)}
+                                color="blue"
+                                disabled={isFetchingDetail && editingItemId === row.original.id}
                             >
-                                <IconEdit size={16} stroke={1.5} />
+                                {isFetchingDetail && editingItemId === row.original.id ? (
+                                    <Loader size={16} color="blue" />
+                                ) : (
+                                    <IconEdit size={16} />
+                                )}
                             </ActionIcon>
                         </Tooltip>
-                        <Tooltip label="Delete" withArrow position="top">
+                        <Tooltip label="Delete">
                             <ActionIcon
                                 color="red"
                                 variant="filled"
@@ -343,17 +367,7 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
                 );
             },
         },
-    ], [columns, handleEditClick, handleDeleteClick, customActionsRenderer]);
-
-    // Format table name for display
-    const formatTableName = (name: string): string => {
-        return name
-            .replace(/_/g, ' ')
-            .replace(/([A-Z])/g, ' $1')
-            .split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-    };
+    ], [columns, handleEditClick, handleDeleteClick, customActionsRenderer, isFetchingDetail, editingItemId]);
 
     // Table instance
     const table = useMantineReactTable({
@@ -400,13 +414,13 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
         renderTopToolbarCustomActions: () => (
             <div style={{
                 display: 'flex',
-                justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: '12px 16px',
-                width: '100%'
+                gap: '16px',
+                padding: '8px',
+                width: '100%', // Ensure it takes full width
+                justifyContent: 'space-between' // Space out title/actions
             }}>
-                <Text c="#66cdaa" fw={600} size="lg">{formatTableName(tableName)}</Text>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
                     <Button
                         variant="filled"
                         leftSection={<IconPlus size={16} />}
@@ -530,7 +544,7 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
             {showModal && (
                 <IPAMModal
                     tableName={tableName}
-                    data={selectedItem}
+                    data={selectedItem} // Now contains full details
                     onClose={handleModalClose}
                 />
             )}

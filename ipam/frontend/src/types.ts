@@ -24,8 +24,6 @@ export type TableName =
   | 'ip_ranges'
   | 'site_groups'
   | 'locations'
-  | 'vrf_import_targets'
-  | 'vrf_export_targets'
   | 'asn_ranges'
   | 'device_inventory';
 
