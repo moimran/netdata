@@ -98,22 +98,26 @@ const StatusField = memo(({
   value: string;
   onChange: (name: string, value: string) => void;
   required?: boolean
-}) => (
-  <div>
-    <Text size="sm" fw={500} mb={5}>{label}{required ? ' *' : ''}</Text>
-    <SegmentedControl
-      fullWidth
+}) => {
+  const statusOptions = [
+    { value: 'active', label: 'Active' },
+    { value: 'reserved', label: 'Reserved' },
+    { value: 'deprecated', label: 'Deprecated' },
+    { value: 'available', label: 'Available' }
+  ];
+  
+  return (
+    <Select
+      label={label}
+      data={statusOptions}
       value={value || 'active'}
-      onChange={(value) => onChange(name, value)}
-      data={[
-        { label: 'Active', value: 'active' },
-        { label: 'Reserved', value: 'reserved' },
-        { label: 'Deprecated', value: 'deprecated' },
-        { label: 'Available', value: 'available' }
-      ]}
+      onChange={(value) => onChange(name, value || 'active')}
+      required={required}
+      placeholder="Select Status"
+      searchable
     />
-  </div>
-));
+  );
+});
 
 const TextField = memo(({
   name,
@@ -355,6 +359,142 @@ export const FormField = memo(function FormField({
     );
   }
   
+  // Special handling for prefixes table
+  if (tableName === 'prefixes') {
+    // Handle VRF reference field
+    if (column.name === 'vrf_id' && column.reference === 'vrfs') {
+      const hasVrfs = referenceData.vrfs && referenceData.vrfs.length > 0;
+      const vrfOptions = hasVrfs
+        ? referenceData.vrfs.map(vrf => ({
+            value: vrf.id.toString(),
+            label: vrf.name || `VRF #${vrf.id}`
+          }))
+        : [];
+        
+      return (
+        <Select
+          label="VRF"
+          data={vrfOptions}
+          value={formData.vrf_id ? formData.vrf_id.toString() : null}
+          onChange={(value) => handleChange('vrf_id', value ? Number(value) : null)}
+          error={validationErrors.vrf_id}
+          placeholder={hasVrfs ? "Select VRF" : "No VRFs available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle Site reference field
+    if (column.name === 'site_id' && column.reference === 'sites') {
+      const hasSites = referenceData.sites && referenceData.sites.length > 0;
+      const siteOptions = hasSites
+        ? referenceData.sites.map(site => ({
+            value: site.id.toString(),
+            label: site.name || `Site #${site.id}`
+          }))
+        : [];
+        
+      return (
+        <Select
+          label="Site"
+          data={siteOptions}
+          value={formData.site_id ? formData.site_id.toString() : null}
+          onChange={(value) => handleChange('site_id', value ? Number(value) : null)}
+          error={validationErrors.site_id}
+          placeholder={hasSites ? "Select Site" : "No Sites available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle VLAN reference field
+    if (column.name === 'vlan_id' && column.reference === 'vlans') {
+      const hasVlans = referenceData.vlans && referenceData.vlans.length > 0;
+      const vlanOptions = hasVlans
+        ? referenceData.vlans.map(vlan => ({
+            value: vlan.id.toString(),
+            label: `${vlan.name} (${vlan.vid})` || `VLAN #${vlan.id}`
+          }))
+        : [];
+        
+      return (
+        <Select
+          label="VLAN"
+          data={vlanOptions}
+          value={formData.vlan_id ? formData.vlan_id.toString() : null}
+          onChange={(value) => handleChange('vlan_id', value ? Number(value) : null)}
+          error={validationErrors.vlan_id}
+          placeholder={hasVlans ? "Select VLAN" : "No VLANs available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle Tenant reference field
+    if (column.name === 'tenant_id' && column.reference === 'tenants') {
+      const hasTenants = referenceData.tenants && referenceData.tenants.length > 0;
+      const tenantOptions = hasTenants
+        ? referenceData.tenants.map(tenant => ({
+            value: tenant.id.toString(),
+            label: tenant.name || `Tenant #${tenant.id}`
+          }))
+        : [];
+        
+      return (
+        <Select
+          label="Tenant"
+          data={tenantOptions}
+          value={formData.tenant_id ? formData.tenant_id.toString() : null}
+          onChange={(value) => handleChange('tenant_id', value ? Number(value) : null)}
+          error={validationErrors.tenant_id}
+          placeholder={hasTenants ? "Select Tenant" : "No Tenants available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle Role reference field
+    if (column.name === 'role_id' && column.reference === 'roles') {
+      const hasRoles = referenceData.roles && referenceData.roles.length > 0;
+      const roleOptions = hasRoles
+        ? referenceData.roles.map(role => ({
+            value: role.id.toString(),
+            label: role.name || `Role #${role.id}`
+          }))
+        : [];
+        
+      return (
+        <Select
+          label="Role"
+          data={roleOptions}
+          value={formData.role_id ? formData.role_id.toString() : null}
+          onChange={(value) => handleChange('role_id', value ? Number(value) : null)}
+          error={validationErrors.role_id}
+          placeholder={hasRoles ? "Select Role" : "No Roles available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle Status field
+    if (column.name === 'status') {
+      return (
+        <StatusField
+          name={column.name}
+          label={label}
+          value={formData[column.name] || 'active'}
+          onChange={handleChange}
+          required={column.required}
+        />
+      );
+    }
+  }
+  
   // Generate field based on column type
   switch (column.type) {
     case 'boolean':
@@ -362,7 +502,7 @@ export const FormField = memo(function FormField({
         <BooleanField
           name={column.name}
           label={label}
-          value={formData[column.name]}
+          value={formData[column.name] || false}
           onChange={handleChange}
           error={validationErrors[column.name]}
         />
@@ -387,7 +527,7 @@ export const FormField = memo(function FormField({
           <StatusField
             name={column.name}
             label={label}
-            value={formData[column.name]}
+            value={formData[column.name] || 'active'}
             onChange={handleChange}
             required={column.required}
           />
@@ -499,6 +639,56 @@ export const FormField = memo(function FormField({
 
       // Special handling for CIDR notation
       if (column.name === 'prefix') {
+        // For prefixes table, show dropdown of available aggregates
+        if (tableName === 'prefixes') {
+          // Check if aggregates data is available
+          const hasAggregates = referenceData.aggregates && referenceData.aggregates.length > 0;
+          console.log('Aggregates data for prefixes form:', {
+            hasAggregates,
+            aggregates: referenceData.aggregates || [],
+            count: referenceData.aggregates ? referenceData.aggregates.length : 0
+          });
+          
+          // Create options from aggregates data
+          const aggregateOptions = hasAggregates 
+            ? referenceData.aggregates.map(aggregate => ({
+                value: aggregate.prefix,
+                label: `${aggregate.name} (${aggregate.prefix})` || aggregate.prefix
+              }))
+            : [];
+              
+          return (
+            <div>
+              <Select
+                label="Available Aggregates"
+                data={aggregateOptions}
+                value={formData.aggregate_prefix || null}
+                onChange={(value) => {
+                  // Set the selected aggregate prefix
+                  handleChange('aggregate_prefix', value);
+                  // Also update the prefix field with the selected value
+                  if (value) {
+                    handleChange('prefix', value);
+                  }
+                }}
+                placeholder={hasAggregates ? "Select from available aggregates" : "No aggregates available"}
+                searchable
+                clearable
+              />
+              <TextField
+                name={column.name}
+                label={label}
+                value={formData[column.name]}
+                onChange={handleChange}
+                error={validationErrors[column.name]}
+                required={column.required}
+                placeholder="e.g., 192.168.1.0/24"
+              />
+            </div>
+          );
+        }
+        
+        // For other tables (like aggregates), just show a text field
         return (
           <TextField
             name={column.name}

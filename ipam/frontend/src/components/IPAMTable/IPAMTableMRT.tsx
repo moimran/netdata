@@ -10,8 +10,9 @@ import {
     type MRT_Cell
 } from 'mantine-react-table';
 import { ActionIcon, Tooltip, Box, Button, Card, Text, Progress, Badge, Loader } from '@mantine/core';
-import { IconEdit, IconTrash, IconPlus, IconSearch, IconRefresh, IconDownload } from '@tabler/icons-react';
-import { IPAMModal } from '../ui/IPAMModal';
+import { IconEdit, IconTrash, IconSearch, IconRefresh, IconDownload, IconPlus } from '@tabler/icons-react';
+// Import path may need to be updated based on actual location
+import { IPAMModal } from '../IPAMModal';
 import { useBaseMutation, useTableData, useReferenceData } from '../../hooks';
 import type { TableName } from '../../types';
 import { TABLE_SCHEMAS } from './schemas';
@@ -138,6 +139,7 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
     });
 
     // Memoized handlers
+    // This function is used in the UI to add new items
     const handleAddClick = useCallback(() => {
         setSelectedItem(null);
         setShowModal(true);
@@ -177,9 +179,15 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
 
     const handleModalClose = useCallback(() => {
         setShowModal(false);
-        refetch();
-        refetchReferenceData();
-    }, [refetch, refetchReferenceData]);
+        // Force a refresh of the table data
+        setTimeout(() => {
+            console.log('Forcing data refresh after modal close');
+            refetch();
+            refetchReferenceData();
+            // Invalidate the query cache for this table to ensure fresh data
+            queryClient.invalidateQueries({ queryKey: ['data', tableName] });
+        }, 300); // Small delay to ensure the backend has processed any changes
+    }, [refetch, refetchReferenceData, queryClient, tableName]);
 
     // Format reference value function
     const formatReferenceValue = useCallback((value: number | null, referenceTable: string): string => {
@@ -417,31 +425,28 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
                 alignItems: 'center',
                 gap: '16px',
                 padding: '8px',
-                width: '100%', // Ensure it takes full width
-                justifyContent: 'space-between' // Space out title/actions
+                justifyContent: 'flex-end',
+                width: '100%'
             }}>
-                <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
-                    <Button
-                        variant="filled"
-                        leftSection={<IconPlus size={16} />}
-                        onClick={handleAddClick}
-                        size="sm"
-                        color="teal"
-                    >
-                        Add
-                    </Button>
-                    <Button
-                        variant="light"
-                        leftSection={<IconDownload size={16} />}
-                        onClick={() => {
-                            // Use MRT's CSV export functionality
+                <Button
+                    leftSection={<IconPlus size={18} />}
+                    onClick={handleAddClick}
+                    size="sm"
+                    color="green"
+                    style={{ marginRight: '8px' }}
+                >
+                    Add New
+                </Button>
+                <Button
+                    leftSection={<IconDownload size={18} />}
+                    onClick={() => {
                             const rows = data?.items || [];
                             const csvData = rows.map(row => {
                                 // Create an object with only the visible columns
                                 const csvRow: Record<string, any> = {};
                                 columns.forEach(col => {
                                     if (col.accessorKey) {
-                                        let value = row[col.accessorKey];
+                                        let value = row[col.accessorKey as string];
 
                                         // Format the value based on column type
                                         if (col.Cell) {
@@ -501,10 +506,10 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
                         loading={isLoading || isLoadingReferenceData}
                         className="ipam-refresh-button"
                         size="lg"
+                        style={{ marginLeft: '8px' }}
                     >
                         <IconRefresh size={18} />
                     </ActionIcon>
-                </div>
             </div>
         ),
         mantineSearchTextInputProps: {

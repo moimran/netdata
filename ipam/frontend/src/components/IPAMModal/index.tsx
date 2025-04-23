@@ -16,6 +16,8 @@ import { IconAlertCircle } from '@tabler/icons-react';
 import { useFormState } from '../../hooks/forms/useFormState';
 import { useReferenceData } from '../../hooks/api/useReferenceData';
 import { useAllRouteTargets } from '../../hooks/api/useAllRouteTargets';
+import { slugify } from '../../utils/slugify';
+import { useQueryClient } from '@tanstack/react-query';
 import { FormField, VlanIdRangesField } from './components/FormFields';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 import { TABLE_SCHEMAS } from '../IPAMTable/schemas';
@@ -29,6 +31,9 @@ interface IPAMModalProps {
 export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
   // Get schema for this table
   const schema = useMemo(() => TABLE_SCHEMAS[tableName as keyof typeof TABLE_SCHEMAS] || [], [tableName]);
+
+  // Get query client for cache invalidation
+  const queryClient = useQueryClient();
 
   // Get reference table names from schema
   const referenceTableNames: string[] = useMemo(() => {
@@ -51,6 +56,26 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
     // Special case for locations: always include sites and locations
     if (tableName === 'locations') {
       const requiredTables = ['sites', 'locations'];
+      requiredTables.forEach(table => {
+        if (!tables.includes(table)) {
+          tables.push(table);
+        }
+      });
+    }
+    
+    // Special case for aggregates: always include rirs
+    if (tableName === 'aggregates') {
+      const requiredTables = ['rirs'];
+      requiredTables.forEach(table => {
+        if (!tables.includes(table)) {
+          tables.push(table);
+        }
+      });
+    }
+    
+    // Special case for prefixes: include all reference tables needed
+    if (tableName === 'prefixes') {
+      const requiredTables = ['vrfs', 'sites', 'vlans', 'tenants', 'roles', 'aggregates'];
       requiredTables.forEach(table => {
         if (!tables.includes(table)) {
           tables.push(table);
@@ -117,8 +142,14 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
           console.log('Created new item:', response.data);
         }
         
-        // If successful, close the modal
-        onClose();
+        // If successful, invalidate queries to force a refresh of the table data
+        queryClient.invalidateQueries({ queryKey: ['data', tableName] });
+        
+        // Add a small delay before closing the modal to ensure the cache is invalidated
+        setTimeout(() => {
+          // If successful, close the modal
+          onClose();
+        }, 300);
       } catch (error: any) {
         console.error('Error submitting form:', error);
         
@@ -217,9 +248,84 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
   }, [allRouteTargets]);
   // --- End VRF target fetching ---
 
+  // Function to handle name changes and auto-generate slugs
+  const handleNameChange = (name: string) => {
+    // Update the name field
+    handleChange('name', name);
+    
+    // Only auto-generate slug if the slug field is empty or hasn't been manually modified
+    if (!formData.slug || formData.slug === slugify(formData.name || '')) {
+      const newSlug = slugify(name);
+      handleChange('slug', newSlug);
+    }
+  };
+
+  // Check if a prefix already exists
+  const checkPrefixExists = async (prefix: string): Promise<boolean> => {
+    try {
+      if (!prefix) return false;
+      
+      // Query the API for aggregates with this prefix
+      const response = await apiClient.get(`/aggregates?prefix=${prefix}`);
+      
+      // If there are results and we're not in edit mode (or editing a different aggregate)
+      if (response.data && response.data.items && response.data.items.length > 0) {
+        // In edit mode, check if the result is the current aggregate
+        if (data && data.id) {
+          // If we're editing the current aggregate, it's ok
+          return !response.data.items.some((item: any) => item.id === data.id);
+        }
+        // In create mode, any match means it exists
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking prefix existence:', error);
+      return false; // Assume it doesn't exist if we can't check
+    }
+  };
+
+  // Handle prefix change for aggregates
+  const handlePrefixChange = async (prefix: string) => {
+    // Update the prefix in the form data
+    handleChange('prefix', prefix);
+    
+    // Only validate for aggregates
+    if (tableName === 'aggregates') {
+      // Check if this prefix already exists
+      const exists = await checkPrefixExists(prefix);
+      if (exists) {
+        setValidationErrors(prev => ({
+          ...prev,
+          prefix: 'This prefix already exists. Prefixes must be unique.'
+        }));
+      } else {
+        // Clear the error if it was previously set
+        setValidationErrors(prev => {
+          const newErrors = { ...prev };
+          if (newErrors.prefix) delete newErrors.prefix;
+          return newErrors;
+        });
+      }
+    }
+  };
+
   // Handle form submission
   const onSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Additional validation for aggregates
+    if (tableName === 'aggregates') {
+      const exists = await checkPrefixExists(formData.prefix);
+      if (exists) {
+        setValidationErrors(prev => ({
+          ...prev,
+          prefix: 'This prefix already exists. Prefixes must be unique.'
+        }));
+        return; // Prevent form submission
+      }
+    }
+    
     // Call the handleSubmit function from useFormState
     await handleSubmit(e);
   };
@@ -292,7 +398,7 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
                 <TextInput
                   label="Name"
                   value={formData.name || ''}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('name', e.currentTarget.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNameChange(e.currentTarget.value)}
                   error={validationErrors.name}
                   required
                 />
@@ -369,7 +475,7 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
                 <TextInput
                   label="Name"
                   value={formData.name || ''}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('name', e.currentTarget.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNameChange(e.currentTarget.value)}
                   error={validationErrors.name}
                   required
                 />
@@ -444,8 +550,67 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
               </>
             )}
             
+            {/* Special handling for aggregates form */}
+            {tableName === 'aggregates' && (
+              <>
+                {/* Name field */}
+                <TextInput
+                  label="Name"
+                  value={formData.name || ''}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNameChange(e.currentTarget.value)}
+                  error={validationErrors.name}
+                  required
+                  placeholder="e.g., Private Network Block"
+                />
+                
+                {/* Slug field */}
+                <TextInput
+                  label="Slug"
+                  value={formData.slug || ''}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('slug', e.currentTarget.value)}
+                  error={validationErrors.slug}
+                  placeholder="auto-generated-from-name"
+                />
+                
+                {/* Prefix field */}
+                <TextInput
+                  label="Prefix"
+                  value={formData.prefix || ''}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePrefixChange(e.currentTarget.value)}
+                  error={validationErrors.prefix}
+                  required
+                  placeholder="e.g., 192.168.1.0/24"
+                />
+                
+                {/* RIR dropdown */}
+                <Select
+                  label="RIR"
+                  data={(referenceData.rirs || []).map((rir: any) => ({
+                    value: rir.id.toString(),
+                    label: rir.name || `RIR #${rir.id}`
+                  }))}
+                  value={formData.rir_id ? formData.rir_id.toString() : null}
+                  onChange={(value: string | null) => handleChange('rir_id', value ? Number(value) : null)}
+                  error={validationErrors.rir_id}
+                  placeholder="Select RIR"
+                  searchable
+                  clearable
+                  required
+                />
+                
+                {/* Description field */}
+                <Textarea
+                  label="Description"
+                  value={formData.description || ''}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange('description', e.currentTarget.value)}
+                  error={validationErrors.description}
+                  minRows={3}
+                />
+              </>
+            )}
+            
             {/* Render form fields for tables without special handling */}
-            {tableName !== 'sites' && tableName !== 'locations' && schema.map((column: any) => (
+            {tableName !== 'sites' && tableName !== 'locations' && tableName !== 'aggregates' && schema.map((column: any) => (
               <FormField
                 key={column.name}
                 column={column}

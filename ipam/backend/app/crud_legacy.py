@@ -3,7 +3,7 @@ CRUD operations for all models in the IPAM system.
 This module provides generic and specific CRUD operations for database models.
 """
 
-from typing import Dict, Any, Union, TypeVar, Generic, Type, Optional
+from typing import Dict, Any, TypeVar, Optional
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
@@ -12,7 +12,7 @@ from .models import (
     Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 
     Prefix, IPRange, IPAddress, Tenant, Device, Interface, VLAN, VLANGroup,
     ASN, ASNRange, RouteTarget, VRFImportTargets, VRFExportTargets, Credential,
-    PlatformType, NetJob, DeviceInventory
+    DeviceInventory
 )
 import logging
 from uuid import UUID
@@ -839,6 +839,126 @@ region = RegionCRUD()
 site_group = SiteGroupCRUD()
 site = SiteCRUD()
 location = LocationCRUD()
+
+class AggregateCRUD:
+    """
+    CRUD operations for Aggregate model with special handling for name and slug.
+    """
+    def get_all(self, session: Session, skip: int = 0, limit: int = 100, **kwargs) -> list[Aggregate]:
+        """
+        Get all Aggregates with optional pagination and filtering.
+        """
+        try:
+            logger.debug(f"AggregateCRUD get_all: skip={skip}, limit={limit}, kwargs={kwargs}")
+            
+            query = select(Aggregate)
+            
+            # Apply filters from kwargs
+            for key, value in kwargs.items():
+                if hasattr(Aggregate, key) and value is not None:
+                    logger.debug(f"Applying filter: {key}={value}")
+                    query = query.where(getattr(Aggregate, key) == value)
+                else:
+                    if not hasattr(Aggregate, key):
+                        logger.warning(f"Model Aggregate does not have attribute {key}")
+            
+            logger.debug(f"Executing query: {query}")
+            result = session.exec(query.offset(skip).limit(limit)).all()
+            logger.debug(f"Query returned {len(result)} results")
+            
+            # Convert IPv4Network objects to strings for serialization
+            for item in result:
+                if hasattr(item, 'prefix') and item.prefix is not None:
+                    # Ensure prefix is a string for serialization
+                    item.prefix = str(item.prefix)
+            
+            return result
+        except Exception as e:
+            logger.error(f"Error in AggregateCRUD get_all: {str(e)}", exc_info=True)
+            raise
+    
+    def get_by_id(self, session: Session, id: int) -> Optional[Aggregate]:
+        """
+        Get an Aggregate by its ID.
+        """
+        item = session.get(Aggregate, id)
+        if item and hasattr(item, 'prefix') and item.prefix is not None:
+            # Ensure prefix is a string for serialization
+            item.prefix = str(item.prefix)
+        return item
+    
+    def create(self, session: Session, obj_in: Dict[str, Any]) -> Aggregate:
+        """
+        Create a new Aggregate with automatic slug generation.
+        """
+        try:
+            # Generate slug from name if not provided
+            if 'name' in obj_in and ('slug' not in obj_in or not obj_in['slug']):
+                obj_in['slug'] = slugify(obj_in['name'])
+                logger.debug(f"Generated slug '{obj_in['slug']}' from name '{obj_in['name']}'")
+            
+            # Create the Aggregate
+            db_obj = Aggregate(**obj_in)
+            session.add(db_obj)
+            session.commit()
+            session.refresh(db_obj)
+            
+            # Ensure prefix is a string for serialization
+            if hasattr(db_obj, 'prefix') and db_obj.prefix is not None:
+                db_obj.prefix = str(db_obj.prefix)
+                
+            return db_obj
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Error creating Aggregate: {str(e)}", exc_info=True)
+            raise
+    
+    def update_aggregate(self, db: Session, id: int, obj_in) -> Optional[Aggregate]:
+        """
+        Update an Aggregate by ID, ensuring proper slug generation.
+        """
+        try:
+            # Get the Aggregate to update
+            db_obj = db.get(Aggregate, id)
+            if not db_obj:
+                logger.warning(f"Aggregate with ID {id} not found for update")
+                return None
+            
+            # Convert Pydantic model to dict if needed
+            if hasattr(obj_in, 'model_dump'):
+                # For Pydantic v2
+                update_data = obj_in.model_dump(exclude_unset=True)
+            elif hasattr(obj_in, 'dict'):
+                # For Pydantic v1
+                update_data = obj_in.dict(exclude_unset=True)
+            else:
+                # Already a dict
+                update_data = obj_in
+            
+            # Auto-generate slug if name is updated and slug is not provided
+            if ('name' in update_data and update_data['name'] and 
+                ('slug' not in update_data or not update_data['slug'])):
+                update_data['slug'] = slugify(update_data['name'])
+                logger.debug(f"Generated slug '{update_data['slug']}' from name '{update_data['name']}'")
+            
+            # Update the object with the new values
+            for key, value in update_data.items():
+                if hasattr(db_obj, key):
+                    setattr(db_obj, key, value)
+            
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+            
+            # Ensure prefix is a string for serialization
+            if hasattr(db_obj, 'prefix') and db_obj.prefix is not None:
+                db_obj.prefix = str(db_obj.prefix)
+                
+            return db_obj
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error updating Aggregate: {str(e)}", exc_info=True)
+            raise
 class VRFCRUD:
     """
     CRUD operations for VRF model with special handling for route targets.
@@ -1028,7 +1148,7 @@ class RIRCRUD(BaseCRUD):
 
 # Instantiate the RIR CRUD object
 rir = RIRCRUD()
-aggregate = BaseCRUD(Aggregate)
+aggregate = AggregateCRUD()
 role = BaseCRUD(Role)
 prefix = PrefixCRUD()
 ip_range = BaseCRUD(IPRange)

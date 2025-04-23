@@ -83,6 +83,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   ],
   aggregates: [
     { name: 'id', type: 'number' },
+    { name: 'name', type: 'string', required: true },
     { name: 'prefix', type: 'string', required: true },
     { name: 'rir_id', type: 'number', reference: 'rirs' },
     { name: 'description', type: 'string' }

@@ -77,6 +77,8 @@ class RIRRead(RIRBase):
 
 # Aggregate
 class AggregateBase(BaseModel):
+    name: str = Field(..., max_length=100)
+    slug: Optional[str] = Field(None, max_length=100)
     prefix: str # Handled by validator in model
     rir_id: int
     tenant_id: Optional[int] = None
@@ -88,6 +90,8 @@ class AggregateCreate(AggregateBase):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
+                "name": "RFC1918 Private Space",
+                "slug": "rfc1918-private-space",
                 "prefix": "10.0.0.0/8",
                 "rir_id": 1, # Assuming 1 is a private RIR
                 "tenant_id": None,
