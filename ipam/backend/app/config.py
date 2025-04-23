@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "moimran@123"
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_PORT: str = "5432"
-    POSTGRES_DB: str = "ipam"
+    POSTGRES_DB: str = "netdata"
 
     @property
     def DATABASE_URL(self) -> str:

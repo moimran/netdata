@@ -1,7 +1,7 @@
 from typing import Optional, List, TYPE_CHECKING
 import ipaddress
 import sqlalchemy as sa
-from sqlmodel import SQLModel, Field, Relationship, select
+from sqlmodel import Field, Relationship, select
 from .base import BaseModel, TimestampedModel
 from .ip_constants import PrefixStatusEnum, IPRangeStatusEnum
 from .fields import IPNetworkField
@@ -10,7 +10,6 @@ from .ip_utils import (
     calculate_ip_range_size,
     get_available_ips,
     calculate_prefix_utilization,
-    is_subnet_of
 )
 
 if TYPE_CHECKING:
@@ -29,6 +28,10 @@ class Prefix(TimestampedModel, table=True):
     a VLAN where appropriate.
     """
     __tablename__ = "prefixes"
+    __table_args__ = (
+        sa.UniqueConstraint('prefix', 'vrf_id', name='uq_prefix_vrf'),
+        {"schema": "ipam"},
+    )
     
     # Primary key
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -59,19 +62,14 @@ class Prefix(TimestampedModel, table=True):
     child_count: int = Field(default=0, description="Number of child prefixes")
     
     # Hierarchical relationship fields
-    parent_id: Optional[int] = Field(default=None, foreign_key="prefixes.id", index=True)
+    parent_id: Optional[int] = Field(default=None, foreign_key="ipam.prefixes.id", index=True)
     
     # Foreign Keys
-    site_id: Optional[int] = Field(default=None, foreign_key="sites.id")
-    vrf_id: Optional[int] = Field(default=None, foreign_key="vrfs.id")
-    tenant_id: Optional[int] = Field(default=None, foreign_key="tenants.id")
-    vlan_id: Optional[int] = Field(default=None, foreign_key="vlans.id")
-    role_id: Optional[int] = Field(default=None, foreign_key="roles.id")
-    
-    # Add a unique constraint for prefix within a VRF
-    __table_args__ = (
-        sa.UniqueConstraint('prefix', 'vrf_id', name='uq_prefix_vrf'),
-    )
+    site_id: Optional[int] = Field(default=None, foreign_key="ipam.sites.id")
+    vrf_id: Optional[int] = Field(default=None, foreign_key="ipam.vrfs.id")
+    tenant_id: Optional[int] = Field(default=None, foreign_key="ipam.tenants.id")
+    vlan_id: Optional[int] = Field(default=None, foreign_key="ipam.vlans.id")
+    role_id: Optional[int] = Field(default=None, foreign_key="ipam.roles.id")
     
     # Relationships
     site: Optional["Site"] = Relationship(back_populates="prefixes")
@@ -123,8 +121,8 @@ class Prefix(TimestampedModel, table=True):
             # They must have the same VRF (or both None)
             query = select(Prefix).where(
                 (Prefix.id != self.id) &  # Exclude self
-                ((Prefix.vrf_id == self.vrf_id) | 
-                 ((Prefix.vrf_id == None) & (self.vrf_id == None)))
+                ((Prefix.vrf_id == self.vrf_id) |
+                 ((Prefix.vrf_id is None) & (self.vrf_id is None)))
             )
             
             potential_parents = session.exec(query).all()
@@ -199,6 +197,10 @@ class IPRange(BaseModel, table=True):
     A range of IP addresses, defined by start and end addresses.
     """
     __tablename__ = "ip_ranges"
+    __table_args__ = (
+        sa.UniqueConstraint('start_address', 'end_address', 'vrf_id', name='uq_iprange_vrf'),
+        {"schema": "ipam"},
+    )
     
     # Basic fields
     description: Optional[str] = Field(default=None, description="Brief description")
@@ -223,13 +225,8 @@ class IPRange(BaseModel, table=True):
     )
     
     # Foreign Keys
-    vrf_id: Optional[int] = Field(default=None, foreign_key="vrfs.id")
-    tenant_id: Optional[int] = Field(default=None, foreign_key="tenants.id")
-    
-    # Add a unique constraint for IP range within a VRF
-    __table_args__ = (
-        sa.UniqueConstraint('start_address', 'end_address', 'vrf_id', name='uq_iprange_vrf'),
-    )
+    vrf_id: Optional[int] = Field(default=None, foreign_key="ipam.vrfs.id")
+    tenant_id: Optional[int] = Field(default=None, foreign_key="ipam.tenants.id")
     
     # Relationships
     vrf: Optional["VRF"] = Relationship(back_populates="ip_ranges")

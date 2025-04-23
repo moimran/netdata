@@ -1,5 +1,5 @@
 from typing import Optional, List, TYPE_CHECKING
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship
 from .base import BaseModel
 
 if TYPE_CHECKING:
@@ -17,6 +17,7 @@ class Tenant(BaseModel, table=True):
     A Tenant represents an organization or customer that can own or manage various network resources.
     """
     __tablename__ = "tenants"
+    __table_args__ = {"schema": "ipam"}
     
     # Basic fields
     name: str = Field(..., description="Name of the tenant")

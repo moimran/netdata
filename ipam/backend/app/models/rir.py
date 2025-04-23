@@ -1,5 +1,5 @@
 from typing import Optional, List, TYPE_CHECKING
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship
 from .base import BaseModel
 
 if TYPE_CHECKING:
@@ -12,6 +12,7 @@ class RIR(BaseModel, table=True):
     and registration of Internet number resources within a region.
     """
     __tablename__ = "rirs"
+    __table_args__ = {"schema": "ipam"}
     
     # Basic fields
     name: str = Field(..., description="Name of the RIR")

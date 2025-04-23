@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional, List, TYPE_CHECKING
 import sqlalchemy as sa
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship
 from .base import BaseModel
 
 if TYPE_CHECKING:
@@ -20,6 +20,7 @@ class VLANGroup(BaseModel, table=True):
     A VLAN group is an arbitrary collection of VLANs within which VLAN IDs and names must be unique.
     """
     __tablename__ = "vlan_groups"
+    __table_args__ = {"schema": "ipam"}
     
     # Basic fields
     name: str = Field(..., description="Name of the VLAN group")
@@ -85,10 +86,10 @@ class VLAN(BaseModel, table=True):
     )
     
     # Foreign Keys
-    tenant_id: Optional[int] = Field(default=None, foreign_key="tenants.id")
-    site_id: Optional[int] = Field(default=None, foreign_key="sites.id")
-    group_id: Optional[int] = Field(default=None, foreign_key="vlan_groups.id")
-    role_id: Optional[int] = Field(default=None, foreign_key="roles.id")
+    tenant_id: Optional[int] = Field(default=None, foreign_key="ipam.tenants.id")
+    site_id: Optional[int] = Field(default=None, foreign_key="ipam.sites.id")
+    group_id: Optional[int] = Field(default=None, foreign_key="ipam.vlan_groups.id")
+    role_id: Optional[int] = Field(default=None, foreign_key="ipam.roles.id")
     
     # Add a unique constraint for VLAN ID within a site or group
     __table_args__ = (
@@ -96,6 +97,7 @@ class VLAN(BaseModel, table=True):
         sa.UniqueConstraint('vid', 'group_id', name='uq_vlan_vid_group'),
         sa.UniqueConstraint('name', 'site_id', name='uq_vlan_name_site'),
         sa.UniqueConstraint('name', 'group_id', name='uq_vlan_name_group'),
+        {"schema": "ipam"}
     )
     
     # Relationships

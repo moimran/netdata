@@ -11,6 +11,7 @@ class Location(BaseModel, table=True):
     A Location represents a specific area within a Site, such as a room, rack, etc.
     """
     __tablename__ = "locations"
+    __table_args__ = {"schema": "ipam"}
     
     # Basic fields
     name: str = Field(..., description="Name of the location")
@@ -19,8 +20,8 @@ class Location(BaseModel, table=True):
     status: str = Field(default="active", description="Operational status")
     
     # Foreign Keys
-    site_id: Optional[int] = Field(default=None, foreign_key="sites.id")
-    parent_id: Optional[int] = Field(default=None, foreign_key="locations.id")
+    site_id: Optional[int] = Field(default=None, foreign_key="ipam.sites.id")
+    parent_id: Optional[int] = Field(default=None, foreign_key="ipam.locations.id")
     
     # Relationships
     site: Optional["Site"] = Relationship(back_populates="locations")

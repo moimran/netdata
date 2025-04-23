@@ -1,6 +1,6 @@
 from typing import Optional, List, TYPE_CHECKING
 import sqlalchemy as sa
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship
 from .base import BaseModel
 
 if TYPE_CHECKING:
@@ -16,22 +16,26 @@ class Device(BaseModel, table=True):
     A Device represents a piece of physical hardware like a router, switch, or server.
     """
     __tablename__ = "devices"
+    __table_args__ = (
+        sa.UniqueConstraint('name', name='uq_device_name'),
+        {"schema": "ipam"},
+    )
     
     # Basic fields
     name: str = Field(..., description="Name of the device")
     description: Optional[str] = Field(default=None, description="Brief description")
     
     # Foreign Keys
-    site_id: Optional[int] = Field(default=None, foreign_key="sites.id")
-    tenant_id: Optional[int] = Field(default=None, foreign_key="tenants.id")
-    location_id: Optional[int] = Field(default=None, foreign_key="locations.id")
+    site_id: Optional[int] = Field(default=None, foreign_key="ipam.sites.id")
+    tenant_id: Optional[int] = Field(default=None, foreign_key="ipam.tenants.id")
+    location_id: Optional[int] = Field(default=None, foreign_key="ipam.locations.id")
     
     # Relationship with IPAddress
-    ip_address_id: Optional[int] = Field(default=None, foreign_key="ip_addresses.id")
+    ip_address_id: Optional[int] = Field(default=None, foreign_key="ipam.ip_addresses.id")
     
     # Credential relationships
-    credential_name: Optional[str] = Field(default=None, foreign_key="credentials.name")
-    fallback_credential_name: Optional[str] = Field(default=None, foreign_key="credentials.name")
+    credential_name: Optional[str] = Field(default=None, foreign_key="ipam.credentials.name")
+    fallback_credential_name: Optional[str] = Field(default=None, foreign_key="ipam.credentials.name")
     
     # Relationships
     site: Optional["Site"] = Relationship(back_populates="devices")
@@ -45,11 +49,6 @@ class Device(BaseModel, table=True):
     )
     fallback_credential: Optional["Credential"] = Relationship(
         sa_relationship_kwargs={"foreign_keys": "[Device.fallback_credential_name]"}
-    )
-    
-    # Add unique constraint for name
-    __table_args__ = (
-        sa.UniqueConstraint('name', name='uq_device_name'),
     )
     
     class Config:

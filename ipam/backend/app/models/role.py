@@ -1,5 +1,5 @@
 from typing import Optional, List, TYPE_CHECKING
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship
 from .base import BaseModel
 
 if TYPE_CHECKING:
@@ -11,6 +11,7 @@ class Role(BaseModel, table=True):
     Functional role for prefixes, VLANs, etc.
     """
     __tablename__ = "roles"
+    __table_args__ = {"schema": "ipam"}
     
     # Basic fields
     name: str = Field(..., description="Name of the role")

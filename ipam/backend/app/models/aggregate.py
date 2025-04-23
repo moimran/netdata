@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 import sqlalchemy as sa
 from sqlmodel import Field, Relationship
 from .base import BaseModel
@@ -28,11 +28,12 @@ class Aggregate(BaseModel, table=True):
 
     __table_args__ = (
         sa.UniqueConstraint("prefix", name="uq_aggregate"),
+        {"schema": "ipam"},
     )
 
     # Foreign Keys
-    rir_id: Optional[int] = Field(default=None, foreign_key="rirs.id")
-    tenant_id: Optional[int] = Field(default=None, foreign_key="tenants.id")
+    rir_id: Optional[int] = Field(default=None, foreign_key="ipam.rirs.id")
+    tenant_id: Optional[int] = Field(default=None, foreign_key="ipam.tenants.id")
 
     # Relationships
     rir: Optional["RIR"] = Relationship(back_populates="aggregates")

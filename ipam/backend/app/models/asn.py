@@ -1,6 +1,6 @@
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 import sqlalchemy as sa
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship
 from .base import BaseModel
 
 if TYPE_CHECKING:
@@ -11,17 +11,16 @@ class ASNRange(BaseModel, table=True):
     A range of ASN numbers managed by a Regional Internet Registry (RIR).
     """
     __tablename__ = "asn_ranges"
+    __table_args__ = (
+        sa.UniqueConstraint('start', 'end', 'rir_id', name='uq_asnrange_rir'),
+        {"schema": "ipam"},
+    )
     
     start: int = Field(..., description="Starting ASN number")
     end: int = Field(..., description="Ending ASN number")
     
     # Foreign Keys
-    rir_id: Optional[int] = Field(default=None, foreign_key="rirs.id")
-    
-    # Add a unique constraint for ASN range within an RIR
-    __table_args__ = (
-        sa.UniqueConstraint('start', 'end', 'rir_id', name='uq_asnrange_rir'),
-    )
+    rir_id: Optional[int] = Field(default=None, foreign_key="ipam.rirs.id")
     
     # Relationships
     rir: Optional["RIR"] = Relationship(back_populates="asn_ranges")
@@ -46,6 +45,7 @@ class ASN(BaseModel, table=True):
     An Autonomous System Number (ASN) represents an independent routing domain.
     """
     __tablename__ = "asns"
+    __table_args__ = {"schema": "ipam"}
     
     asn: int = Field(..., unique=True, description="16- or 32-bit autonomous system number")
     name: str = Field(..., description="Name of the ASN")
@@ -53,7 +53,7 @@ class ASN(BaseModel, table=True):
     description: Optional[str] = Field(default=None, description="Brief description of the ASN")
     
     # Foreign Keys
-    rir_id: Optional[int] = Field(default=None, foreign_key="rirs.id")
+    rir_id: Optional[int] = Field(default=None, foreign_key="ipam.rirs.id")
     
     # Relationships
     rir: Optional["RIR"] = Relationship(back_populates="asns")

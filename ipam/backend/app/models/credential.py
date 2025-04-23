@@ -1,7 +1,9 @@
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 import sqlalchemy as sa
 from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime
+
+if TYPE_CHECKING:
+    from .device import Device
 
 class Credential(SQLModel, table=True):
     """
@@ -36,6 +38,7 @@ class Credential(SQLModel, table=True):
     # Add unique constraint for name
     __table_args__ = (
         sa.UniqueConstraint('name', name='uq_credential_name'),
+        {"schema": "ipam"},
     )
     
     class Config:

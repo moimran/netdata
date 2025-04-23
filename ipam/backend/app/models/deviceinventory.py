@@ -14,11 +14,12 @@ if TYPE_CHECKING:
 # Inherits directly from SQLModel as it doesn't fit BaseModel structure.
 class DeviceInventory(SQLModel, table=True):
     __tablename__ = "device_inventory"
+    __table_args__ = {"schema": "ni"}
 
     # Define columns explicitly
     time: datetime = Field(default_factory=datetime.utcnow, sa_column=Column(postgresql.TIMESTAMP(timezone=True), server_default=func.now(), nullable=False, index=True))
     device_uuid: uuid.UUID = Field(sa_column=Column(postgresql.UUID(as_uuid=True), primary_key=True, index=True))
-    platform_type_id: Optional[int] = Field(default=None, foreign_key="platform_type.id")
+    platform_type_id: Optional[int] = Field(default=None, foreign_key="ni.platform_type.id")
     hostname: Optional[str] = Field(default=None, max_length=255)
     config_register: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(postgresql.JSONB))
     hardware: Optional[List[str]] = Field(default=None, sa_column=Column(postgresql.ARRAY(postgresql.TEXT)))

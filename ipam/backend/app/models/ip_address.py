@@ -1,6 +1,6 @@
 from typing import Optional, List, TYPE_CHECKING
 import sqlalchemy as sa
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship
 from .base import BaseModel
 from .ip_constants import IPAddressStatusEnum, IPAddressRoleEnum
 from .fields import IPNetworkField
@@ -48,12 +48,13 @@ class IPAddress(BaseModel, table=True):
     # Add a unique constraint for IP address within a VRF
     __table_args__ = (
         sa.UniqueConstraint('address', 'vrf_id', name='uq_ipaddress_vrf'),
+        {"schema": "ipam"},
     )
     
     # Foreign Keys
-    prefix_id: Optional[int] = Field(default=None, foreign_key="prefixes.id")
-    vrf_id: Optional[int] = Field(default=None, foreign_key="vrfs.id")
-    tenant_id: Optional[int] = Field(default=None, foreign_key="tenants.id")
+    prefix_id: Optional[int] = Field(default=None, foreign_key="ipam.prefixes.id")
+    vrf_id: Optional[int] = Field(default=None, foreign_key="ipam.vrfs.id")
+    tenant_id: Optional[int] = Field(default=None, foreign_key="ipam.tenants.id")
     
     # Relationships
     prefix: Optional["Prefix"] = Relationship(back_populates="ip_addresses")

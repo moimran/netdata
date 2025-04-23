@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 # Override name/slug/description as they don't seem applicable here.
 class PlatformType(BaseModel, table=True):
     __tablename__ = "platform_type"
+    __table_args__ = {"schema": "ni"}
 
     # Override base fields
     name: Optional[str] = Field(default=None, index=True, nullable=True)

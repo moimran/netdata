@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 # Use 'job_name' as the 'name' field from BaseModel.
 class NetJob(BaseModel, table=True):
     __tablename__ = "net_jobs"
+    __table_args__ = {"schema": "jobs"}
 
     # Use job_name for the 'name' field, make slug optional
     name: str = Field(..., max_length=100, description="Job name")
@@ -30,7 +31,7 @@ class NetJob(BaseModel, table=True):
 
     # Specific fields
     job_uuid: uuid.UUID = Field(sa_column=Column(postgresql.UUID(as_uuid=True), unique=True, index=True, server_default=text("gen_random_uuid()"), nullable=False))
-    platform_type_id: Optional[int] = Field(default=None, foreign_key="platform_type.id")
+    platform_type_id: Optional[int] = Field(default=None, foreign_key="ni.platform_type.id")
     command_list: List[str] = Field(sa_column=Column(postgresql.ARRAY(postgresql.TEXT), nullable=False))
     is_scheduled: bool = Field(default=False)
     # schedule_interval: Optional[timedelta] = Field(default=None, sa_column=Column(postgresql.INTERVAL)) # REMOVED as requested

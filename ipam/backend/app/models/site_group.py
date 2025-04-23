@@ -10,6 +10,7 @@ class SiteGroup(BaseModel, table=True):
     A SiteGroup represents a logical grouping of Sites.
     """
     __tablename__ = "site_groups"
+    __table_args__ = {"schema": "ipam"}
     
     # Basic fields
     name: str = Field(..., description="Name of the site group")

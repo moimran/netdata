@@ -19,10 +19,11 @@ class Region(BaseModel, table=True):
 
     __table_args__ = (
         sa.UniqueConstraint('name', name='uq_region_name'),
+        {"schema": "ipam"},
     )
     
     # Foreign Keys
-    parent_id: Optional[int] = Field(default=None, foreign_key="regions.id")
+    parent_id: Optional[int] = Field(default=None, foreign_key="ipam.regions.id")
     
     # Relationships
     sites: List["Site"] = Relationship(back_populates="region")

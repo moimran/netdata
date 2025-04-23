@@ -1,5 +1,5 @@
 from typing import Optional, List, TYPE_CHECKING
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship
 from .base import BaseModel
 
 if TYPE_CHECKING:
@@ -16,6 +16,7 @@ class Site(BaseModel, table=True):
     A Site represents a physical location where devices and networks are located.
     """
     __tablename__ = "sites"
+    __table_args__ = {"schema": "ipam"}
     
     # Basic fields
     name: str = Field(..., description="Name of the site")
@@ -35,9 +36,9 @@ class Site(BaseModel, table=True):
     contact_phone: Optional[str] = Field(default=None)
     
     # Foreign Keys
-    tenant_id: Optional[int] = Field(default=None, foreign_key="tenants.id")
-    region_id: Optional[int] = Field(default=None, foreign_key="regions.id")
-    site_group_id: Optional[int] = Field(default=None, foreign_key="site_groups.id")
+    tenant_id: Optional[int] = Field(default=None, foreign_key="ipam.tenants.id")
+    region_id: Optional[int] = Field(default=None, foreign_key="ipam.regions.id")
+    site_group_id: Optional[int] = Field(default=None, foreign_key="ipam.site_groups.id")
     
     # Relationships
     tenant: Optional["Tenant"] = Relationship(back_populates="sites")

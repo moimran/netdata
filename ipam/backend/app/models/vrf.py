@@ -11,17 +11,19 @@ if TYPE_CHECKING:
 class VRFImportTargets(SQLModel, table=True):
     """Association table for VRF import targets."""
     __tablename__ = "vrf_import_targets"
+    __table_args__ = {"schema": "ipam"}
     
-    vrf_id: Optional[int] = Field(default=None, foreign_key="vrfs.id", primary_key=True)
-    route_target_id: Optional[int] = Field(default=None, foreign_key="route_targets.id", primary_key=True)
+    vrf_id: Optional[int] = Field(default=None, foreign_key="ipam.vrfs.id", primary_key=True)
+    route_target_id: Optional[int] = Field(default=None, foreign_key="ipam.route_targets.id", primary_key=True)
 
 
 class VRFExportTargets(SQLModel, table=True):
     """Association table for VRF export targets."""
     __tablename__ = "vrf_export_targets"
+    __table_args__ = {"schema": "ipam"}
     
-    vrf_id: Optional[int] = Field(default=None, foreign_key="vrfs.id", primary_key=True)
-    route_target_id: Optional[int] = Field(default=None, foreign_key="route_targets.id", primary_key=True)
+    vrf_id: Optional[int] = Field(default=None, foreign_key="ipam.vrfs.id", primary_key=True)
+    route_target_id: Optional[int] = Field(default=None, foreign_key="ipam.route_targets.id", primary_key=True)
 
 
 class RouteTarget(BaseModel, table=True):
@@ -30,6 +32,7 @@ class RouteTarget(BaseModel, table=True):
     as defined in RFC 4364.
     """
     __tablename__ = "route_targets"
+    __table_args__ = {"schema": "ipam"}
     
     # Basic fields
     name: str = Field(..., unique=True, description="Route target value (ASN:NN or IP:NN)")
@@ -49,6 +52,7 @@ class VRF(BaseModel, table=True):
     routing table, providing network segmentation and traffic isolation.
     """
     __tablename__ = "vrfs"
+    __table_args__ = {"schema": "ipam"}
     
     # Basic fields
     name: str = Field(..., description="Name of the VRF", unique=True)
@@ -60,7 +64,7 @@ class VRF(BaseModel, table=True):
     )
     
     # Foreign Keys
-    tenant_id: Optional[int] = Field(default=None, foreign_key="tenants.id")
+    tenant_id: Optional[int] = Field(default=None, foreign_key="ipam.tenants.id")
     
     # Relationships
     tenant: Optional["Tenant"] = Relationship(back_populates="vrfs")
