@@ -595,7 +595,7 @@ class SiteCRUD:
             logger.error(f"Error creating site: {str(e)}", exc_info=True)
             raise
     
-    def update_site(self, db: Session, id: int, obj_in: Dict[str, Any]) -> Optional[Site]:
+    def update_site(self, db: Session, id: int, obj_in) -> Optional[Site]:
         """
         Update a site by ID.
         """
@@ -603,7 +603,18 @@ class SiteCRUD:
         if not db_obj:
             return None
             
-        for key, value in obj_in.items():
+        # Convert Pydantic model to dict if it's not already a dict
+        update_data = obj_in
+        if not isinstance(obj_in, dict):
+            update_data = obj_in.dict(exclude_unset=True)
+            
+        # Auto-generate slug if name is updated and slug is not provided
+        if 'name' in update_data and update_data['name'] and ('slug' not in update_data or not update_data['slug']):
+            update_data['slug'] = slugify(update_data['name'])
+            logger.debug(f"Auto-generated slug '{update_data['slug']}' from updated name '{update_data['name']}'")
+            
+        # Update object attributes
+        for key, value in update_data.items():
             if hasattr(db_obj, key):
                 setattr(db_obj, key, value)
                 

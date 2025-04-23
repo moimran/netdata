@@ -160,6 +160,17 @@ const TextField = memo(({
   );
 });
 
+// Debug function to help diagnose reference data issues
+const debugReferenceData = (name: string, referenceTable: string, referenceData: Record<string, any[]>, value: any) => {
+  console.log(`DEBUG ReferenceField for ${name} (${referenceTable}):`, { 
+    availableTables: Object.keys(referenceData),
+    tableExists: referenceTable in referenceData,
+    tableData: referenceData[referenceTable] || [],
+    tableDataLength: referenceData[referenceTable] ? referenceData[referenceTable].length : 0,
+    currentValue: value
+  });
+};
+
 const ReferenceField = memo(({
   name,
   label,
@@ -184,11 +195,7 @@ const ReferenceField = memo(({
   allowMultiple?: boolean;
 }) => {
   // Debug the reference data
-  console.log(`ReferenceField for ${name} (${referenceTable}):`, { 
-    availableTables: Object.keys(referenceData),
-    tableData: referenceData[referenceTable] || [],
-    currentValue: value
-  });
+  debugReferenceData(name, referenceTable, referenceData, value);
   
   // Special handling for self-references (like parent_id in regions)
   // If this is a self-reference field (like parent_id in regions table),
@@ -258,6 +265,15 @@ export const FormField = memo(function FormField({
   // Skip internal fields
   if (column.name === 'vlanIdRanges') return null;
 
+  // Log the current field being rendered
+  console.log(`FormField rendering field: ${column.name} for table: ${tableName}`, {
+    column,
+    hasReference: !!column.reference,
+    referenceTable: column.reference,
+    referenceDataKeys: Object.keys(referenceData),
+    currentValue: formData[column.name]
+  });
+  
   // Generate label for the field
   const label = getFieldLabel(column.name);
   
@@ -395,6 +411,77 @@ export const FormField = memo(function FormField({
 
       // Special handling for reference fields
       if (column.reference) {
+        // Debug the reference data for this field
+        debugReferenceData(column.name, column.reference, referenceData, formData[column.name]);
+        
+        // Handle sites form fields specifically
+        if (tableName === 'sites') {
+          // Special handling for region_id in sites
+          if (column.name === 'region_id') {
+            // Check if regions data is available
+            const hasRegions = referenceData.regions && referenceData.regions.length > 0;
+            console.log('Regions data for sites form:', {
+              hasRegions,
+              regions: referenceData.regions || [],
+              count: referenceData.regions ? referenceData.regions.length : 0
+            });
+            
+            // Create options from regions data
+            const regionOptions = hasRegions 
+              ? referenceData.regions.map(region => ({
+                  value: region.id.toString(),
+                  label: region.name || `Region #${region.id}`
+                }))
+              : [];
+              
+            return (
+              <Select
+                label="Region"
+                data={regionOptions}
+                value={formData.region_id ? formData.region_id.toString() : null}
+                onChange={(value) => handleChange('region_id', value ? Number(value) : null)}
+                error={validationErrors.region_id}
+                placeholder={hasRegions ? "Select Region" : "No regions available"}
+                searchable
+                clearable
+              />
+            );
+          }
+          
+          // Special handling for site_group_id in sites
+          if (column.name === 'site_group_id') {
+            // Check if site groups data is available
+            const hasSiteGroups = referenceData.site_groups && referenceData.site_groups.length > 0;
+            console.log('Site Groups data for sites form:', {
+              hasSiteGroups,
+              siteGroups: referenceData.site_groups || [],
+              count: referenceData.site_groups ? referenceData.site_groups.length : 0
+            });
+            
+            // Create options from site groups data
+            const siteGroupOptions = hasSiteGroups 
+              ? referenceData.site_groups.map(siteGroup => ({
+                  value: siteGroup.id.toString(),
+                  label: siteGroup.name || `Site Group #${siteGroup.id}`
+                }))
+              : [];
+              
+            return (
+              <Select
+                label="Site Group"
+                data={siteGroupOptions}
+                value={formData.site_group_id ? formData.site_group_id.toString() : null}
+                onChange={(value) => handleChange('site_group_id', value ? Number(value) : null)}
+                error={validationErrors.site_group_id}
+                placeholder={hasSiteGroups ? "Select Site Group" : "No site groups available"}
+                searchable
+                clearable
+              />
+            );
+          }
+        }
+        
+        // Default reference field handling
         return (
           <ReferenceField
             name={column.name}

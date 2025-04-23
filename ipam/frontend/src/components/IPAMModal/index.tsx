@@ -7,7 +7,10 @@ import {
   Group,
   Button,
   Alert,
-  MultiSelect
+  MultiSelect,
+  Select,
+  TextInput,
+  Textarea
 } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { useFormState } from '../../hooks/forms/useFormState';
@@ -29,22 +32,47 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
 
   // Get reference table names from schema
   const referenceTableNames: string[] = useMemo(() => {
+    // Extract reference tables from schema
     const tables = [...new Set(schema
       .filter((col: any) => col.reference)
       .map((col: any) => col.reference!)
     )];
+    
+    // Special case for sites: always include regions and site_groups
+    if (tableName === 'sites') {
+      const requiredTables = ['regions', 'site_groups'];
+      requiredTables.forEach(table => {
+        if (!tables.includes(table)) {
+          tables.push(table);
+        }
+      });
+    }
+    
     console.log('Reference tables needed for', tableName, ':', tables);
     return tables;
   }, [schema, tableName]);
 
   // Use our hooks for form handling and reference data
-  // Initialize form state with data from the item being edited or empty object for new items
+  // Initialize form state with data from the item being edited or empty object with defaults for new items
   const initialValues = useMemo(() => {
-    return data || {};
-  }, [data]);
+    if (data) {
+      return data; // Use existing data for edit mode
+    }
+    
+    // For new items, add default values based on the table type
+    const defaults: Record<string, any> = {};
+    
+    // Add default status for tables that require it
+    if (tableName === 'sites') {
+      defaults.status = 'active';
+    }
+    
+    console.log(`Initializing form for ${tableName} with defaults:`, defaults);
+    return defaults;
+  }, [data, tableName]);
 
   // State for VLAN ID ranges (only used in VLAN groups)
-  const [vlanIdRanges, setVlanIdRanges] = useState<string[]>([]);
+  const [vlanIdRanges, setVlanIdRanges] = useState<string>('');
   
   // Use the form state hook
   const {
@@ -59,6 +87,14 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
     onSubmit: async (values) => {
       try {
         console.log('Submitting form data:', { tableName, values, isEdit: !!data });
+        
+        // For sites, ensure status is included
+        if (tableName === 'sites' && !values.status) {
+          values.status = 'active';
+        }
+        
+        // Log the final form data being submitted
+        console.log('Final form data being submitted:', values);
         
         // Determine if this is a create or update operation
         if (data) {
@@ -106,13 +142,8 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
     }
   });
 
-  const {
-    referenceData,
-    isLoading,
-    isError,
-    getReferenceItem,
-    formatReferenceValue
-  } = useReferenceData(referenceTableNames);
+  // Use the reference data hook to fetch data for all reference tables
+  const { referenceData, isLoading, isError, refetch, getReferenceItem, formatReferenceValue } = useReferenceData(referenceTableNames);
   
   // Debug reference data loading
   useEffect(() => {
@@ -124,12 +155,34 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
     });
     
     if (!isLoading && !isError) {
-      console.log('Reference data loaded:', {
+      console.log('Reference data loaded for ' + tableName + ':', {
         availableTables: Object.keys(referenceData),
+        referenceTableNames,
         regionsData: referenceData.regions || [],
         regionsCount: referenceData.regions ? referenceData.regions.length : 0,
+        siteGroupsData: referenceData.site_groups || [],
+        siteGroupsCount: referenceData.site_groups ? referenceData.site_groups.length : 0,
         formData
       });
+      
+      // Force a refetch if we're missing required reference data
+      if (tableName === 'sites') {
+        let shouldRefetch = false;
+        
+        if (referenceTableNames.includes('regions') && !referenceData.regions) {
+          console.log('Missing regions data for sites form, will refetch');
+          shouldRefetch = true;
+        }
+        if (referenceTableNames.includes('site_groups') && !referenceData.site_groups) {
+          console.log('Missing site_groups data for sites form, will refetch');
+          shouldRefetch = true;
+        }
+        
+        if (shouldRefetch) {
+          console.log('Triggering refetch of reference data for sites form');
+          refetch();
+        }
+      }
       
       // Log if regions data is needed but not available (not an error for first region)
       if (tableName === 'regions' && (!referenceData.regions || referenceData.regions.length === 0)) {
@@ -222,8 +275,85 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
               />
             )}
 
-            {/* Render form fields for each column in the schema */}
-            {schema.map((column: any) => (
+            {/* Special handling for sites form */}
+            {tableName === 'sites' && (
+              <>
+                {/* Name field */}
+                <TextInput
+                  label="Name"
+                  value={formData.name || ''}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('name', e.currentTarget.value)}
+                  error={validationErrors.name}
+                  required
+                />
+                
+                {/* Slug field */}
+                <TextInput
+                  label="Slug"
+                  value={formData.slug || ''}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('slug', e.currentTarget.value)}
+                  error={validationErrors.slug}
+                />
+                
+                {/* Status field - required */}
+                <Select
+                  label="Status"
+                  data={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'reserved', label: 'Reserved' },
+                    { value: 'deprecated', label: 'Deprecated' },
+                    { value: 'available', label: 'Available' }
+                  ]}
+                  value={formData.status || 'active'}
+                  onChange={(value: string | null) => handleChange('status', value || 'active')}
+                  error={validationErrors.status}
+                  required
+                  searchable
+                />
+                
+                {/* Description field */}
+                <Textarea
+                  label="Description"
+                  value={formData.description || ''}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange('description', e.currentTarget.value)}
+                  error={validationErrors.description}
+                  minRows={3}
+                />
+                
+                {/* Custom Region dropdown */}
+                <Select
+                  label="Region"
+                  data={(referenceData.regions || []).map((region: any) => ({
+                    value: region.id.toString(),
+                    label: region.name || `Region #${region.id}`
+                  }))}
+                  value={formData.region_id ? formData.region_id.toString() : null}
+                  onChange={(value: string | null) => handleChange('region_id', value ? Number(value) : null)}
+                  error={validationErrors.region_id}
+                  placeholder="Select Region"
+                  searchable
+                  clearable
+                />
+                
+                {/* Custom Site Group dropdown */}
+                <Select
+                  label="Site Group"
+                  data={(referenceData.site_groups || []).map((siteGroup: any) => ({
+                    value: siteGroup.id.toString(),
+                    label: siteGroup.name || `Site Group #${siteGroup.id}`
+                  }))}
+                  value={formData.site_group_id ? formData.site_group_id.toString() : null}
+                  onChange={(value: string | null) => handleChange('site_group_id', value ? Number(value) : null)}
+                  error={validationErrors.site_group_id}
+                  placeholder="Select Site Group"
+                  searchable
+                  clearable
+                />
+              </>
+            )}
+            
+            {/* Render form fields for non-sites tables */}
+            {tableName !== 'sites' && schema.map((column: any) => (
               <FormField
                 key={column.name}
                 column={column}
