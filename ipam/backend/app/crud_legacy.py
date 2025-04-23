@@ -787,7 +787,7 @@ class BaseCRUD:
             logger.error(f"Error creating {self.model_class.__name__}: {str(e)}", exc_info=True)
             raise
     
-    def update(self, session: Session, id: int, obj_in: Dict[str, Any]) -> Optional[Any]:
+    def update(self, session: Session, id: int, obj_in) -> Optional[Any]:
         """
         Update a record by ID with automatic slug generation.
         """
@@ -796,15 +796,20 @@ class BaseCRUD:
             if not db_obj:
                 return None
                 
+            # Convert Pydantic model to dict if it's not already a dict
+            update_data = obj_in
+            if not isinstance(obj_in, dict):
+                update_data = obj_in.dict(exclude_unset=True)
+                
             # Auto-generate slug if name is updated and model has slug field
-            if ('name' in obj_in and obj_in['name'] and 
+            if ('name' in update_data and update_data['name'] and 
                 hasattr(self.model_class, 'slug') and 
-                ('slug' not in obj_in or not obj_in['slug'])):
-                obj_in['slug'] = slugify(obj_in['name'])
-                logger.debug(f"Auto-generated slug '{obj_in['slug']}' from updated name '{obj_in['name']}'")
+                ('slug' not in update_data or not update_data['slug'])):
+                update_data['slug'] = slugify(update_data['name'])
+                logger.debug(f"Auto-generated slug '{update_data['slug']}' from updated name '{update_data['name']}'")
             
             # Update the object with the new values
-            for key, value in obj_in.items():
+            for key, value in update_data.items():
                 if hasattr(db_obj, key):
                     setattr(db_obj, key, value)
             
@@ -1010,7 +1015,19 @@ class VRFCRUD:
             raise
 
 vrf = VRFCRUD()
-rir = BaseCRUD(RIR)
+# Create a custom RIR CRUD class that includes the update_rir method
+class RIRCRUD(BaseCRUD):
+    def __init__(self):
+        super().__init__(RIR)
+    
+    def update_rir(self, db: Session, id: int, obj_in) -> Optional[RIR]:
+        """
+        Update a RIR by ID. This is a wrapper around the BaseCRUD update method.
+        """
+        return self.update(session=db, id=id, obj_in=obj_in)
+
+# Instantiate the RIR CRUD object
+rir = RIRCRUD()
 aggregate = BaseCRUD(Aggregate)
 role = BaseCRUD(Role)
 prefix = PrefixCRUD()
