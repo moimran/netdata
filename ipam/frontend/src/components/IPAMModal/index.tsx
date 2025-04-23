@@ -48,6 +48,16 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
       });
     }
     
+    // Special case for locations: always include sites and locations
+    if (tableName === 'locations') {
+      const requiredTables = ['sites', 'locations'];
+      requiredTables.forEach(table => {
+        if (!tables.includes(table)) {
+          tables.push(table);
+        }
+      });
+    }
+    
     console.log('Reference tables needed for', tableName, ':', tables);
     return tables;
   }, [schema, tableName]);
@@ -63,7 +73,7 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
     const defaults: Record<string, any> = {};
     
     // Add default status for tables that require it
-    if (tableName === 'sites') {
+    if (tableName === 'sites' || tableName === 'locations') {
       defaults.status = 'active';
     }
     
@@ -88,8 +98,8 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
       try {
         console.log('Submitting form data:', { tableName, values, isEdit: !!data });
         
-        // For sites, ensure status is included
-        if (tableName === 'sites' && !values.status) {
+        // For sites and locations, ensure status is included
+        if ((tableName === 'sites' || tableName === 'locations') && !values.status) {
           values.status = 'active';
         }
         
@@ -352,8 +362,90 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
               </>
             )}
             
-            {/* Render form fields for non-sites tables */}
-            {tableName !== 'sites' && schema.map((column: any) => (
+            {/* Special handling for locations form */}
+            {tableName === 'locations' && (
+              <>
+                {/* Name field */}
+                <TextInput
+                  label="Name"
+                  value={formData.name || ''}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('name', e.currentTarget.value)}
+                  error={validationErrors.name}
+                  required
+                />
+                
+                {/* Slug field */}
+                <TextInput
+                  label="Slug"
+                  value={formData.slug || ''}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('slug', e.currentTarget.value)}
+                  error={validationErrors.slug}
+                />
+                
+                {/* Status field - required */}
+                <Select
+                  label="Status"
+                  data={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'reserved', label: 'Reserved' },
+                    { value: 'deprecated', label: 'Deprecated' },
+                    { value: 'available', label: 'Available' }
+                  ]}
+                  value={formData.status || 'active'}
+                  onChange={(value: string | null) => handleChange('status', value || 'active')}
+                  error={validationErrors.status}
+                  required
+                  searchable
+                />
+                
+                {/* Site dropdown */}
+                <Select
+                  label="Site"
+                  data={(referenceData.sites || []).map((site: any) => ({
+                    value: site.id.toString(),
+                    label: site.name || `Site #${site.id}`
+                  }))}
+                  value={formData.site_id ? formData.site_id.toString() : null}
+                  onChange={(value: string | null) => handleChange('site_id', value ? Number(value) : null)}
+                  error={validationErrors.site_id}
+                  placeholder="Select Site"
+                  searchable
+                  clearable
+                  required
+                />
+                
+                {/* Parent Location dropdown */}
+                <Select
+                  label="Parent Location"
+                  data={(referenceData.locations || []).filter((loc: any) => 
+                    // Filter out the current location to prevent circular references
+                    formData.id ? loc.id !== formData.id : true
+                  ).map((location: any) => ({
+                    value: location.id.toString(),
+                    label: location.name || `Location #${location.id}`
+                  }))}
+                  value={formData.parent_id ? formData.parent_id.toString() : null}
+                  onChange={(value: string | null) => handleChange('parent_id', value ? Number(value) : null)}
+                  error={validationErrors.parent_id}
+                  placeholder={referenceData.locations && referenceData.locations.length > 0 ? 
+                    "Select Parent Location" : "No parent locations available"}
+                  searchable
+                  clearable
+                />
+                
+                {/* Description field */}
+                <Textarea
+                  label="Description"
+                  value={formData.description || ''}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange('description', e.currentTarget.value)}
+                  error={validationErrors.description}
+                  minRows={3}
+                />
+              </>
+            )}
+            
+            {/* Render form fields for tables without special handling */}
+            {tableName !== 'sites' && tableName !== 'locations' && schema.map((column: any) => (
               <FormField
                 key={column.name}
                 column={column}
