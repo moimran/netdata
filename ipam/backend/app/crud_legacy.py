@@ -137,6 +137,112 @@ class PrefixCRUD:
     """
     CRUD operations specific to Prefix model.
     """
+    
+    def get_all(self, session: Session, skip: int = 0, limit: int = 100, **kwargs) -> list[Prefix]:
+        """
+        Get all prefixes with optional pagination and filtering.
+        """
+        try:
+            logger.debug(f"PrefixCRUD get_all: skip={skip}, limit={limit}, kwargs={kwargs}")
+            
+            query = select(Prefix)
+            
+            # Apply filters from kwargs
+            for key, value in kwargs.items():
+                if hasattr(Prefix, key) and value is not None:
+                    logger.debug(f"Applying filter: {key}={value}")
+                    query = query.where(getattr(Prefix, key) == value)
+                else:
+                    if not hasattr(Prefix, key):
+                        logger.warning(f"Model Prefix does not have attribute {key}")
+            
+            logger.debug(f"Executing query: {query}")
+            result = session.exec(query.offset(skip).limit(limit)).all()
+            logger.debug(f"Query returned {len(result)} results")
+            
+            # Convert IPv4Network/IPv6Network objects to strings before returning
+            for prefix_obj in result:
+                if hasattr(prefix_obj.prefix, 'compressed'):
+                    # Store the string representation in a temporary attribute
+                    prefix_obj._prefix_str = str(prefix_obj.prefix)
+                    
+                    # Use a descriptor to override the prefix property
+                    class PrefixDescriptor:
+                        def __get__(self, obj, objtype=None):
+                            return obj._prefix_str
+                    
+                    # Apply the descriptor to override the prefix property
+                    prefix_obj.__class__.prefix = PrefixDescriptor()
+            
+            return result
+        except Exception as e:
+            logger.error(f"Error in PrefixCRUD get_all: {str(e)}", exc_info=True)
+            raise
+    
+    def get_by_id(self, session: Session, id: int) -> Optional[Prefix]:
+        """
+        Get a prefix by its ID.
+        """
+        try:
+            logger.debug(f"PrefixCRUD get_by_id: id={id}")
+            
+            # Get the prefix by ID
+            prefix = session.get(Prefix, id)
+            
+            # Convert IPv4Network/IPv6Network to string if needed
+            if prefix and hasattr(prefix.prefix, 'compressed'):
+                # Store the string representation in a temporary attribute
+                prefix._prefix_str = str(prefix.prefix)
+                
+                # Use a descriptor to override the prefix property
+                class PrefixDescriptor:
+                    def __get__(self, obj, objtype=None):
+                        return obj._prefix_str
+                
+                # Apply the descriptor to override the prefix property
+                prefix.__class__.prefix = PrefixDescriptor()
+            
+            return prefix
+        except Exception as e:
+            logger.error(f"Error in PrefixCRUD get_by_id: {str(e)}", exc_info=True)
+            raise
+    
+    def update_prefix(self, db: Session, id: int, obj_in) -> Optional[Prefix]:
+        """
+        Update a prefix by ID.
+        """
+        try:
+            logger.debug(f"PrefixCRUD update_prefix: id={id}, obj_in={obj_in}")
+            
+            # Get the existing prefix
+            db_obj = db.get(Prefix, id)
+            if not db_obj:
+                logger.warning(f"Prefix with ID {id} not found for update")
+                return None
+            
+            # Convert Pydantic model to dict if it's not already a dict
+            update_data = obj_in
+            if not isinstance(obj_in, dict):
+                update_data = obj_in.model_dump(exclude_unset=True) if hasattr(obj_in, 'model_dump') else obj_in.dict(exclude_unset=True)
+            
+            # Update object attributes
+            for key, value in update_data.items():
+                if hasattr(db_obj, key):
+                    setattr(db_obj, key, value)
+            
+            # Update hierarchical relationships
+            db_obj.update_hierarchy(db)
+            
+            # Save changes
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+            
+            return db_obj
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error in PrefixCRUD update_prefix: {str(e)}", exc_info=True)
+            raise
     def create(self, session: Session, obj_in: Dict[str, Any]) -> Prefix:
         """
         Create a new prefix and update hierarchical relationships.

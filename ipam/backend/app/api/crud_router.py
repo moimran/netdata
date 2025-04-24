@@ -55,6 +55,13 @@ def create_crud_routes(router: APIRouter, path: str, crud_module, crud_instance,
             # Get items with pagination and filtering
             items = crud_instance.get_all(session, skip=skip, limit=limit, **filter_params)
             
+            # Special handling for Prefix objects - convert IPv4Network/IPv6Network to strings
+            if path == "prefixes":
+                for item in items:
+                    if hasattr(item, 'prefix') and hasattr(item.prefix, 'compressed'):
+                        # Convert IPv4Network/IPv6Network to string
+                        item.prefix = str(item.prefix)
+            
             # Count total items (without pagination)
             query = select(model_type)
             for key, value in filter_params.items():
@@ -82,6 +89,12 @@ def create_crud_routes(router: APIRouter, path: str, crud_module, crud_instance,
         item = crud_instance.get_by_id(session, item_id)
         if not item:
             raise HTTPException(status_code=404, detail=f"{path} not found")
+        
+        # Special handling for Prefix objects - convert IPv4Network/IPv6Network to strings
+        if path == "prefixes" and hasattr(item, 'prefix') and hasattr(item.prefix, 'compressed'):
+            # Convert IPv4Network/IPv6Network to string
+            item.prefix = str(item.prefix)
+            
         return item
 
     @router.post(f"/{path}", status_code=201, tags=tags, response_model=ReadSchema)
@@ -139,8 +152,31 @@ def create_crud_routes(router: APIRouter, path: str, crud_module, crud_instance,
             raise HTTPException(status_code=422, detail=e.errors())
 
         # Get the specific update function from the correct crud_module for this route
-        resource_name = current_path 
-        update_func_name = f"update_{resource_name.rstrip('s')}"
+        resource_name = current_path
+        
+        # More robust way to get singular form of resource name
+        singular_forms = {
+            'prefixes': 'prefix',
+            'addresses': 'address',
+            'categories': 'category',
+            'entities': 'entity',
+            'families': 'family',
+            'properties': 'property',
+            'statuses': 'status',
+            'indices': 'index',
+            'matrices': 'matrix',
+            'vertices': 'vertex',
+            # Add more irregular plurals as needed
+        }
+        
+        # Get singular form from the mapping or use standard approach
+        if resource_name in singular_forms:
+            singular = singular_forms[resource_name]
+        else:
+            # Handle regular plurals ending with 's'
+            singular = resource_name[:-1] if resource_name.endswith('s') else resource_name
+        
+        update_func_name = f"update_{singular}"
         if not hasattr(current_crud_module, update_func_name):
             logger.error(f"Specific CRUD function '{update_func_name}' not found in provided crud_module '{getattr(current_crud_module, '__name__', 'N/A')}' for path '{current_path}'.")
             raise HTTPException(status_code=500, detail=f"Internal configuration error: Update function not found for {current_path}.")

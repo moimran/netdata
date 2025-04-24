@@ -2,7 +2,7 @@
 
 from typing import Optional, Dict, Any
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 # VRF
 class VRFBase(BaseModel):
@@ -151,7 +151,7 @@ class RoleRead(RoleBase):
 
 # Prefix
 class PrefixBase(BaseModel):
-    prefix: str # Handled by validator in model
+    prefix: str
     site_id: Optional[int] = None
     vrf_id: Optional[int] = None
     tenant_id: Optional[int] = None
@@ -163,6 +163,14 @@ class PrefixBase(BaseModel):
     description: Optional[str] = None
     comments: Optional[str] = None
     custom_fields: Optional[Dict[str, Any]] = None
+    
+    # Ensure prefix is always a string
+    @field_validator('prefix')
+    @classmethod
+    def validate_prefix(cls, v):
+        if hasattr(v, 'compressed') or hasattr(v, '__str__'):
+            return str(v)
+        return v
 
 class PrefixCreate(PrefixBase):
     model_config = ConfigDict(
@@ -207,8 +215,20 @@ class PrefixRead(PrefixBase):
     # tenant: Optional[TenantRead] = None
     # vlan: Optional[VLANRead] = None
     # role: Optional[RoleRead] = None
+    
     class Config:
         from_attributes = True
+    
+    @classmethod
+    def model_validate(cls, obj, *args, **kwargs):
+        """Custom validation to handle IPv4Network/IPv6Network objects"""
+        if hasattr(obj, 'prefix') and hasattr(obj.prefix, 'compressed'):
+            # Create a copy of the object to avoid modifying the original
+            obj_dict = obj.model_dump() if hasattr(obj, 'model_dump') else obj.__dict__.copy()
+            # Convert IPv4Network/IPv6Network to string
+            obj_dict['prefix'] = str(obj.prefix)
+            return super().model_validate(obj_dict, *args, **kwargs)
+        return super().model_validate(obj, *args, **kwargs)
 
 # IPRange
 class IPRangeBase(BaseModel):

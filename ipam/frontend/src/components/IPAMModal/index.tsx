@@ -123,8 +123,8 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
       try {
         console.log('Submitting form data:', { tableName, values, isEdit: !!data });
         
-        // For sites and locations, ensure status is included
-        if ((tableName === 'sites' || tableName === 'locations') && !values.status) {
+        // For sites, locations, and prefixes, ensure status is included
+        if ((tableName === 'sites' || tableName === 'locations' || tableName === 'prefixes') && !values.status) {
           values.status = 'active';
         }
         
@@ -143,13 +143,18 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
         }
         
         // If successful, invalidate queries to force a refresh of the table data
-        queryClient.invalidateQueries({ queryKey: ['data', tableName] });
+        await queryClient.invalidateQueries({ queryKey: ['data', tableName] });
         
-        // Add a small delay before closing the modal to ensure the cache is invalidated
+        // Force a refetch to ensure we have the latest data
+        await queryClient.refetchQueries({ queryKey: ['data', tableName] });
+        
+        console.log(`Invalidated and refetched queries for ${tableName}`);
+        
+        // Add a longer delay before closing the modal to ensure the cache is invalidated and data is refetched
         setTimeout(() => {
           // If successful, close the modal
           onClose();
-        }, 300);
+        }, 500);
       } catch (error: any) {
         console.error('Error submitting form:', error);
         

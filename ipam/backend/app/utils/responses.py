@@ -20,6 +20,22 @@ class CustomJSONResponse(JSONResponse):
             allow_nan=False,
             indent=None,
             separators=(",", ":"),
-            cls=json.JSONEncoder,
-            default=lambda o: str(o) if isinstance(o, (IPv4Network, IPv6Network)) else None,
+            default=self.custom_encoder,
         ).encode("utf-8")
+    
+    def custom_encoder(self, obj):
+        # Handle IPv4Network/IPv6Network objects
+        if isinstance(obj, (IPv4Network, IPv6Network)):
+            return str(obj)
+        
+        # Handle objects with __dict__ attribute (like SQLModel instances)
+        if hasattr(obj, "__dict__"):
+            obj_dict = obj.__dict__.copy()
+            # Handle nested IPv4Network/IPv6Network objects
+            for key, value in obj_dict.items():
+                if isinstance(value, (IPv4Network, IPv6Network)):
+                    obj_dict[key] = str(value)
+            return obj_dict
+        
+        # Default case for other types
+        return str(obj)
