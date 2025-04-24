@@ -258,6 +258,11 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
 
                 // Custom cell rendering based on column type
                 if (column.reference && referenceData && typeof value === 'number') {
+                    // Special handling for prefix_id in IP addresses table
+                    if (tableName === 'ip_addresses' && column.name === 'prefix_id' && column.reference === 'prefixes') {
+                        const prefix = referenceData.prefixes?.find(p => p.id === value);
+                        return <div style={{ textAlign: 'center' }}>{prefix?.prefix || formatReferenceValue(value, column.reference)}</div>;
+                    }
                     return <div style={{ textAlign: 'center' }}>{formatReferenceValue(value, column.reference)}</div>;
                 }
 

@@ -81,6 +81,35 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
           tables.push(table);
         }
       });
+      
+      // Log the required tables for prefixes
+      console.log('Required reference tables for prefixes:', requiredTables);
+    }
+    
+    // Special case for IP ranges: include VRFs and tenants
+    if (tableName === 'ip_ranges') {
+      const requiredTables = ['vrfs', 'tenants', 'sites'];
+      requiredTables.forEach(table => {
+        if (!tables.includes(table)) {
+          tables.push(table);
+        }
+      });
+      
+      // Log the required tables for IP ranges
+      console.log('Required reference tables for IP ranges:', requiredTables);
+    }
+    
+    // Special case for IP addresses: include VRFs, tenants, prefixes, and roles
+    if (tableName === 'ip_addresses') {
+      const requiredTables = ['vrfs', 'tenants', 'prefixes', 'roles'];
+      requiredTables.forEach(table => {
+        if (!tables.includes(table)) {
+          tables.push(table);
+        }
+      });
+      
+      // Log the required tables for IP addresses
+      console.log('Required reference tables for IP addresses:', requiredTables);
     }
     
     console.log('Reference tables needed for', tableName, ':', tables);
@@ -99,6 +128,20 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
     
     // Add default status for tables that require it
     if (tableName === 'sites' || tableName === 'locations') {
+      defaults.status = 'active';
+    }
+    
+    // Add default values for IP ranges
+    if (tableName === 'ip_ranges') {
+      defaults.name = 'New IP Range';
+      defaults.slug = 'new-ip-range';
+      defaults.status = 'active';
+    }
+    
+    // Add default values for IP addresses
+    if (tableName === 'ip_addresses') {
+      defaults.name = 'New IP Address';
+      defaults.slug = 'new-ip-address';
       defaults.status = 'active';
     }
     
@@ -123,13 +166,25 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
       try {
         console.log('Submitting form data:', { tableName, values, isEdit: !!data });
         
-        // For sites, locations, and prefixes, ensure status is included
-        if ((tableName === 'sites' || tableName === 'locations' || tableName === 'prefixes') && !values.status) {
+        // For sites, locations, prefixes, ip_ranges, and ip_addresses, ensure status is included
+        if ((tableName === 'sites' || tableName === 'locations' || tableName === 'prefixes' || tableName === 'ip_ranges' || tableName === 'ip_addresses') && !values.status) {
           values.status = 'active';
         }
         
         // Log the final form data being submitted
         console.log('Final form data being submitted:', values);
+        
+        // Special logging for IP addresses
+        if (tableName === 'ip_addresses') {
+          console.log('IP address form data:', {
+            prefix_id: values.prefix_id,
+            vrf_id: values.vrf_id,
+            tenant_id: values.tenant_id,
+            role: values.role,
+            status: values.status,
+            address: values.address
+          });
+        }
         
         // Determine if this is a create or update operation
         if (data) {
@@ -191,15 +246,28 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
   // Use the reference data hook to fetch data for all reference tables
   const { referenceData, isLoading, isError, refetch, getReferenceItem, formatReferenceValue } = useReferenceData(referenceTableNames);
   
-  // Debug reference data loading
+  // Use effect to log reference data when it changes
   useEffect(() => {
-    console.log('Reference data loading state:', {
-      isLoading,
-      isError,
-      tableName,
-      referenceTableNames
-    });
+    if (isLoading) {
+      console.log('Loading reference data...');
+      return;
+    }
     
+    if (isError) {
+      console.error('Error loading reference data');
+      return;
+    }
+    
+    // Debug reference data for prefixes
+    if (tableName === 'prefixes') {
+      console.log('Reference data for prefixes:', {
+        vrfs: referenceData.vrfs || 'Not loaded',
+        vrfsCount: referenceData.vrfs ? referenceData.vrfs.length : 0,
+        tenants: referenceData.tenants || 'Not loaded',
+        tenantsCount: referenceData.tenants ? referenceData.tenants.length : 0,
+        allReferenceTables: Object.keys(referenceData)
+      });
+    }
     if (!isLoading && !isError) {
       console.log('Reference data loaded for ' + tableName + ':', {
         availableTables: Object.keys(referenceData),
@@ -241,8 +309,10 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
     }
   }, [referenceData, isLoading, isError, tableName, referenceTableNames, formData]);
 
-  // --- Add VRF target fetching ---
-  const { data: allRouteTargets, isLoading: isLoadingTargets, isError: isErrorTargets } = useAllRouteTargets();
+  // --- Add VRF target fetching - only when needed ---
+  const { data: allRouteTargets, isLoading: isLoadingTargets, isError: isErrorTargets } = useAllRouteTargets({
+    enabled: tableName === 'vrfs' // Only fetch route targets for VRF forms
+  });
   // Format data for MultiSelect
   const routeTargetOptions = useMemo(() => {
     if (!allRouteTargets) return [];

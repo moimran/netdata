@@ -18,10 +18,15 @@ const fetchAllRouteTargets = async (): Promise<RouteTarget[]> => {
   return data.items;
 };
 
-export const useAllRouteTargets = () => {
+interface UseAllRouteTargetsOptions {
+  enabled?: boolean;
+}
+
+export const useAllRouteTargets = (options?: UseAllRouteTargetsOptions) => {
   return useQuery<RouteTarget[], Error>({
     queryKey: ['allRouteTargets'],
     queryFn: fetchAllRouteTargets,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    enabled: options?.enabled !== undefined ? options.enabled : true, // Default to true if not specified
   });
 };

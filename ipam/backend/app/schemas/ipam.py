@@ -232,6 +232,8 @@ class PrefixRead(PrefixBase):
 
 # IPRange
 class IPRangeBase(BaseModel):
+    name: str = Field(..., max_length=100)
+    slug: str = Field(..., max_length=100)
     start_address: str # Handled by validator in model
     end_address: str   # Handled by validator in model
     size: Optional[int] = None # Calculated potentially
@@ -285,10 +287,26 @@ class IPRangeRead(IPRangeBase):
     # role: Optional[RoleRead] = None
     class Config:
         from_attributes = True
+        
+    @classmethod
+    def model_validate(cls, obj, *args, **kwargs):
+        """Custom validation to handle IPv4Network/IPv6Network objects"""
+        obj_dict = obj.model_dump() if hasattr(obj, 'model_dump') else obj.__dict__.copy()
+        
+        # Convert IPv4Network/IPv6Network to string for start_address
+        if hasattr(obj, 'start_address') and hasattr(obj.start_address, 'compressed'):
+            obj_dict['start_address'] = str(obj.start_address)
+            
+        # Convert IPv4Network/IPv6Network to string for end_address
+        if hasattr(obj, 'end_address') and hasattr(obj.end_address, 'compressed'):
+            obj_dict['end_address'] = str(obj.end_address)
+            
+        return super().model_validate(obj_dict, *args, **kwargs)
 
 # IPAddress
 class IPAddressBase(BaseModel):
     address: str # Handled by validator in model
+    prefix_id: Optional[int] = None # Added prefix_id field
     vrf_id: Optional[int] = None
     tenant_id: Optional[int] = None
     status: str = Field(..., max_length=50)
@@ -338,6 +356,17 @@ class IPAddressRead(IPAddressBase):
     # interface: Optional[InterfaceRead] = None
     class Config:
         from_attributes = True
+        
+    @classmethod
+    def model_validate(cls, obj, *args, **kwargs):
+        """Custom validation to handle IPv4Network/IPv6Network objects"""
+        obj_dict = obj.model_dump() if hasattr(obj, 'model_dump') else obj.__dict__.copy()
+        
+        # Convert IPv4Network/IPv6Network to string for address
+        if hasattr(obj, 'address') and hasattr(obj.address, 'compressed'):
+            obj_dict['address'] = str(obj.address)
+            
+        return super().model_validate(obj_dict, *args, **kwargs)
 
 # VLAN
 class VLANBase(BaseModel):

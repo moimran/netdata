@@ -3,7 +3,7 @@ CRUD operations for all models in the IPAM system.
 This module provides generic and specific CRUD operations for database models.
 """
 
-from typing import Dict, Any, TypeVar, Optional
+from typing import Dict, Any, TypeVar, Optional, List
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
@@ -432,15 +432,103 @@ class IPAddressCRUD:
     """
     CRUD operations for IP addresses.
     """
+    
+    def get_all(self, session: Session, skip: int = 0, limit: int = 100, **kwargs) -> List[IPAddress]:
+        """
+        Get all IP addresses with pagination and optional filtering.
+        
+        Args:
+            session: Database session
+            skip: Number of records to skip
+            limit: Maximum number of records to return
+            **kwargs: Filter parameters
+            
+        Returns:
+            List of IPAddress objects
+        """
+        query = select(IPAddress)
+        
+        # Apply filters if provided
+        for key, value in kwargs.items():
+            if hasattr(IPAddress, key) and value is not None:
+                query = query.where(getattr(IPAddress, key) == value)
+        
+        # Apply pagination
+        query = query.offset(skip).limit(limit)
+        
+        # Execute query and return results
+        result = session.exec(query).all()
+        return result
+        
+    def get_by_id(self, session: Session, id: int) -> Optional[IPAddress]:
+        """
+        Get an IP address by ID.
+        
+        Args:
+            session: Database session
+            id: IP address ID
+            
+        Returns:
+            IPAddress object if found, None otherwise
+        """
+        return session.get(IPAddress, id)
+        
+    def update_ip_address(self, db: Session, id: int, obj_in) -> Optional[IPAddress]:
+        """
+        Update an IP address by ID.
+        
+        Args:
+            db: Database session
+            id: IP address ID
+            obj_in: Data to update (can be a dict or a Pydantic model)
+            
+        Returns:
+            Updated IPAddress object if found, None otherwise
+        """
+        try:
+            # Get the existing IP address
+            db_obj = self.get_by_id(db, id)
+            if not db_obj:
+                return None
+                
+            # Convert obj_in to a dict if it's a Pydantic model
+            update_data = obj_in
+            if hasattr(obj_in, 'model_dump'):
+                update_data = obj_in.model_dump(exclude_unset=True)
+            elif hasattr(obj_in, 'dict'):
+                update_data = obj_in.dict(exclude_unset=True)
+                
+            # Update the IP address fields
+            for key, value in update_data.items():
+                if hasattr(db_obj, key) and value is not None:
+                    setattr(db_obj, key, value)
+            
+            # Commit the changes
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+            
+            return db_obj
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error updating IP address {id}: {str(e)}", exc_info=True)
+            raise
     def create(self, session: Session, obj_in: Dict[str, Any]) -> IPAddress:
         """
         Create a new IP address with validation.
         """
         try:
+            # Log the input data for debugging
+            logger.debug(f"Creating IP address with data: {obj_in}")
+            
             # Create the IP address using the base method
             address_value = obj_in.get('address')
             vrf_id = obj_in.get('vrf_id')
+            prefix_id = obj_in.get('prefix_id')
             vrf_name = "global"
+            
+            # Log the extracted values
+            logger.debug(f"Extracted values: address={address_value}, vrf_id={vrf_id}, prefix_id={prefix_id}")
             
             if vrf_id:
                 # Try to get the VRF name for better error messages
@@ -1255,11 +1343,37 @@ class RIRCRUD(BaseCRUD):
 # Instantiate the RIR CRUD object
 rir = RIRCRUD()
 aggregate = AggregateCRUD()
-role = BaseCRUD(Role)
+
+# Create a custom Role CRUD class that includes the update_role method
+class RoleCRUD(BaseCRUD):
+    def __init__(self):
+        super().__init__(Role)
+    
+    def update_role(self, db: Session, id: int, obj_in):
+        """
+        Update a role by ID. This is a wrapper around the BaseCRUD update method.
+        """
+        logger.debug(f"RoleCRUD update_role: id={id}, obj_in={obj_in}")
+        return self.update(db, id, obj_in)
+
+# Instantiate the Role CRUD object
+role = RoleCRUD()
 prefix = PrefixCRUD()
 ip_range = BaseCRUD(IPRange)
 ip_address = IPAddressCRUD()
-tenant = BaseCRUD(Tenant)
+# Create a custom TenantCRUD class that includes the update_tenant method
+class TenantCRUD(BaseCRUD):
+    def __init__(self):
+        super().__init__(Tenant)
+    
+    def update_tenant(self, db: Session, id: int, obj_in):
+        """
+        Update a tenant by ID. This is a wrapper around the BaseCRUD update method.
+        """
+        return self.update(db, id, obj_in)
+
+# Instantiate the Tenant CRUD object
+tenant = TenantCRUD()
 device = BaseCRUD(Device)
 interface = BaseCRUD(Interface)
 vlan = BaseCRUD(VLAN)

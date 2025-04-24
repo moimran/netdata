@@ -18,9 +18,9 @@ export function useReferenceData(
   // Fetch reference data for all specified tables in parallel
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['references', referenceTableNames],
-    staleTime: 0, // Always consider the data stale to ensure it's refreshed
-    refetchOnMount: true, // Refetch when the component mounts
-    refetchOnWindowFocus: true, // Refetch when the window regains focus
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes to reduce unnecessary refetches
+    refetchOnMount: 'always', // Only refetch if the data is stale
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
     queryFn: async () => {
       const results: Record<string, any[]> = {};
       
@@ -164,6 +164,11 @@ export function useReferenceData(
     const referencedItem = getReferenceItem(tableName, value);
     
     if (referencedItem) {
+      // Special handling for prefixes
+      if (tableName === 'prefixes' && referencedItem.prefix) {
+        return referencedItem.prefix;
+      }
+      
       // Return the name property if it exists, otherwise fall back to other common properties
       return referencedItem.name || referencedItem.rd || String(value);
     }

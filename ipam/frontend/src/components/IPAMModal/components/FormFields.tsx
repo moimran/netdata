@@ -359,6 +359,199 @@ export const FormField = memo(function FormField({
     );
   }
   
+  // Special handling for IP addresses table
+  if (tableName === 'ip_addresses') {
+    // Handle VRF reference field
+    if (column.name === 'vrf_id' && column.reference === 'vrfs') {
+      const hasVrfs = referenceData.vrfs && referenceData.vrfs.length > 0;
+      const vrfOptions = hasVrfs
+        ? referenceData.vrfs.map(vrf => ({
+            value: vrf.id.toString(),
+            label: vrf.name || `VRF #${vrf.id}`
+          }))
+        : [];
+        
+      return (
+        <Select
+          label="VRF"
+          data={vrfOptions}
+          value={formData.vrf_id ? formData.vrf_id.toString() : null}
+          onChange={(value) => handleChange('vrf_id', value ? Number(value) : null)}
+          error={validationErrors.vrf_id}
+          placeholder={hasVrfs ? "Select VRF" : "No VRFs available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle Tenant reference field
+    if (column.name === 'tenant_id' && column.reference === 'tenants') {
+      const hasTenants = referenceData.tenants && referenceData.tenants.length > 0;
+      const tenantOptions = hasTenants
+        ? referenceData.tenants.map(tenant => ({
+            value: tenant.id.toString(),
+            label: tenant.name || `Tenant #${tenant.id}`
+          }))
+        : [];
+        
+      return (
+        <Select
+          label="Tenant"
+          data={tenantOptions}
+          value={formData.tenant_id ? formData.tenant_id.toString() : null}
+          onChange={(value) => handleChange('tenant_id', value ? Number(value) : null)}
+          error={validationErrors.tenant_id}
+          placeholder={hasTenants ? "Select Tenant" : "No Tenants available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle Prefix reference field
+    if (column.name === 'prefix_id' && column.reference === 'prefixes') {
+      const hasPrefixes = referenceData.prefixes && referenceData.prefixes.length > 0;
+      const prefixOptions = hasPrefixes
+        ? referenceData.prefixes.map(prefix => ({
+            value: prefix.id.toString(),
+            label: prefix.prefix || `Prefix #${prefix.id}`
+          }))
+        : [];
+        
+      return (
+        <Select
+          label="Prefix"
+          data={prefixOptions}
+          value={formData.prefix_id ? formData.prefix_id.toString() : null}
+          onChange={(value) => {
+            console.log('Prefix selected:', value);
+            handleChange('prefix_id', value ? Number(value) : null);
+            console.log('Updated formData.prefix_id:', formData.prefix_id);
+          }}
+          error={validationErrors.prefix_id}
+          placeholder={hasPrefixes ? "Select Prefix" : "No Prefixes available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle Role field
+    if (column.name === 'role') {
+      const roleOptions = [
+        { value: 'loopback', label: 'Loopback' },
+        { value: 'secondary', label: 'Secondary' },
+        { value: 'vip', label: 'VIP' },
+        { value: 'hsrp', label: 'HSRP' },
+        { value: 'vrrp', label: 'VRRP' },
+        { value: 'glbp', label: 'GLBP' },
+        { value: 'anycast', label: 'Anycast' }
+      ];
+      
+      return (
+        <Select
+          label="Role"
+          data={roleOptions}
+          value={formData.role || null}
+          onChange={(value) => handleChange('role', value)}
+          error={validationErrors.role}
+          placeholder="Select Role"
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle Status field
+    if (column.name === 'status') {
+      const statusOptions = [
+        { value: 'active', label: 'Active' },
+        { value: 'reserved', label: 'Reserved' },
+        { value: 'deprecated', label: 'Deprecated' },
+        { value: 'dhcp', label: 'DHCP' },
+        { value: 'slaac', label: 'SLAAC' }
+      ];
+      
+      return (
+        <Select
+          label="Status"
+          data={statusOptions}
+          value={formData.status || 'active'}
+          onChange={(value) => handleChange('status', value || 'active')}
+          error={validationErrors.status}
+          placeholder="Select Status"
+          required
+          searchable
+        />
+      );
+    }
+  }
+  
+  // Special handling for IP ranges table
+  if (tableName === 'ip_ranges') {
+    // Handle VRF reference field
+    if (column.name === 'vrf_id' && column.reference === 'vrfs') {
+      const hasVrfs = referenceData.vrfs && referenceData.vrfs.length > 0;
+      const vrfOptions = hasVrfs
+        ? referenceData.vrfs.map(vrf => ({
+            value: vrf.id.toString(),
+            label: vrf.name || `VRF #${vrf.id}`
+          }))
+        : [];
+        
+      return (
+        <Select
+          label="VRF"
+          data={vrfOptions}
+          value={formData.vrf_id ? formData.vrf_id.toString() : null}
+          onChange={(value) => handleChange('vrf_id', value ? Number(value) : null)}
+          error={validationErrors.vrf_id}
+          placeholder={hasVrfs ? "Select VRF" : "No VRFs available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle Tenant reference field
+    if (column.name === 'tenant_id' && column.reference === 'tenants') {
+      const hasTenants = referenceData.tenants && referenceData.tenants.length > 0;
+      const tenantOptions = hasTenants
+        ? referenceData.tenants.map(tenant => ({
+            value: tenant.id.toString(),
+            label: tenant.name || `Tenant #${tenant.id}`
+          }))
+        : [];
+        
+      return (
+        <Select
+          label="Tenant"
+          data={tenantOptions}
+          value={formData.tenant_id ? formData.tenant_id.toString() : null}
+          onChange={(value) => handleChange('tenant_id', value ? Number(value) : null)}
+          error={validationErrors.tenant_id}
+          placeholder={hasTenants ? "Select Tenant" : "No Tenants available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle Status field for IP ranges
+    if (column.name === 'status') {
+      return (
+        <StatusField
+          name={column.name}
+          label="Status"
+          value={formData.status || 'active'}
+          onChange={handleChange}
+          required={true}
+        />
+      );
+    }
+  }
+
   // Special handling for prefixes table
   if (tableName === 'prefixes') {
     // Handle VRF reference field

@@ -109,8 +109,8 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   ],
   ip_ranges: [
     { name: 'id', type: 'number' },
-    { name: 'name', type: 'string' },
-    { name: 'slug', type: 'string' },
+    { name: 'name', type: 'string', required: true },
+    { name: 'slug', type: 'string', required: true },
     { name: 'start_address', type: 'string', required: true },
     { name: 'end_address', type: 'string', required: true },
     { name: 'vrf_id', type: 'number', reference: 'vrfs' },

@@ -62,6 +62,23 @@ def create_crud_routes(router: APIRouter, path: str, crud_module, crud_instance,
                         # Convert IPv4Network/IPv6Network to string
                         item.prefix = str(item.prefix)
             
+            # Special handling for IP Range objects - convert IPv4Network/IPv6Network to strings
+            if path == "ip_ranges":
+                for item in items:
+                    if hasattr(item, 'start_address') and hasattr(item.start_address, 'compressed'):
+                        # Convert IPv4Network/IPv6Network to string
+                        item.start_address = str(item.start_address)
+                    if hasattr(item, 'end_address') and hasattr(item.end_address, 'compressed'):
+                        # Convert IPv4Network/IPv6Network to string
+                        item.end_address = str(item.end_address)
+                        
+            # Special handling for IP Address objects - convert IPv4Network/IPv6Network to strings
+            if path == "ip_addresses":
+                for item in items:
+                    if hasattr(item, 'address') and hasattr(item.address, 'compressed'):
+                        # Convert IPv4Network/IPv6Network to string
+                        item.address = str(item.address)
+            
             # Count total items (without pagination)
             query = select(model_type)
             for key, value in filter_params.items():
@@ -95,6 +112,21 @@ def create_crud_routes(router: APIRouter, path: str, crud_module, crud_instance,
             # Convert IPv4Network/IPv6Network to string
             item.prefix = str(item.prefix)
             
+        # Special handling for IP Range objects - convert IPv4Network/IPv6Network to strings
+        if path == "ip_ranges":
+            if hasattr(item, 'start_address') and hasattr(item.start_address, 'compressed'):
+                # Convert IPv4Network/IPv6Network to string
+                item.start_address = str(item.start_address)
+            if hasattr(item, 'end_address') and hasattr(item.end_address, 'compressed'):
+                # Convert IPv4Network/IPv6Network to string
+                item.end_address = str(item.end_address)
+                
+        # Special handling for IP Address objects - convert IPv4Network/IPv6Network to strings
+        if path == "ip_addresses":
+            if hasattr(item, 'address') and hasattr(item.address, 'compressed'):
+                # Convert IPv4Network/IPv6Network to string
+                item.address = str(item.address)
+            
         return item
 
     @router.post(f"/{path}", status_code=201, tags=tags, response_model=ReadSchema)
@@ -119,6 +151,27 @@ def create_crud_routes(router: APIRouter, path: str, crud_module, crud_instance,
                         pass
         
         created_item = crud_instance.create(session, obj_in=item_dict)
+        
+        # Special handling for Prefix objects - convert IPv4Network/IPv6Network to strings
+        if path == "prefixes" and hasattr(created_item, 'prefix') and hasattr(created_item.prefix, 'compressed'):
+            # Convert IPv4Network/IPv6Network to string
+            created_item.prefix = str(created_item.prefix)
+            
+        # Special handling for IP Range objects - convert IPv4Network/IPv6Network to strings
+        if path == "ip_ranges":
+            if hasattr(created_item, 'start_address') and hasattr(created_item.start_address, 'compressed'):
+                # Convert IPv4Network/IPv6Network to string
+                created_item.start_address = str(created_item.start_address)
+            if hasattr(created_item, 'end_address') and hasattr(created_item.end_address, 'compressed'):
+                # Convert IPv4Network/IPv6Network to string
+                created_item.end_address = str(created_item.end_address)
+                
+        # Special handling for IP Address objects - convert IPv4Network/IPv6Network to strings
+        if path == "ip_addresses":
+            if hasattr(created_item, 'address') and hasattr(created_item.address, 'compressed'):
+                # Convert IPv4Network/IPv6Network to string
+                created_item.address = str(created_item.address)
+                
         return created_item
 
     @router.put(f"/{path}/{{item_id}}", response_model=ReadSchema, tags=tags)
@@ -158,6 +211,7 @@ def create_crud_routes(router: APIRouter, path: str, crud_module, crud_instance,
         singular_forms = {
             'prefixes': 'prefix',
             'addresses': 'address',
+            'ip_addresses': 'ip_address',  # Special case for ip_addresses
             'categories': 'category',
             'entities': 'entity',
             'families': 'family',
@@ -210,6 +264,27 @@ def create_crud_routes(router: APIRouter, path: str, crud_module, crud_instance,
             raise HTTPException(status_code=404, detail=f"{resource_name.capitalize().rstrip('s')} with id {item_id} not found during update.")
 
         logger.debug(f"PUT /{current_path}/{{item_id}} - Update successful for ID: {item_id}")
+        
+        # Special handling for Prefix objects - convert IPv4Network/IPv6Network to strings
+        if current_path == "prefixes" and hasattr(updated_item, 'prefix') and hasattr(updated_item.prefix, 'compressed'):
+            # Convert IPv4Network/IPv6Network to string
+            updated_item.prefix = str(updated_item.prefix)
+            
+        # Special handling for IP Range objects - convert IPv4Network/IPv6Network to strings
+        if current_path == "ip_ranges":
+            if hasattr(updated_item, 'start_address') and hasattr(updated_item.start_address, 'compressed'):
+                # Convert IPv4Network/IPv6Network to string
+                updated_item.start_address = str(updated_item.start_address)
+            if hasattr(updated_item, 'end_address') and hasattr(updated_item.end_address, 'compressed'):
+                # Convert IPv4Network/IPv6Network to string
+                updated_item.end_address = str(updated_item.end_address)
+                
+        # Special handling for IP Address objects - convert IPv4Network/IPv6Network to strings
+        if current_path == "ip_addresses":
+            if hasattr(updated_item, 'address') and hasattr(updated_item.address, 'compressed'):
+                # Convert IPv4Network/IPv6Network to string
+                updated_item.address = str(updated_item.address)
+                
         return ReadSchema.from_orm(updated_item)
 
     @router.delete(f"/{path}/{{item_id}}", status_code=204, tags=tags, response_model=None)
