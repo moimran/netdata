@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { Select, TextInput } from '@mantine/core';
 import { CommonFieldProps, ReferenceFieldProps } from './types';
+import { handleDropdownSelection } from './utils';
 
 /**
  * VRF field for Prefixes
@@ -33,11 +34,15 @@ export const PrefixVRFField = memo(({
     <Select
       label={label}
       value={value ? String(value) : ''}
-      onChange={(value) => onChange(value ? Number(value) : null)}
+      onChange={(selectedValue) => {
+        console.log(`${name} VRF selected:`, selectedValue);
+        onChange(selectedValue ? Number(selectedValue) : null);
+      }}
       data={selectOptions}
       error={error}
       searchable
       clearable
+      placeholder="Select VRF"
     />
   );
 });
@@ -71,7 +76,12 @@ export const PrefixField = memo(({
           value={value || ''}
           onChange={(selectedValue) => {
             console.log('Selected prefix:', selectedValue);
-            onChange(selectedValue);
+            // Directly pass the selected value to the parent component
+            if (selectedValue) {
+              onChange(selectedValue);
+            } else {
+              onChange(null);
+            }
           }}
           data={aggregateOptions}
           error={error}

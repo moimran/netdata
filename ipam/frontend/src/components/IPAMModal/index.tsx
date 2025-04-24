@@ -57,6 +57,8 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
       tables.push('vrfs', 'tenants', 'prefixes', 'roles', 'ip_addresses'); // ip_addresses for NAT inside
     } else if (tableName === 'ip_ranges') {
       tables.push('vrfs', 'tenants');
+    } else if (tableName === 'vrfs') {
+      tables.push('tenants');
     } else if (tableName === 'devices') {
       tables.push('locations', 'ip_addresses', 'credentials');
     } else if (tableName === 'interfaces') {

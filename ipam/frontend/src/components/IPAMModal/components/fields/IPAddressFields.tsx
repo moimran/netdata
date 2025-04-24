@@ -33,9 +33,13 @@ export const IPAddressVRFField = memo(({
     <Select
       label={label}
       value={value ? String(value) : ''}
-      onChange={(value) => onChange(value ? Number(value) : null)}
+      onChange={(selectedValue) => {
+        console.log(`${name} VRF selected:`, selectedValue);
+        onChange(selectedValue ? Number(selectedValue) : null);
+      }}
       data={selectOptions}
       error={error}
+      placeholder="Select VRF"
       searchable
       clearable
     />
@@ -73,9 +77,13 @@ export const IPAddressPrefixField = memo(({
     <Select
       label={label}
       value={value ? String(value) : ''}
-      onChange={(value) => onChange(value ? Number(value) : null)}
+      onChange={(selectedValue) => {
+        console.log(`${name} Prefix selected:`, selectedValue);
+        onChange(selectedValue ? Number(selectedValue) : null);
+      }}
       data={selectOptions}
       error={error}
+      placeholder="Select Prefix"
       searchable
       clearable
     />

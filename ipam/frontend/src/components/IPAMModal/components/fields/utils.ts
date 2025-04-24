@@ -30,3 +30,23 @@ export const debugReferenceData = (
   console.log('All reference data:', referenceData);
   console.groupEnd();
 };
+
+/**
+ * Handle dropdown selection consistently across all components
+ * This ensures that all dropdowns work the same way and properly handle selection events
+ */
+export const handleDropdownSelection = (
+  fieldName: string,
+  selectedValue: string | null,
+  onChange: (value: any) => void,
+  isNumeric: boolean = true
+): void => {
+  console.log(`${fieldName} selected:`, selectedValue);
+  
+  // Convert to number if needed (for IDs) or pass through as string/null
+  if (isNumeric) {
+    onChange(selectedValue ? Number(selectedValue) : null);
+  } else {
+    onChange(selectedValue);
+  }
+};

@@ -33,11 +33,15 @@ export const VLANGroupField = memo(({
     <Select
       label={label}
       value={value ? String(value) : ''}
-      onChange={(value) => onChange(value ? Number(value) : null)}
+      onChange={(selectedValue) => {
+        console.log(`${name} VLAN Group selected:`, selectedValue);
+        onChange(selectedValue ? Number(selectedValue) : null);
+      }}
       data={selectOptions}
       error={error}
       searchable
       clearable
+      placeholder="Select VLAN Group"
     />
   );
 });
@@ -73,11 +77,15 @@ export const VLANTenantField = memo(({
     <Select
       label={label}
       value={value ? String(value) : ''}
-      onChange={(value) => onChange(value ? Number(value) : null)}
+      onChange={(selectedValue) => {
+        console.log(`${name} VLAN Group selected:`, selectedValue);
+        onChange(selectedValue ? Number(selectedValue) : null);
+      }}
       data={selectOptions}
       error={error}
       searchable
       clearable
+      placeholder="Select VLAN Group"
     />
   );
 });

@@ -47,6 +47,9 @@ export const FormField = memo(({
     handleChange(column.name, value);
   };
   
+  // Field name for reference
+  const name = column.name;
+  
   // Get error message for this field
   const error = validationErrors[column.name];
   
@@ -67,7 +70,10 @@ export const FormField = memo(({
           label="VRF"
           data={vrfOptions}
           value={formData.vrf_id ? String(formData.vrf_id) : ''}
-          onChange={(value) => onChange('vrf_id', value ? Number(value) : null)}
+          onChange={(selectedValue) => {
+            console.log('VRF selected:', selectedValue);
+            handleChange('vrf_id', selectedValue ? Number(selectedValue) : null);
+          }}
           error={error}
           placeholder={hasVrfs ? "Select VRF" : "No VRFs available"}
           searchable
@@ -91,7 +97,10 @@ export const FormField = memo(({
           label="Tenant"
           data={tenantOptions}
           value={formData.tenant_id ? String(formData.tenant_id) : ''}
-          onChange={(value) => onChange('tenant_id', value ? Number(value) : null)}
+          onChange={(selectedValue) => {
+            console.log('Tenant selected:', selectedValue);
+            handleChange('tenant_id', selectedValue ? Number(selectedValue) : null);
+          }}
           error={error}
           placeholder={hasTenants ? "Select Tenant" : "No Tenants available"}
           searchable
@@ -115,7 +124,10 @@ export const FormField = memo(({
           label="Prefix"
           data={prefixOptions}
           value={formData.prefix_id ? String(formData.prefix_id) : ''}
-          onChange={(value) => onChange('prefix_id', value ? Number(value) : null)}
+          onChange={(selectedValue) => {
+            console.log('Prefix selected:', selectedValue);
+            handleChange('prefix_id', selectedValue ? Number(selectedValue) : null);
+          }}
           error={error}
           placeholder={hasPrefixes ? "Select Prefix" : "No Prefixes available"}
           searchable
@@ -133,6 +145,39 @@ export const FormField = memo(({
           value={formData[column.name]}
           onChange={onChange}
           error={error}
+        />
+      );
+    }
+    
+    // Handle Role field for IP addresses
+    if (column.name === 'role') {
+      // Define common IP address roles
+      const roleOptions = [
+        { value: 'loopback', label: 'Loopback' },
+        { value: 'secondary', label: 'Secondary' },
+        { value: 'vip', label: 'VIP' },
+        { value: 'vrrp', label: 'VRRP' },
+        { value: 'hsrp', label: 'HSRP' },
+        { value: 'anycast', label: 'Anycast' },
+        { value: 'management', label: 'Management' },
+        { value: 'dhcp', label: 'DHCP' },
+        { value: 'infrastructure', label: 'Infrastructure' },
+        { value: 'customer', label: 'Customer' }
+      ];
+      
+      return (
+        <Select
+          label="Role"
+          data={roleOptions}
+          value={formData.role || ''}
+          onChange={(selectedValue) => {
+            console.log('IP Address Role selected:', selectedValue);
+            handleChange('role', selectedValue);
+          }}
+          error={error}
+          placeholder="Select Role"
+          searchable
+          clearable
         />
       );
     }
@@ -154,7 +199,10 @@ export const FormField = memo(({
           label="VRF"
           data={vrfOptions}
           value={formData.vrf_id ? String(formData.vrf_id) : ''}
-          onChange={(value) => onChange('vrf_id', value ? Number(value) : null)}
+          onChange={(selectedValue) => {
+            console.log('VRF selected:', selectedValue);
+            handleChange('vrf_id', selectedValue ? Number(selectedValue) : null);
+          }}
           error={error}
           placeholder={hasVrfs ? "Select VRF" : "No VRFs available"}
           searchable
@@ -178,7 +226,10 @@ export const FormField = memo(({
           label="Tenant"
           data={tenantOptions}
           value={formData.tenant_id ? String(formData.tenant_id) : ''}
-          onChange={(value) => onChange('tenant_id', value ? Number(value) : null)}
+          onChange={(selectedValue) => {
+            console.log('Tenant selected:', selectedValue);
+            handleChange('tenant_id', selectedValue ? Number(selectedValue) : null);
+          }}
           error={error}
           placeholder={hasTenants ? "Select Tenant" : "No Tenants available"}
           searchable
@@ -228,7 +279,10 @@ export const FormField = memo(({
           label="Tenant"
           data={tenantOptions}
           value={formData.tenant_id ? String(formData.tenant_id) : ''}
-          onChange={(value) => onChange('tenant_id', value ? Number(value) : null)}
+          onChange={(selectedValue) => {
+            console.log('Tenant selected:', selectedValue);
+            handleChange('tenant_id', selectedValue ? Number(selectedValue) : null);
+          }}
           error={error}
           placeholder={hasTenants ? "Select Tenant" : "No Tenants available"}
           searchable
@@ -252,7 +306,10 @@ export const FormField = memo(({
           label="Role"
           data={roleOptions}
           value={formData.role_id ? String(formData.role_id) : ''}
-          onChange={(value) => onChange('role_id', value ? Number(value) : null)}
+          onChange={(selectedValue) => {
+            console.log('Role selected:', selectedValue);
+            handleChange('role_id', selectedValue ? Number(selectedValue) : null);
+          }}
           error={error}
           placeholder={hasRoles ? "Select Role" : "No Roles available"}
           searchable
@@ -291,7 +348,10 @@ export const FormField = memo(({
           label="VRF"
           data={vrfOptions}
           value={formData.vrf_id ? String(formData.vrf_id) : ''}
-          onChange={(value) => onChange('vrf_id', value ? Number(value) : null)}
+          onChange={(selectedValue) => {
+            console.log('VRF selected:', selectedValue);
+            handleChange('vrf_id', selectedValue ? Number(selectedValue) : null);
+          }}
           error={error}
           placeholder={hasVrfs ? "Select VRF" : "No VRFs available"}
           searchable
@@ -315,7 +375,10 @@ export const FormField = memo(({
           label="Site"
           data={siteOptions}
           value={formData.site_id ? String(formData.site_id) : ''}
-          onChange={(value) => onChange('site_id', value ? Number(value) : null)}
+          onChange={(selectedValue) => {
+            console.log('Site selected:', selectedValue);
+            handleChange('site_id', selectedValue ? Number(selectedValue) : null);
+          }}
           error={error}
           placeholder={hasSites ? "Select Site" : "No Sites available"}
           searchable
@@ -339,7 +402,10 @@ export const FormField = memo(({
           label="VLAN"
           data={vlanOptions}
           value={formData.vlan_id ? String(formData.vlan_id) : ''}
-          onChange={(value) => onChange('vlan_id', value ? Number(value) : null)}
+          onChange={(selectedValue) => {
+            console.log('VLAN selected:', selectedValue);
+            handleChange('vlan_id', selectedValue ? Number(selectedValue) : null);
+          }}
           error={error}
           placeholder={hasVlans ? "Select VLAN" : "No VLANs available"}
           searchable
@@ -363,7 +429,10 @@ export const FormField = memo(({
           label="Tenant"
           data={tenantOptions}
           value={formData.tenant_id ? String(formData.tenant_id) : ''}
-          onChange={(value) => onChange('tenant_id', value ? Number(value) : null)}
+          onChange={(selectedValue) => {
+            console.log('Tenant selected:', selectedValue);
+            handleChange('tenant_id', selectedValue ? Number(selectedValue) : null);
+          }}
           error={error}
           placeholder={hasTenants ? "Select Tenant" : "No Tenants available"}
           searchable
@@ -387,7 +456,10 @@ export const FormField = memo(({
           label="Role"
           data={roleOptions}
           value={formData.role_id ? String(formData.role_id) : ''}
-          onChange={(value) => onChange('role_id', value ? Number(value) : null)}
+          onChange={(selectedValue) => {
+            console.log('Role selected:', selectedValue);
+            handleChange('role_id', selectedValue ? Number(selectedValue) : null);
+          }}
           error={error}
           placeholder={hasRoles ? "Select Role" : "No Roles available"}
           searchable
@@ -411,6 +483,36 @@ export const FormField = memo(({
     }
   }
   
+  // Special handling for VRF forms
+  if (tableName === 'vrfs') {
+    // Handle Tenant reference field for VRFs
+    if (column.name === 'tenant_id' && column.reference === 'tenants') {
+      const hasTenants = referenceData.tenants && referenceData.tenants.length > 0;
+      const tenantOptions = hasTenants
+        ? referenceData.tenants.map(tenant => ({
+            value: String(tenant.id),
+            label: tenant.name || `Tenant #${tenant.id}`
+          }))
+        : [];
+      
+      return (
+        <Select
+          label="Tenant"
+          data={tenantOptions}
+          value={formData.tenant_id ? String(formData.tenant_id) : ''}
+          onChange={(selectedValue) => {
+            console.log('VRF Tenant selected:', selectedValue);
+            handleChange('tenant_id', selectedValue ? Number(selectedValue) : null);
+          }}
+          error={error}
+          placeholder={hasTenants ? "Select Tenant" : "No Tenants available"}
+          searchable
+          clearable
+        />
+      );
+    }
+  }
+
   // Generic field handling based on column type
   switch (column.type) {
     case 'boolean':
@@ -478,7 +580,7 @@ export const FormField = memo(({
       if (column.reference) {
         return (
           <ReferenceField
-            name={column.name}
+            name={name}
             label={label}
             value={formData[column.name]}
             onChange={onChange}
