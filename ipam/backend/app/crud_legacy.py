@@ -1376,8 +1376,57 @@ class TenantCRUD(BaseCRUD):
 tenant = TenantCRUD()
 device = BaseCRUD(Device)
 interface = BaseCRUD(Interface)
-vlan = BaseCRUD(VLAN)
-vlan_group = BaseCRUD(VLANGroup)
+
+# Create a custom VLAN CRUD class that includes the update_vlan method
+class VLANCRUD(BaseCRUD):
+    def __init__(self):
+        super().__init__(VLAN)
+    
+    def update_vlan(self, db: Session, id: int, obj_in):
+        """
+        Update a VLAN by ID. This is a wrapper around the BaseCRUD update method.
+        """
+        logger.debug(f"VLANCRUD update_vlan: id={id}, obj_in={obj_in}")
+        return self.update(db, id, obj_in)
+
+# Instantiate the VLAN CRUD object
+vlan = VLANCRUD()
+
+# Create a custom VLANGroup CRUD class that includes the update_vlan_group method
+class VLANGroupCRUD(BaseCRUD):
+    def __init__(self):
+        super().__init__(VLANGroup)
+    
+    def create(self, session: Session, obj_in: Dict[str, Any]) -> VLANGroup:
+        """
+        Create a new VLAN Group with special handling for vlan_id_ranges.
+        """
+        logger.debug(f"VLANGroupCRUD create: obj_in={obj_in}")
+        
+        # Ensure vlan_id_ranges is included in the object
+        if 'vlan_id_ranges' in obj_in:
+            logger.debug(f"VLANGroupCRUD create: vlan_id_ranges={obj_in['vlan_id_ranges']}")
+        
+        # Create the VLAN group using the base method
+        return super().create(session, obj_in)
+    
+    def update_vlan_group(self, db: Session, id: int, obj_in):
+        """
+        Update a VLAN Group by ID with special handling for vlan_id_ranges.
+        """
+        logger.debug(f"VLANGroupCRUD update_vlan_group: id={id}, obj_in={obj_in}")
+        
+        # Ensure vlan_id_ranges is included in the update
+        if hasattr(obj_in, 'vlan_id_ranges'):
+            logger.debug(f"VLANGroupCRUD update_vlan_group: vlan_id_ranges={obj_in.vlan_id_ranges}")
+        elif isinstance(obj_in, dict) and 'vlan_id_ranges' in obj_in:
+            logger.debug(f"VLANGroupCRUD update_vlan_group: vlan_id_ranges={obj_in['vlan_id_ranges']}")
+        
+        # Update the VLAN group using the base method
+        return self.update(db, id, obj_in)
+
+# Instantiate the VLANGroup CRUD object
+vlan_group = VLANGroupCRUD()
 asn = BaseCRUD(ASN)
 asn_range = BaseCRUD(ASNRange)
 route_target = BaseCRUD(RouteTarget)

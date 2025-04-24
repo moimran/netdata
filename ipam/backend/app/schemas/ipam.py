@@ -430,6 +430,7 @@ class VLANGroupBase(BaseModel):
     scope_id: Optional[int] = None
     min_vid: Optional[int] = Field(None, ge=1, le=4094)
     max_vid: Optional[int] = Field(None, ge=1, le=4094)
+    vlan_id_ranges: Optional[str] = Field(None, description="VLAN ID ranges in format like '1-20,60-90'")
     description: Optional[str] = None
 
 class VLANGroupCreate(VLANGroupBase):
@@ -442,6 +443,7 @@ class VLANGroupCreate(VLANGroupBase):
                 "scope_id": 1, # Assuming site ID 1 is NYC
                 "min_vid": 10,
                 "max_vid": 99,
+                "vlan_id_ranges": "10-20,30-40,50-60",
                 "description": "VLANs specific to the NYC Office site"
             }
         }
@@ -454,6 +456,7 @@ class VLANGroupUpdate(VLANGroupBase):
     scope_id: Optional[int] = None
     min_vid: Optional[int] = None
     max_vid: Optional[int] = None
+    vlan_id_ranges: Optional[str] = None
     description: Optional[str] = None
 
 class VLANGroupRead(VLANGroupBase):

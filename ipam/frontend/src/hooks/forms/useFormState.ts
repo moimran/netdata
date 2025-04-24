@@ -76,8 +76,10 @@ export function useFormState<T extends Record<string, any>>({
   
   /**
    * Handle form submission
+   * @param e - Form event
+   * @param customFormData - Optional custom form data to use instead of the internal formData state
    */
-  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e?: React.FormEvent, customFormData?: T) => {
     if (e) {
       e.preventDefault();
     }
@@ -90,9 +92,13 @@ export function useFormState<T extends Record<string, any>>({
     
     setIsSubmitting(true);
     
+    // Use custom form data if provided, otherwise use internal formData state
+    const dataToSubmit = customFormData || formData;
+    console.log('Form data being submitted:', dataToSubmit);
+    
     try {
       if (onSubmit) {
-        await onSubmit(formData);
+        await onSubmit(dataToSubmit);
       }
       return true;
     } catch (error) {

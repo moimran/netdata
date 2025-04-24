@@ -37,41 +37,32 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
 
   // Get reference table names from schema
   const referenceTableNames: string[] = useMemo(() => {
-    // Extract reference tables from schema
-    const tables = [...new Set(schema
-      .filter((col: any) => col.reference)
-      .map((col: any) => col.reference!)
-    )];
+    // Determine which reference tables we need based on the current table
+    const tables = [];
     
-    // Special case for sites: always include regions and site_groups
-    if (tableName === 'sites') {
-      const requiredTables = ['regions', 'site_groups'];
-      requiredTables.forEach(table => {
-        if (!tables.includes(table)) {
-          tables.push(table);
-        }
-      });
+    // Common reference tables for most forms
+    if (tableName === 'regions') {
+      tables.push('regions'); // For parent_id
+    } else if (tableName === 'sites') {
+      tables.push('regions', 'site_groups');
+    } else if (tableName === 'locations') {
+      tables.push('sites', 'locations'); // For parent_id
+    } else if (tableName === 'aggregates') {
+      tables.push('rirs');
+    } else if (tableName === 'vlans') {
+      tables.push('vlan_groups', 'sites', 'tenants', 'roles');
+    } else if (tableName === 'prefixes') {
+      tables.push('vrfs', 'sites', 'vlans', 'tenants', 'roles');
+    } else if (tableName === 'ip_addresses') {
+      tables.push('vrfs', 'tenants', 'prefixes', 'roles', 'ip_addresses'); // ip_addresses for NAT inside
+    } else if (tableName === 'ip_ranges') {
+      tables.push('vrfs', 'tenants');
+    } else if (tableName === 'devices') {
+      tables.push('locations', 'ip_addresses', 'credentials');
+    } else if (tableName === 'interfaces') {
+      tables.push('devices', 'ip_addresses');
     }
     
-    // Special case for locations: always include sites and locations
-    if (tableName === 'locations') {
-      const requiredTables = ['sites', 'locations'];
-      requiredTables.forEach(table => {
-        if (!tables.includes(table)) {
-          tables.push(table);
-        }
-      });
-    }
-    
-    // Special case for aggregates: always include rirs
-    if (tableName === 'aggregates') {
-      const requiredTables = ['rirs'];
-      requiredTables.forEach(table => {
-        if (!tables.includes(table)) {
-          tables.push(table);
-        }
-      });
-    }
     
     // Special case for prefixes: include all reference tables needed
     if (tableName === 'prefixes') {
@@ -131,6 +122,14 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
       defaults.status = 'active';
     }
     
+    // Add default values for VLANs
+    if (tableName === 'vlans') {
+      defaults.name = 'New VLAN';
+      defaults.slug = 'new-vlan';
+      defaults.status = 'active';
+      defaults.vid = 1; // Default VLAN ID
+    }
+    
     // Add default values for IP ranges
     if (tableName === 'ip_ranges') {
       defaults.name = 'New IP Range';
@@ -151,6 +150,30 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
 
   // State for VLAN ID ranges (only used in VLAN groups)
   const [vlanIdRanges, setVlanIdRanges] = useState<string>('');
+  
+  // Initialize VLAN ID ranges from data when component mounts or data changes
+  useEffect(() => {
+    if (data && tableName === 'vlan_groups') {
+      console.log('VLAN Group data received:', data);
+      console.log('VLAN ID ranges from data:', data.vlan_id_ranges);
+      
+      // Always set vlanIdRanges, even if it's empty or undefined
+      setVlanIdRanges(data.vlan_id_ranges || '');
+    }
+  }, [data, tableName]);
+  
+  // Debug log whenever vlanIdRanges changes
+  useEffect(() => {
+    console.log('vlanIdRanges state changed to:', vlanIdRanges);
+  }, [vlanIdRanges]);
+  
+  // Sync vlanIdRanges with formData when it changes
+  useEffect(() => {
+    if (tableName === 'vlan_groups') {
+      console.log('Syncing VLAN ID ranges with form data:', vlanIdRanges);
+      handleChange('vlan_id_ranges', vlanIdRanges);
+    }
+  }, [vlanIdRanges, tableName]);
   
   // Use the form state hook
   const {
@@ -399,6 +422,25 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
         }));
         return; // Prevent form submission
       }
+    }
+    
+    // For VLAN groups, add the vlan_id_ranges from the custom field to the form data
+    if (tableName === 'vlan_groups') {
+      // Always set the vlan_id_ranges field, even if empty
+      handleChange('vlan_id_ranges', vlanIdRanges);
+      console.log('Added VLAN ID ranges to form data:', vlanIdRanges);
+      
+      // Force update the form data to include vlan_id_ranges
+      const updatedFormData = {
+        ...formData,
+        vlan_id_ranges: vlanIdRanges
+      };
+      
+      // Log the updated form data
+      console.log('Updated form data before submission:', updatedFormData);
+      
+      // Use the updated form data for submission
+      return handleSubmit(e, updatedFormData);
     }
     
     // Call the handleSubmit function from useFormState

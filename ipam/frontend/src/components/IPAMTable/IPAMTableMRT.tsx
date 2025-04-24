@@ -297,6 +297,12 @@ export const IPAMTableMRT = ({ tableName, customActionsRenderer }: IPAMTableMRTP
                 if (column.name === 'asn' && value !== null && value !== undefined) {
                     return <div style={{ textAlign: 'center' }}>AS{String(value)}</div>;
                 }
+                
+                // Special handling for VLAN ID ranges
+                if (tableName === 'vlan_groups' && column.name === 'vlan_id_ranges') {
+                    console.log('Rendering VLAN ID ranges:', value);
+                    return <div style={{ textAlign: 'center' }}>{value || '-'}</div>;
+                }
 
                 return <div style={{ textAlign: column.name === 'description' ? 'left' : 'center' }}>{formatCellValue(value, column.type)}</div>;
             },

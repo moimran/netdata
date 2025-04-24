@@ -265,6 +265,9 @@ export const FormField = memo(function FormField({
 }: FormFieldProps) {
   // Skip ID field since it's auto-generated
   if (column.name === 'id') return null;
+  
+  // Skip vlan_id_ranges field in VLAN groups since it's handled by a custom component
+  if (tableName === 'vlan_groups' && column.name === 'vlan_id_ranges') return null;
 
   // Skip internal fields
   if (column.name === 'vlanIdRanges') return null;
@@ -553,6 +556,131 @@ export const FormField = memo(function FormField({
   }
 
   // Special handling for prefixes table
+  // Special handling for VLANs table
+  if (tableName === 'vlans') {
+    // Handle VRF reference field
+    if (column.name === 'tenant_id' && column.reference === 'tenants') {
+      const hasTenants = referenceData.tenants && referenceData.tenants.length > 0;
+      const tenantOptions = hasTenants
+        ? referenceData.tenants.map(tenant => ({
+            value: String(tenant.id),
+            label: tenant.name || `Tenant #${tenant.id}`
+          }))
+        : [];
+      
+      const value = formData[column.name];
+
+      return (
+        <Select
+          label={label}
+          placeholder="Select tenant"
+          value={value ? String(value) : null}
+          onChange={(val) => handleChange(column.name, val ? Number(val) : null)}
+          data={tenantOptions}
+          searchable
+          clearable
+          error={validationErrors[column.name]}
+        />
+      );
+    }
+
+    // Handle Site reference field
+    if (column.name === 'site_id' && column.reference === 'sites') {
+      const hasSites = referenceData.sites && referenceData.sites.length > 0;
+      const siteOptions = hasSites
+        ? referenceData.sites.map(site => ({
+            value: String(site.id),
+            label: site.name || `Site #${site.id}`
+          }))
+        : [];
+      
+      const value = formData[column.name];
+
+      return (
+        <Select
+          label={label}
+          placeholder="Select site"
+          value={value ? String(value) : null}
+          onChange={(val) => handleChange(column.name, val ? Number(val) : null)}
+          data={siteOptions}
+          searchable
+          clearable
+          error={validationErrors[column.name]}
+        />
+      );
+    }
+
+    // Handle VLAN Group reference field
+    if (column.name === 'group_id' && column.reference === 'vlan_groups') {
+      const hasGroups = referenceData.vlan_groups && referenceData.vlan_groups.length > 0;
+      const groupOptions = hasGroups
+        ? referenceData.vlan_groups.map(group => ({
+            value: String(group.id),
+            label: group.name || `VLAN Group #${group.id}`
+          }))
+        : [];
+      
+      const value = formData[column.name];
+
+      return (
+        <Select
+          label={label}
+          placeholder="Select VLAN group"
+          value={value ? String(value) : null}
+          onChange={(val) => handleChange(column.name, val ? Number(val) : null)}
+          data={groupOptions}
+          searchable
+          clearable
+          error={validationErrors[column.name]}
+        />
+      );
+    }
+
+    // Handle Role reference field
+    if (column.name === 'role_id' && column.reference === 'roles') {
+      const hasRoles = referenceData.roles && referenceData.roles.length > 0;
+      const roleOptions = hasRoles
+        ? referenceData.roles.map(role => ({
+            value: String(role.id),
+            label: role.name || `Role #${role.id}`
+          }))
+        : [];
+      
+      const value = formData[column.name];
+
+      return (
+        <Select
+          label={label}
+          placeholder="Select role"
+          value={value ? String(value) : null}
+          onChange={(val) => handleChange(column.name, val ? Number(val) : null)}
+          data={roleOptions}
+          searchable
+          clearable
+          error={validationErrors[column.name]}
+        />
+      );
+    }
+
+    // Handle Status field for VLANs
+    if (column.name === 'status') {
+      return (
+        <Select
+          label={label}
+          placeholder="Select status"
+          value={formData.status || 'active'}
+          onChange={(val) => handleChange('status', val)}
+          data={[
+            { value: 'active', label: 'Active' },
+            { value: 'reserved', label: 'Reserved' },
+            { value: 'deprecated', label: 'Deprecated' }
+          ]}
+          error={validationErrors.status}
+        />
+      );
+    }
+  }
+
   if (tableName === 'prefixes') {
     // Handle VRF reference field
     if (column.name === 'vrf_id' && column.reference === 'vrfs') {
@@ -934,13 +1062,24 @@ export const VlanIdRangesField = memo(function VlanIdRangesField({
   setVlanIdRanges,
   validationErrors
 }: VlanIdRangesFieldProps) {
+  // Add debugging to see what values are being passed to the component
+  console.log('VlanIdRangesField received:', { vlanIdRanges, validationErrors });
+  
+  // Use useEffect to log when the component renders or updates
+  useEffect(() => {
+    console.log('VlanIdRangesField rendered/updated with:', vlanIdRanges);
+  }, [vlanIdRanges]);
+  
   return (
     <div>
       <Text size="sm" fw={500} mb={5}>VLAN ID Ranges</Text>
       <Textarea
         placeholder="Enter VLAN ID ranges (e.g., 100-200, 300-400)"
-        value={vlanIdRanges}
-        onChange={(e) => setVlanIdRanges(e.currentTarget.value)}
+        value={vlanIdRanges || ''}
+        onChange={(e) => {
+          console.log('VlanIdRangesField onChange:', e.currentTarget.value);
+          setVlanIdRanges(e.currentTarget.value);
+        }}
         error={validationErrors.vlanIdRanges}
         minRows={3}
       />
