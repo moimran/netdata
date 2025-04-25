@@ -1,7 +1,6 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Select, TextInput } from '@mantine/core';
 import { CommonFieldProps, ReferenceFieldProps } from './types';
-import { handleDropdownSelection } from './utils';
 
 /**
  * VRF field for Prefixes
@@ -12,7 +11,6 @@ export const PrefixVRFField = memo(({
   value,
   onChange,
   error,
-  referenceTable,
   referenceData,
   formatReferenceValue
 }: ReferenceFieldProps) => {
@@ -51,7 +49,6 @@ export const PrefixVRFField = memo(({
  * Prefix field
  */
 export const PrefixField = memo(({
-  name,
   label,
   value,
   onChange,

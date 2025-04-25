@@ -567,6 +567,27 @@ class CredentialCRUD:
     """
     CRUD operations for Credentials.
     """
+    def get_all(self, session: Session, *, skip: int = 0, limit: int = 100, **kwargs) -> list[Credential]:
+        """
+        Get all credentials with pagination.
+        
+        Args:
+            session: Database session
+            skip: Number of records to skip
+            limit: Maximum number of records to return
+            **kwargs: Additional filter parameters
+            
+        Returns:
+            List of Credential objects
+        """
+        statement = select(Credential).order_by(Credential.name).offset(skip).limit(limit)
+        
+        # Apply any filters from kwargs
+        for key, value in kwargs.items():
+            if hasattr(Credential, key) and value is not None:
+                statement = statement.where(getattr(Credential, key) == value)
+                
+        return session.exec(statement).all()
     def create(self, session: Session, obj_in: Dict[str, Any]) -> Credential:
         """
         Create a new credential with validation for unique name.
@@ -616,6 +637,27 @@ class DeviceInventoryCRUD:
     """
     CRUD operations for DeviceInventory.
     """
+    def get_all(self, session: Session, *, skip: int = 0, limit: int = 100, **kwargs) -> list[DeviceInventory]:
+        """
+        Get all device inventory records with pagination.
+        
+        Args:
+            session: Database session
+            skip: Number of records to skip
+            limit: Maximum number of records to return
+            **kwargs: Additional filter parameters
+            
+        Returns:
+            List of DeviceInventory objects
+        """
+        statement = select(DeviceInventory).order_by(DeviceInventory.time.desc()).offset(skip).limit(limit)
+        
+        # Apply any filters from kwargs
+        for key, value in kwargs.items():
+            if hasattr(DeviceInventory, key) and value is not None:
+                statement = statement.where(getattr(DeviceInventory, key) == value)
+                
+        return session.exec(statement).all()
     def get_by_device_uuid(self, session: Session, *, device_uuid: UUID) -> list[DeviceInventory]:
         """
         Get all inventory records for a specific device UUID.

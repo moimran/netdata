@@ -6,7 +6,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database import engine
 from sqlmodel import SQLModel
-from app.models import *
 
 def drop_tables():
     print("Dropping all tables...")

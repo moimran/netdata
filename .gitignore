@@ -29,6 +29,7 @@ venv.bak/
 .python-version
 *.db
 *.sqlite3
+__pycache__
 
 # Node/React
 node_modules/

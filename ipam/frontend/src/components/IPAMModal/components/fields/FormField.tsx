@@ -483,6 +483,174 @@ export const FormField = memo(({
     }
   }
   
+  // Special handling for device forms
+  if (tableName === 'devices') {
+    // Handle Location reference field for devices
+    if (column.name === 'location_id' && column.reference === 'locations') {
+      const hasLocations = referenceData.locations && referenceData.locations.length > 0;
+      const locationOptions = hasLocations
+        ? referenceData.locations.map(location => ({
+            value: String(location.id),
+            label: location.name || `Location #${location.id}`
+          }))
+        : [];
+      
+      return (
+        <Select
+          label="Location"
+          data={locationOptions}
+          value={formData.location_id ? String(formData.location_id) : ''}
+          onChange={(selectedValue) => {
+            console.log('Device Location selected:', selectedValue);
+            handleChange('location_id', selectedValue ? Number(selectedValue) : null);
+          }}
+          error={error}
+          placeholder={hasLocations ? "Select Location" : "No Locations available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle IP Address reference field for devices
+    if (column.name === 'ip_address_id' && column.reference === 'ip_addresses') {
+      const hasIpAddresses = referenceData.ip_addresses && referenceData.ip_addresses.length > 0;
+      const ipAddressOptions = hasIpAddresses
+        ? referenceData.ip_addresses.map(ip => ({
+            value: String(ip.id),
+            label: ip.address || `IP #${ip.id}`
+          }))
+        : [];
+      
+      return (
+        <Select
+          label="IP Address"
+          data={ipAddressOptions}
+          value={formData.ip_address_id ? String(formData.ip_address_id) : ''}
+          onChange={(selectedValue) => {
+            console.log('Device IP Address selected:', selectedValue);
+            handleChange('ip_address_id', selectedValue ? Number(selectedValue) : null);
+          }}
+          error={error}
+          placeholder={hasIpAddresses ? "Select IP Address" : "No IP Addresses available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle Credential reference field for devices
+    if (column.name === 'credential_name' && column.reference === 'credentials') {
+      const hasCredentials = referenceData.credentials && referenceData.credentials.length > 0;
+      const credentialOptions = hasCredentials
+        ? referenceData.credentials.map(cred => ({
+            value: cred.name,
+            label: cred.name
+          }))
+        : [];
+      
+      return (
+        <Select
+          label="Credential"
+          data={credentialOptions}
+          value={formData.credential_name || ''}
+          onChange={(selectedValue) => {
+            console.log('Device Credential selected:', selectedValue);
+            handleChange('credential_name', selectedValue);
+          }}
+          error={error}
+          placeholder={hasCredentials ? "Select Credential" : "No Credentials available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle Fallback Credential reference field for devices
+    if (column.name === 'fallback_credential_name' && column.reference === 'credentials') {
+      const hasCredentials = referenceData.credentials && referenceData.credentials.length > 0;
+      const credentialOptions = hasCredentials
+        ? referenceData.credentials.map(cred => ({
+            value: cred.name,
+            label: cred.name
+          }))
+        : [];
+      
+      return (
+        <Select
+          label="Fallback Credential"
+          data={credentialOptions}
+          value={formData.fallback_credential_name || ''}
+          onChange={(selectedValue) => {
+            console.log('Device Fallback Credential selected:', selectedValue);
+            handleChange('fallback_credential_name', selectedValue);
+          }}
+          error={error}
+          placeholder={hasCredentials ? "Select Fallback Credential" : "No Credentials available"}
+          searchable
+          clearable
+        />
+      );
+    }
+  }
+  
+  // Special handling for interface forms
+  if (tableName === 'interfaces') {
+    // Handle Device reference field for interfaces
+    if (column.name === 'device_id' && column.reference === 'devices') {
+      const hasDevices = referenceData.devices && referenceData.devices.length > 0;
+      const deviceOptions = hasDevices
+        ? referenceData.devices.map(device => ({
+            value: String(device.id),
+            label: device.name || `Device #${device.id}`
+          }))
+        : [];
+      
+      return (
+        <Select
+          label="Device"
+          data={deviceOptions}
+          value={formData.device_id ? String(formData.device_id) : ''}
+          onChange={(selectedValue) => {
+            console.log('Interface Device selected:', selectedValue);
+            handleChange('device_id', selectedValue ? Number(selectedValue) : null);
+          }}
+          error={error}
+          placeholder={hasDevices ? "Select Device" : "No Devices available"}
+          searchable
+          clearable
+        />
+      );
+    }
+    
+    // Handle IP Address reference field for interfaces
+    if (column.name === 'ip_address_id' && column.reference === 'ip_addresses') {
+      const hasIpAddresses = referenceData.ip_addresses && referenceData.ip_addresses.length > 0;
+      const ipAddressOptions = hasIpAddresses
+        ? referenceData.ip_addresses.map(ip => ({
+            value: String(ip.id),
+            label: ip.address || `IP #${ip.id}`
+          }))
+        : [];
+      
+      return (
+        <Select
+          label="IP Address"
+          data={ipAddressOptions}
+          value={formData.ip_address_id ? String(formData.ip_address_id) : ''}
+          onChange={(selectedValue) => {
+            console.log('Interface IP Address selected:', selectedValue);
+            handleChange('ip_address_id', selectedValue ? Number(selectedValue) : null);
+          }}
+          error={error}
+          placeholder={hasIpAddresses ? "Select IP Address" : "No IP Addresses available"}
+          searchable
+          clearable
+        />
+      );
+    }
+  }
+  
   // Special handling for VRF forms
   if (tableName === 'vrfs') {
     // Handle Tenant reference field for VRFs

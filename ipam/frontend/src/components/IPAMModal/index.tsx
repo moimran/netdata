@@ -63,6 +63,9 @@ export function IPAMModal({ tableName, data, onClose }: IPAMModalProps) {
       tables.push('locations', 'ip_addresses', 'credentials');
     } else if (tableName === 'interfaces') {
       tables.push('devices', 'ip_addresses');
+    } else if (tableName === 'credentials') {
+      // No reference tables needed for credentials
+      tables.push();
     }
     
     
