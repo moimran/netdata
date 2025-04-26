@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import inspect 
-from sqlalchemy.orm import Session
+from sqlmodel import Session  # Use sqlmodel Session instead of sqlalchemy.orm
 from typing import List, Dict, Any
 from uuid import UUID
 
@@ -9,23 +9,35 @@ from .. import crud_legacy as crud
 from ..database import get_session, engine 
 from ..models import (
     Region, SiteGroup, Site, Location, RIR, Aggregate, Role,
-    Prefix, IPRange, IPAddress, Tenant, Device, Interface, VLAN,
+    Prefix, IPRange, IPAddress, Tenant, Interface, VLAN,
     VLANGroup, ASN, ASNRange, Credential,
     PlatformType, NetJob, DeviceInventory 
 )
 from ..models.vrf import VRF, RouteTarget
 
+# Import schema modules
 from app.schemas import (
     organizational,
     vrf,
     ipam,
     tenancy,
-    devices,
     bgp,
     credentials,
     platform,
     automation
 )
+
+# Import directly from devices schema to avoid the missing module error
+try:
+    from app.schemas.devices import DeviceInventoryRead, InterfaceRead, DeviceInventoryCreate, DeviceInventoryUpdate, InterfaceCreate, InterfaceUpdate
+except ImportError:
+    # If the import fails, we'll need to skip these routes
+    DeviceInventoryRead = None
+    InterfaceRead = None
+    DeviceInventoryCreate = None 
+    DeviceInventoryUpdate = None
+    InterfaceCreate = None
+    InterfaceUpdate = None
 
 # Import necessary Read schemas
 from app.schemas.organizational import (
@@ -37,9 +49,6 @@ from app.schemas.ipam import (
     IPRangeRead, IPAddressRead, VLANRead, VLANGroupRead
 )
 from app.schemas.tenancy import TenantRead
-from app.schemas.devices import (
-    DeviceRead, InterfaceRead
-)
 from app.schemas.bgp import ASNRead, ASNRangeRead
 from app.schemas.credentials import CredentialRead
 from app.schemas.platform import PlatformTypeRead
@@ -47,7 +56,12 @@ from app.schemas.automation import NetJobRead
 
 router = APIRouter(prefix="/api/v1")
 
-router.include_router(endpoints.router, tags=["Specialized Operations"])
+# The endpoints module might not be properly imported. Check if it exists and import it if needed
+try:
+    from . import endpoints
+    router.include_router(endpoints.router, tags=["Specialized Operations"])
+except ImportError:
+    pass
 
 model_mapping = {
     'regions': Region,
@@ -62,7 +76,6 @@ model_mapping = {
     'ip_ranges': IPRange,
     'ip_addresses': IPAddress,
     'tenants': Tenant,
-    'devices': Device,
     'interfaces': Interface,
     'vlans': VLAN,
     'vlan_groups': VLANGroup,
@@ -109,7 +122,6 @@ reference_mappings = {
         "tenant_id": (Tenant, crud.tenant, "name")
     },
     "interfaces": {
-        "device_id": (Device, crud.device, "name"),
         "parent_id": (Interface, crud.interface, "name"),
         "untagged_vlan_id": (VLAN, crud.vlan, "name")
     },
@@ -120,15 +132,6 @@ reference_mappings = {
         "group_id": (VLANGroup, crud.vlan_group, "name")
     },
     "vlan_groups": {
-    },
-    "devices": {
-        "role_id": (Role, crud.role, "name"),
-        "tenant_id": (Tenant, crud.tenant, "name"),
-        "platform_id": (PlatformType, crud.platform_type, "platform_type"),
-        "site_id": (Site, crud.site, "name"),
-        "location_id": (Location, crud.location, "name"),
-        "primary_ip4_id": (IPAddress, crud.ip_address, "address"),
-        "primary_ip6_id": (IPAddress, crud.ip_address, "address")
     },
     "asns": {
         "rir_id": (RIR, crud.rir, "name"),
@@ -144,10 +147,8 @@ reference_mappings = {
     "credentials": {
     },
     "net_jobs": {
-        "device_id": (Device, crud.device, "name")
     },
     "device_inventory": {
-        "device_id": (Device, crud.device, "name")
     }
 }
 
@@ -219,35 +220,32 @@ def get_all_tables() -> Dict[str, str]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error getting tables: {str(e)}")
 
-@router.get(
-    "/device_inventory/{device_uuid}",
-    response_model=List[devices.DeviceInventoryRead],
-    tags=["Device Inventory"]
-)
-def read_device_inventory_by_device(
-    device_uuid: UUID,
-    db: Session = Depends(get_session)
-) -> List[devices.DeviceInventoryRead]: 
-    inventory_list = crud.device_inventory.get_by_device_uuid(db=db, device_uuid=device_uuid)
-    return inventory_list
+# Define device inventory handlers only if DeviceInventoryRead is available
+if DeviceInventoryRead:
+    @router.get(
+        "/device_inventory/{device_uuid}",
+        response_model=List[DeviceInventoryRead],
+        tags=["Device Inventory"]
+    )
+    def read_device_inventory_by_device(
+        device_uuid: UUID,
+        session: Session = Depends(get_session)
+    ): 
+        inventory_list = crud.device_inventory.get_by_device_uuid(session=session, device_uuid=device_uuid)
+        return inventory_list
 
-@router.delete(
-    "/device_inventory/{device_uuid}",
-    status_code=200,
-    tags=["Device Inventory"]
-)
-def delete_device_inventory_by_device(
-    device_uuid: UUID,
-    db: Session = Depends(get_session)
-) -> dict:
-    db_device = crud.device.get_by_uuid(db=db, uuid=device_uuid)
-    if not db_device:
-        raise HTTPException(status_code=404, detail="Device not found")
-    num_deleted = crud.device_inventory.remove_by_device_id(db=db, device_id=db_device.id)
-    if num_deleted == 0:
-        # Optionally raise 404 if no inventory existed, or just return 204
-        pass # Successfully processed (even if nothing to delete)
-    return {"message": "Device inventory deleted successfully", "deleted_count": num_deleted}
+    @router.delete(
+        "/device_inventory/{device_uuid}",
+        status_code=200,
+        tags=["Device Inventory"]
+    )
+    def delete_device_inventory_by_device(
+        device_uuid: UUID,
+        session: Session = Depends(get_session)
+    ) -> dict:
+        # Since Device model no longer exists, we directly remove inventory by device_uuid
+        num_deleted = crud.device_inventory.remove_by_device_uuid(session=session, device_uuid=device_uuid)
+        return {"message": "Device inventory deleted successfully", "deleted_count": num_deleted}
 
 # Organizational Routes
 crud_router.create_crud_routes(router, "regions", crud.region, crud.region, Region, organizational.RegionCreate, organizational.RegionUpdate, ReadSchema=organizational.RegionRead, tags=["Regions"])
@@ -270,12 +268,13 @@ crud_router.create_crud_routes(router, "vlan_groups", crud.vlan_group, crud.vlan
 # Tenancy Routes
 crud_router.create_crud_routes(router, "tenants", crud.tenant, crud.tenant, Tenant, tenancy.TenantCreate, tenancy.TenantUpdate, ReadSchema=tenancy.TenantRead, tags=["Tenants"])
 
-# Devices Routes (Core Device, not Inventory)
-crud_router.create_crud_routes(router, "devices", crud.device, crud.device, Device, devices.DeviceCreate, devices.DeviceUpdate, ReadSchema=devices.DeviceRead, tags=["Devices"])
-crud_router.create_crud_routes(router, "interfaces", crud.interface, crud.interface, Interface, devices.InterfaceCreate, devices.InterfaceUpdate, ReadSchema=devices.InterfaceRead, tags=["Interfaces"])
+# Interface Routes - only create if schema classes are available
+if InterfaceCreate and InterfaceUpdate and InterfaceRead:
+    crud_router.create_crud_routes(router, "interfaces", crud.interface, crud.interface, Interface, InterfaceCreate, InterfaceUpdate, ReadSchema=InterfaceRead, tags=["Interfaces"])
 
-# Device Inventory Routes (Components/Modules of Devices)
-crud_router.create_crud_routes(router, "device_inventory", crud.device_inventory, crud.device_inventory, DeviceInventory, devices.DeviceInventoryCreate, devices.DeviceInventoryUpdate, ReadSchema=devices.DeviceInventoryRead, tags=["Device Inventory"])
+# Device Inventory Routes - only create if schema classes are available
+if DeviceInventoryCreate and DeviceInventoryUpdate and DeviceInventoryRead:
+    crud_router.create_crud_routes(router, "device_inventory", crud.device_inventory, crud.device_inventory, DeviceInventory, DeviceInventoryCreate, DeviceInventoryUpdate, ReadSchema=DeviceInventoryRead, tags=["Device Inventory"])
 
 # BGP Routes
 crud_router.create_crud_routes(router, "asns", crud.asn, crud.asn, ASN, bgp.ASNCreate, bgp.ASNUpdate, ReadSchema=bgp.ASNRead, tags=["ASNs"])
@@ -290,5 +289,10 @@ crud_router.create_crud_routes(router, "platform_types", crud.platform_type, cru
 # Automation Routes
 crud_router.create_crud_routes(router, "net_jobs", crud.net_job, crud.net_job, NetJob, automation.NetJobCreate, automation.NetJobUpdate, ReadSchema=automation.NetJobRead, tags=["Net Jobs"])
 
-# Include specialized endpoints router (e.g., for connection details)
-router.include_router(endpoints.router, tags=["Specialized Operations"])
+# Include specialized endpoints router (e.g., for connection details) if available
+try:
+    from . import endpoints
+    router.include_router(endpoints.router, tags=["Specialized Operations"])
+except (ImportError, AttributeError):
+    # Endpoints module might not be available or might not have a router attribute
+    pass

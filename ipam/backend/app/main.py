@@ -73,22 +73,44 @@ def setup_row_level_security():
         # Enable RLS on tables that need tenant isolation
         tables_with_tenant_id = [
             "prefixes", "ip_ranges", "ip_addresses", "sites", "vlans",
-            "vrfs", "aggregates", "devices", "interfaces"
+            "vrfs", "aggregates", "interfaces"
         ]
         
         for table in tables_with_tenant_id:
-            # Enable RLS on table
-            session.execute(text(f"ALTER TABLE ipam.{table} ENABLE ROW LEVEL SECURITY"))
+            # Check if table exists before enabling RLS
+            result = session.execute(text(
+                f"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'ipam' AND table_name = '{table}')"
+            ))
+            table_exists = result.scalar()
             
-            # Create policy for data isolation
-            session.execute(text(f"""
-            CREATE POLICY tenant_isolation_{table}_policy ON ipam.{table}
-            USING (
-                tenant_id IS NULL OR 
-                tenant_id = app.get_current_tenant_id() OR
-                app.get_current_tenant_id() IS NULL
-            )
-            """))
+            if table_exists:
+                # Enable RLS on table
+                session.execute(text(f"ALTER TABLE ipam.{table} ENABLE ROW LEVEL SECURITY"))
+                
+                # Check if policy already exists
+                policy_name = f"tenant_isolation_{table}_policy"
+                result = session.execute(text(
+                    f"SELECT EXISTS (SELECT FROM pg_policies WHERE schemaname = 'ipam' AND tablename = '{table}' AND policyname = '{policy_name}')"
+                ))
+                policy_exists = result.scalar()
+                
+                if not policy_exists:
+                    # Create policy for data isolation
+                    session.execute(text(f"""
+                    CREATE POLICY {policy_name} ON ipam.{table}
+                    USING (
+                        tenant_id IS NULL OR 
+                        tenant_id = app.get_current_tenant_id() OR
+                        app.get_current_tenant_id() IS NULL
+                    )
+                    """))
+                    logger.info(f"RLS policy created for ipam.{table}")
+                else:
+                    logger.info(f"RLS policy already exists for ipam.{table}")
+                
+                logger.info(f"RLS enabled on ipam.{table}")
+            else:
+                logger.warning(f"Table ipam.{table} does not exist, skipping RLS setup")
         
         # Commit all changes
         session.commit()
@@ -99,7 +121,9 @@ def setup_row_level_security():
 @app.on_event("startup")
 async def startup_event():
     # Create tables (existing behavior)
+    logger.info("Creating database tables...")
     SQLModel.metadata.create_all(engine)
+    logger.info("Database tables created")
     
     # Set up Row-Level Security
     setup_row_level_security()

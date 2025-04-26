@@ -10,7 +10,7 @@ from sqlmodel import Session, select
 from .utils import slugify
 from .models import (
     Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 
-    Prefix, IPRange, IPAddress, Tenant, Device, Interface, VLAN, VLANGroup,
+    Prefix, IPRange, IPAddress, Tenant, Interface, VLAN, VLANGroup,
     ASN, ASNRange, RouteTarget, VRFImportTargets, VRFExportTargets, Credential,
     DeviceInventory
 )
@@ -642,17 +642,17 @@ class DeviceInventoryCRUD:
         Get all device inventory records with pagination.
         
         Args:
-            session: Database session
+            session: The database session
             skip: Number of records to skip
             limit: Maximum number of records to return
-            **kwargs: Additional filter parameters
+            kwargs: Additional filters to apply
             
         Returns:
             List of DeviceInventory objects
         """
-        statement = select(DeviceInventory).order_by(DeviceInventory.time.desc()).offset(skip).limit(limit)
+        statement = select(DeviceInventory).offset(skip).limit(limit)
         
-        # Apply any filters from kwargs
+        # Apply filters from kwargs
         for key, value in kwargs.items():
             if hasattr(DeviceInventory, key) and value is not None:
                 statement = statement.where(getattr(DeviceInventory, key) == value)
@@ -662,7 +662,7 @@ class DeviceInventoryCRUD:
         """
         Get all inventory records for a specific device UUID.
         """
-        statement = select(DeviceInventory).where(DeviceInventory.device_uuid == device_uuid).order_by(DeviceInventory.time.desc())
+        statement = select(DeviceInventory).where(DeviceInventory.device_uuid == device_uuid)
         return session.exec(statement).all()
 
     def remove_by_device_uuid(self, session: Session, *, device_uuid: UUID) -> int:
@@ -1416,7 +1416,6 @@ class TenantCRUD(BaseCRUD):
 
 # Instantiate the Tenant CRUD object
 tenant = TenantCRUD()
-device = BaseCRUD(Device)
 interface = BaseCRUD(Interface)
 
 # Create a custom VLAN CRUD class that includes the update_vlan method
@@ -1441,30 +1440,20 @@ class VLANGroupCRUD(BaseCRUD):
     
     def create(self, session: Session, obj_in: Dict[str, Any]) -> VLANGroup:
         """
-        Create a new VLAN Group with special handling for vlan_id_ranges.
+        Create a new VLAN group with validation for unique name-site pair.
         """
-        logger.debug(f"VLANGroupCRUD create: obj_in={obj_in}")
-        
-        # Ensure vlan_id_ranges is included in the object
-        if 'vlan_id_ranges' in obj_in:
-            logger.debug(f"VLANGroupCRUD create: vlan_id_ranges={obj_in['vlan_id_ranges']}")
-        
-        # Create the VLAN group using the base method
-        return super().create(session, obj_in)
+        try:
+            # Create the VLANGroup
+            db_obj = VLANGroup(**obj_in)
+            session.add(db_obj)
+            session.commit()
+            session.refresh(db_obj)
+            return db_obj
+        except IntegrityError as e:
+            session.rollback()
+            raise HTTPException(status_code=409, detail=f"VLAN group creation failed: {str(e)}")
     
     def update_vlan_group(self, db: Session, id: int, obj_in):
-        """
-        Update a VLAN Group by ID with special handling for vlan_id_ranges.
-        """
-        logger.debug(f"VLANGroupCRUD update_vlan_group: id={id}, obj_in={obj_in}")
-        
-        # Ensure vlan_id_ranges is included in the update
-        if hasattr(obj_in, 'vlan_id_ranges'):
-            logger.debug(f"VLANGroupCRUD update_vlan_group: vlan_id_ranges={obj_in.vlan_id_ranges}")
-        elif isinstance(obj_in, dict) and 'vlan_id_ranges' in obj_in:
-            logger.debug(f"VLANGroupCRUD update_vlan_group: vlan_id_ranges={obj_in['vlan_id_ranges']}")
-        
-        # Update the VLAN group using the base method
         return self.update(db, id, obj_in)
 
 # Instantiate the VLANGroup CRUD object
