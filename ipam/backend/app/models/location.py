@@ -27,7 +27,7 @@ class Location(BaseModel, table=True):
     site: Optional["Site"] = Relationship(back_populates="locations")
     parent: Optional["Location"] = Relationship(back_populates="children", sa_relationship_kwargs={"remote_side": "Location.id"})
     children: List["Location"] = Relationship(back_populates="parent")
-    devices: List["DeviceInventory"] = Relationship(back_populates="location")
+    device_inventories: List["DeviceInventory"] = Relationship(back_populates="location")
     
     class Config:
         arbitrary_types_allowed = True

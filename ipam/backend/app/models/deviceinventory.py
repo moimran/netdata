@@ -93,7 +93,10 @@ class DeviceInventory(BaseModel, table=True):
     tenant: "Tenant" = Relationship(back_populates="device_inventories")
     location: Optional["Location"] = Relationship(back_populates="device_inventories")
     interfaces: List["Interface"] = Relationship(back_populates="device_inventory")
-    arp_entries: List["ARP"] = Relationship(back_populates="device")
+    arp_entries: List["ARP"] = Relationship(
+        sa_relationship_kwargs={"primaryjoin": "DeviceInventory.id == ARP.device_id"},
+        back_populates="device"
+    )
 
     class Config:
         arbitrary_types_allowed = True

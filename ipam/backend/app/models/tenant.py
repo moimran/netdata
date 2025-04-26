@@ -14,6 +14,10 @@ if TYPE_CHECKING:
     from .deviceinventory import DeviceInventory
     from .ip_address import IPAddress
     from .user import User
+    from .site_group import SiteGroup
+    from .rir import RIR
+    from .asn import ASN, ASNRange
+    from .role import Role
 
 class Tenant(BaseModel, table=True):
     """
@@ -37,12 +41,17 @@ class Tenant(BaseModel, table=True):
     sites: List["Site"] = Relationship(back_populates="tenant")
     vlans: List["VLAN"] = Relationship(back_populates="tenant")
     aggregates: List["Aggregate"] = Relationship(back_populates="tenant")
-    devices: List["DeviceInventory"] = Relationship(
+    device_inventories: List["DeviceInventory"] = Relationship(
         back_populates="tenant",
         sa_relationship_kwargs={"primaryjoin": "Tenant.id == DeviceInventory.tenant_id"}
     )
     ip_addresses: List["IPAddress"] = Relationship(back_populates="tenant")
     users: List["User"] = Relationship(back_populates="tenant")
+    site_groups: List["SiteGroup"] = Relationship(back_populates="tenant")
+    rirs: List["RIR"] = Relationship(back_populates="tenant")
+    asns: List["ASN"] = Relationship(back_populates="tenant")
+    asn_ranges: List["ASNRange"] = Relationship(back_populates="tenant")
+    roles: List["Role"] = Relationship(back_populates="tenant")
     
     class Config:
         arbitrary_types_allowed = True

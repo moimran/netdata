@@ -34,6 +34,7 @@ from .interface import Interface
 from .platform import PlatformType
 from .automation import NetJob
 from .deviceinventory import DeviceInventory
+from .arp import ARP
 
 __all__ = [
     # Base and Fields
@@ -81,4 +82,5 @@ __all__ = [
     "PlatformType",
     "NetJob",
     "DeviceInventory",
+    "ARP",
 ]

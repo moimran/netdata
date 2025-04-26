@@ -5,7 +5,7 @@ from .base import BaseModel
 
 if TYPE_CHECKING:
     from .tenant import Tenant
-    from .vlan import VLAN
+    from .vlan import VLAN, VLANGroup
     from .ip_prefix import Prefix
     from .region import Region
     from .site_group import SiteGroup
@@ -36,9 +36,10 @@ class Site(BaseModel, table=True):
     region: Optional["Region"] = Relationship(back_populates="sites")
     site_group: Optional["SiteGroup"] = Relationship(back_populates="sites")
     vlans: List["VLAN"] = Relationship(back_populates="site")
+    vlan_groups: List["VLANGroup"] = Relationship(back_populates="site")
     prefixes: List["Prefix"] = Relationship(back_populates="site")
     locations: List["Location"] = Relationship(back_populates="site")
-    devices: List["DeviceInventory"] = Relationship(
+    device_inventories: List["DeviceInventory"] = Relationship(
         back_populates="site",
         sa_relationship_kwargs={"primaryjoin": "Site.id == DeviceInventory.site_id"}
     )

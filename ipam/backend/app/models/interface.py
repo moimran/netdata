@@ -97,7 +97,7 @@ class Interface(BaseModel, table=True):
     device_id: uuid.UUID = Field(..., foreign_key="ni.device_inventory.id")
     
     # Relationships
-    device: "DeviceInventory" = Relationship(back_populates="interfaces")
+    device_inventory: "DeviceInventory" = Relationship(back_populates="interfaces")
     vrf: Optional["VRF"] = Relationship(back_populates="interfaces")
 
     class Config:

@@ -8,7 +8,6 @@ from .ip_utils import validate_ip_address
 from .ip_prefix import IPNetworkType
 if TYPE_CHECKING:
     from .ip_prefix import Prefix
-    from .interface import Interface
     from .vrf import VRF
     from .tenant import Tenant
 
@@ -51,7 +50,6 @@ class IPAddress(BaseModel, table=True):
     prefix: Optional["Prefix"] = Relationship(back_populates="ip_addresses")
     vrf: Optional["VRF"] = Relationship(back_populates="ip_addresses")
     tenant: "Tenant" = Relationship(back_populates="ip_addresses")
-    interfaces: List["Interface"] = Relationship(back_populates="ip_address")
     
     class Config:
         arbitrary_types_allowed = True
