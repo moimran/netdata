@@ -1,14 +1,12 @@
-from datetime import datetime
 from typing import Optional
 import uuid
 from sqlmodel import SQLModel, Field
-from sqlalchemy.dialects import postgresql
-from sqlalchemy import Column
+from datetime import datetime
 from ..types import UUIDType
 
 class TimestampedModel(SQLModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: Optional[datetime] = Field(default=None)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
     
 class BaseModel(TimestampedModel):
     id: uuid.UUID = Field(

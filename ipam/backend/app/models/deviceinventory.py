@@ -28,7 +28,7 @@ class DeviceInventory(BaseModel, table=True):
 
     # Basic fields
     hostname: Optional[str] = Field(default=None, max_length=255)
-    platform_type_id: Optional[int] = Field(default=None, foreign_key="ni.platform_type.id")
+    platform_type_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ni.platform_type.id")
     connection_type: Optional[str] = Field(default=None, max_length=100)
     
     # Network information

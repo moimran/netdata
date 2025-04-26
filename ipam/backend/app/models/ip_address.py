@@ -20,14 +20,9 @@ class IPAddress(BaseModel, table=True):
     """
     __tablename__: ClassVar[str] = "ip_addresses"
     __table_args__: ClassVar[tuple] = (
-        sa.UniqueConstraint('address', 'vrf_id', name='uq_ipaddress_vrf'),
+        sa.UniqueConstraint('ipv4_address', 'vrf_id', name='uq_ipaddress_vrf'),
         {"schema": "ipam"},
-    )
-    
-    # Override name and slug from BaseModel to make them optional
-    name: Optional[str] = Field(default="", description="Name of the IP address")
-    slug: Optional[str] = Field(default="", description="URL-friendly name")
-    
+    )   
     # Fields specific to IPAddress
     ipv4_address: str = Field(
         ...,
@@ -63,6 +58,6 @@ class IPAddress(BaseModel, table=True):
     
     def validate(self) -> None:
         """Validate the IP address."""
-        is_valid, error = validate_ip_address(self.address)
+        is_valid, error = validate_ip_address(self.ipv4_address)
         if not is_valid:
             raise ValueError(f"Invalid IP address: {error}")

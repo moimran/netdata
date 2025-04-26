@@ -19,7 +19,7 @@ class Interface(BaseModel, table=True):
     __tablename__: ClassVar[str] = "interfaces"
     __table_args__: ClassVar[tuple] = (
         sa.UniqueConstraint('interface_name', name='uq_interface_name'),
-        {"schema": "ipam"}
+        {"schema": "ni"}
     )
     
     # Basic identification
@@ -89,13 +89,16 @@ class Interface(BaseModel, table=True):
     
     # Security and Routing
     interface_zone: Optional[str] = Field(default=None, max_length=32)
-    vrf_name: Optional[str] = Field(default=None, max_length=64)
+    
+    # Updated: Replace vrf_name string with proper foreign key relationship
+    vrf_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.vrfs.id")
     
     # Foreign Keys
     device_id: uuid.UUID = Field(..., foreign_key="ni.device_inventory.id")
     
     # Relationships
     device: "DeviceInventory" = Relationship(back_populates="interfaces")
+    vrf: Optional["VRF"] = Relationship(back_populates="interfaces")
 
     class Config:
         arbitrary_types_allowed = True

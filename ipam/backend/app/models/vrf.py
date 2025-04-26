@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from .tenant import Tenant
     from .ip_prefix import Prefix, IPRange
     from .ip_address import IPAddress
+    from .interface import Interface
 
 
 # --- Minimal Link Models for Many-to-Many --- 
@@ -95,6 +96,7 @@ class VRF(BaseModel, table=True):
         back_populates="exporting_vrfs",
         link_model=VRFExportTargets
     )
+    interfaces: List["Interface"] = Relationship(back_populates="vrf")
 
     class Config:
         arbitrary_types_allowed = True

@@ -77,13 +77,10 @@ class VLANGroup(BaseModel, table=True):
         
         # Only check for overlaps if we have a site
         if self.site_id is not None:
-            # Get the table columns for the query
-            vlan_group = VLANGroup.__table__
-            
-            # Query for existing VLAN groups at the same site
+            # Query for existing VLAN groups at the same site using SQLModel methods
             stmt = select(VLANGroup).where(
-                vlan_group.c.id != self.id,  # Exclude self when updating
-                vlan_group.c.site_id == self.site_id  # Same site
+                VLANGroup.id != self.id,  # Exclude self when updating
+                VLANGroup.site_id == self.site_id  # Same site
             )
             
             # Execute the query
@@ -128,9 +125,9 @@ class VLAN(BaseModel, table=True):
     
     # Foreign Keys
     tenant_id: uuid.UUID = Field(..., foreign_key="ipam.tenants.id", description="Tenant this VLAN belongs to")
-    site_id: Optional[int] = Field(default=None, foreign_key="ipam.sites.id")
-    group_id: Optional[int] = Field(default=None, foreign_key="ipam.vlan_groups.id")
-    role_id: Optional[int] = Field(default=None, foreign_key="ipam.roles.id")
+    site_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.sites.id")
+    group_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.vlan_groups.id")
+    role_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.roles.id")
     
     # Add a unique constraint for VLAN ID within a site or group
     __table_args__ = (

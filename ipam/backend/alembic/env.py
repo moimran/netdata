@@ -4,31 +4,41 @@ import sys
 from sqlalchemy import create_engine, engine_from_config, pool
 from alembic import context
 from sqlmodel import SQLModel as Base
+from sqlalchemy.sql.sqltypes import TypeDecorator
 
-# Add the parent directory to sys.path (insert at index 0 for priority)
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
+# Add the backend directory to sys.path
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, backend_dir)
 
 # Import models and database configuration
-# Explicitly import all model modules to ensure registration with metadata
-from app.config import settings
-from app.models import aggregate
-from app.models import asn
-from app.models import automation
-from app.models import base
-from app.models import fields
-from app.models import interface
-from app.models import ip_prefix
-from app.models import ip_utils
-from app.models import location
-from app.models import platform
-from app.models import region
-from app.models import rir
-from app.models import role
-from app.models import site
-from app.models import tenant
-from app.models import vlan
-from app.models import vrf
+from app.config import Settings
+from app.types import UUIDType
+from app.models.fields import IPNetworkType
+import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
+
+# Import all models to ensure they are registered with SQLModel
+from app.models.aggregate import *
+from app.models.asn import *
+from app.models.automation import *
+from app.models.base import *
+from app.models.fields import *
+from app.models.interface import *
+from app.models.ip_prefix import *
+from app.models.ip_address import *
+from app.models.ip_utils import *
+from app.models.location import *
+from app.models.platform import *
+from app.models.region import *
+from app.models.rir import *
+from app.models.role import *
+from app.models.site import *
+from app.models.tenant import *
+from app.models.vlan import *
+from app.models.vrf import *
+
+# Create settings instance
+settings = Settings()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -43,6 +53,29 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 target_metadata = Base.metadata
 
+def render_item(type_, obj, autogen_context):
+    """Apply custom rendering for specific types."""
+    # Handle UUIDType
+    if isinstance(type_, UUIDType):
+        autogen_context.imports.add("from sqlalchemy import Uuid")
+        return "sa.Uuid()"
+    
+    # Handle IPNetworkType
+    if isinstance(type_, IPNetworkType):
+        autogen_context.imports.add("from sqlalchemy.dialects.postgresql import CIDR")
+        return "postgresql.CIDR()"
+
+    # Default rendering
+    return False
+
+def include_object(object, name, type_, reflected, compare_to):
+    """Determine which database objects should be included in the autogeneration."""
+    return True
+
+def get_url() -> str:
+    """Get the database URL from environment."""
+    return settings.DATABASE_URL
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -53,13 +86,18 @@ def run_migrations_offline() -> None:
 
     Calls to context.execute() here emit the given string to the
     script output.
-
     """
+    url = get_url()
     context.configure(
-        url=settings.DATABASE_URL,
+        url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_schemas=True,
+        render_item=render_item,
+        include_object=include_object,
+        compare_type=True,
+        user_module_prefix=None,
     )
 
     with context.begin_transaction():
@@ -67,19 +105,19 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode.
-
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
-    """
+    """Run migrations in 'online' mode."""
     # Create our own engine instead of using engine_from_config
-    connectable = create_engine(settings.DATABASE_URL)
+    connectable = create_engine(get_url())
 
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
-            target_metadata=target_metadata
+            target_metadata=target_metadata,
+            include_schemas=True,
+            render_item=render_item,
+            include_object=include_object,
+            compare_type=True,
+            user_module_prefix=None,
         )
 
         with context.begin_transaction():

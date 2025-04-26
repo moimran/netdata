@@ -8,6 +8,7 @@ from sqlmodel import Field, Relationship
 
 # Import the base model
 from .base import BaseModel
+from ..types import UUIDType
 
 if TYPE_CHECKING:
     from .platform import PlatformType
@@ -26,7 +27,7 @@ class NetJob(BaseModel, table=True):
 
     # Specific fields
     job_uuid: uuid.UUID = Field(sa_column=Column(postgresql.UUID(as_uuid=True), unique=True, index=True, server_default=text("gen_random_uuid()"), nullable=False))
-    platform_type_id: Optional[int] = Field(default=None, foreign_key="ni.platform_type.id")
+    platform_type_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ni.platform_type.id")
     command_list: List[str] = Field(sa_column=Column(postgresql.ARRAY(postgresql.TEXT), nullable=False))
     is_scheduled: bool = Field(default=False)
     # schedule_interval: Optional[timedelta] = Field(default=None, sa_column=Column(postgresql.INTERVAL)) # REMOVED as requested
