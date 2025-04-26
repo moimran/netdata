@@ -1,68 +1,44 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import inspect 
-from sqlmodel import Session  # Use sqlmodel Session instead of sqlalchemy.orm
-from typing import List, Dict, Any
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from sqlmodel import Session, select, inspect
+from typing import Dict, Any, List, Union, Optional
+import logging
 from uuid import UUID
 
-from . import crud_router
-from .. import crud_legacy as crud
-from ..database import get_session, engine 
+# Import database engine and session
+from ..database import engine, get_session
+
+# Import models for schema generation
 from ..models import (
-    Region, SiteGroup, Site, Location, RIR, Aggregate, Role,
-    Prefix, IPRange, IPAddress, Tenant, Interface, VLAN,
-    VLANGroup, ASN, ASNRange, Credential,
-    PlatformType, NetJob, DeviceInventory 
-)
-from ..models.vrf import VRF, RouteTarget
-
-# Import schema modules
-from app.schemas import (
-    organizational,
-    vrf,
-    ipam,
-    tenancy,
-    bgp,
-    credentials,
-    platform,
-    automation
+    Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 
+    Prefix, IPRange, IPAddress, Tenant, Interface, VLAN, VLANGroup,
+    ASN, ASNRange, RouteTarget, VRFImportTargets, VRFExportTargets, Credential,
+    DeviceInventory, PlatformType, NetJob
 )
 
-# Import directly from devices schema to avoid the missing module error
+# Import schemas for API endpoints
+# Conditional imports for schemas that might not exist
 try:
-    # Use optional import for these modules that might not exist
-    from app.schemas.devices import DeviceInventoryRead, InterfaceRead, DeviceInventoryCreate, DeviceInventoryUpdate, InterfaceCreate, InterfaceUpdate
+    from ..schemas.interfaces import InterfaceCreate, InterfaceUpdate, InterfaceRead
 except ImportError:
-    # If the import fails, we'll need to skip these routes
-    DeviceInventoryRead = None
-    InterfaceRead = None
-    DeviceInventoryCreate = None 
-    DeviceInventoryUpdate = None
-    InterfaceCreate = None
-    InterfaceUpdate = None
+    InterfaceCreate = InterfaceUpdate = InterfaceRead = None
+    logging.getLogger(__name__).warning("Interface schemas not found. Interface API endpoints will not be created.")
 
-# Import necessary Read schemas
-from app.schemas.organizational import (
-    RegionRead, SiteGroupRead, SiteRead, LocationRead
-)
-from app.schemas.vrf import VRFReadWithTargets, RouteTargetRead
-from app.schemas.ipam import (
-    RIRRead, AggregateRead, RoleRead, PrefixRead,
-    IPRangeRead, IPAddressRead, VLANRead, VLANGroupRead
-)
-from app.schemas.tenancy import TenantRead
-from app.schemas.bgp import ASNRead, ASNRangeRead
-from app.schemas.credentials import CredentialRead
-from app.schemas.platform import PlatformTypeRead
-from app.schemas.automation import NetJobRead
-
-router = APIRouter(prefix="/api/v1")
-
-# The endpoints module might not be properly imported. Check if it exists and import it if needed
 try:
-    from . import endpoints
-    router.include_router(endpoints.router, tags=["Specialized Operations"])
+    from ..schemas.devices import DeviceInventoryCreate, DeviceInventoryUpdate, DeviceInventoryRead
 except ImportError:
-    pass
+    DeviceInventoryCreate = DeviceInventoryUpdate = DeviceInventoryRead = None
+    logging.getLogger(__name__).warning("DeviceInventory schemas not found. DeviceInventory API endpoints will not be created.")
+
+# Import all schemas
+from ..schemas import organizational, ipam, vrf, tenancy, bgp, credentials, platform, automation
+
+# Import CRUD modules
+from .. import crud_legacy as crud
+# Ensure this import is correct - this is the key part for CRUD routes
+from . import crud_router
+
+# Create API router
+router = APIRouter()
 
 model_mapping = {
     'regions': Region,
