@@ -72,7 +72,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         db.execute(sa_text(f"SET app.current_tenant_id = '{user.tenant_id}'"))
     elif user.is_superuser:
         # Superusers can access all tenants' data
-        db.execute(sa_text("SET app.current_tenant_id = NULL"))
+        # Fix: alternative approach to reset the variable - use empty string instead of NULL
+        db.execute(sa_text("RESET app.current_tenant_id"))
     
     return user
 

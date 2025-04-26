@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TextInput, PasswordInput, Button, Stack, Card, Title, Text, Group, Alert } from '@mantine/core';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { IconAlertCircle } from '@tabler/icons-react';
@@ -7,20 +7,30 @@ import { useAuth } from '../../context/AuthContext';
 export function LoginView() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const { login, isLoading, error } = useAuth();
+    const { login, isLoading, error, isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
     // Get the redirect path or default to home
     const from = (location.state as any)?.from?.pathname || '/';
 
+    // Add useEffect to handle redirection after successful login
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            console.log('User is authenticated, navigating to:', from);
+            navigate(from, { replace: true });
+        }
+    }, [isAuthenticated, user, navigate, from]);
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log('Login form submitted');
 
         try {
             await login(username, password);
-            // Redirect will happen automatically once authentication state updates
+            // The useEffect above will handle redirection once authenticated
         } catch (err) {
+            console.error('Login form error:', err);
             // Error is handled by the auth context
         }
     };

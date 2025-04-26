@@ -28,8 +28,10 @@ const TenantContext = createContext<TenantContextType>({
     refreshTenants: async () => { },
 });
 
-// Custom hook to use the tenant context
-export const useTenant = () => useContext(TenantContext);
+// Custom hook to use the tenant context - Change to named function declaration
+export function useTenant() {
+    return useContext(TenantContext);
+}
 
 interface TenantProviderProps {
     children: ReactNode;

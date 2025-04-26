@@ -76,10 +76,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 function AppContent() {
   const [opened, { toggle }] = useDisclosure();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+
+  console.log('AppContent render:', {
+    isAuthenticated,
+    isLoading,
+    user: user ? user.username : 'null'
+  });
 
   // If not authenticated, only show login page
   if (!isAuthenticated) {
+    console.log('Not authenticated, showing login page');
     return (
       <Routes>
         <Route path="/login" element={<LoginView />} />
@@ -88,6 +95,7 @@ function AppContent() {
     );
   }
 
+  console.log('Authenticated, showing full app');
   return (
     <AppShell
       header={{ height: 60 }}

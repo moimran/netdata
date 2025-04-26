@@ -49,8 +49,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+    // DEBUG: Log authentication state changes
+    useEffect(() => {
+        console.log('Auth state changed:', {
+            token: token ? 'exists' : 'null',
+            user: user ? user.username : 'null',
+            isAuthenticated
+        });
+    }, [token, user, isAuthenticated]);
+
     // Setup axios interceptor for authentication
     useEffect(() => {
+        console.log('Setting up interceptors with token:', token ? 'exists' : 'null');
         // Interceptor to add token to requests
         const requestInterceptor = apiClient.interceptors.request.use(
             (config) => {
@@ -67,6 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             (response) => response,
             (error) => {
                 if (error.response && error.response.status === 401) {
+                    console.log('401 response detected, logging out');
                     logout();
                 }
                 return Promise.reject(error);
@@ -83,31 +94,56 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Load user data if token exists
     useEffect(() => {
         if (token) {
+            console.log('Token exists, refreshing user data');
             refreshUser();
         } else {
+            console.log('No token, skipping user refresh');
             setIsLoading(false);
         }
     }, [token]);
 
     // Login function
     const login = async (username: string, password: string) => {
+        console.log('Login attempt for:', username);
         setIsLoading(true);
         setError(null);
         try {
             // Using absolute URL to bypass baseURL
             const response = await axios.post('/api/v1/auth/login', { username, password });
+            console.log('Login response:', response.data);
             const { access_token, user_id, tenant_id } = response.data;
 
             // Store token
             localStorage.setItem('token', access_token);
-            setToken(access_token);
-            setIsAuthenticated(true);
+            console.log('Token stored in localStorage');
 
-            // Get full user data
-            await refreshUser();
+            // Important: Set token first, then immediately use it to get user data
+            setToken(access_token);
+
+            // Get full user data - use the token directly rather than relying on state update
+            try {
+                console.log('Fetching user data immediately after login');
+                const userResponse = await axios.get('/api/v1/auth/me', {
+                    headers: {
+                        Authorization: `Bearer ${access_token}`
+                    }
+                });
+                console.log('User data received:', userResponse.data);
+
+                // Update user and authentication state in one step
+                setUser(userResponse.data);
+                setIsAuthenticated(true);
+                console.log('Authentication state updated manually after login');
+            } catch (userErr) {
+                console.error('Error fetching user data after login:', userErr);
+                throw userErr; // Re-throw to be caught by the main catch block
+            }
         } catch (err: any) {
+            console.error('Login error full details:', err);
             setError(err.response?.data?.detail || 'Login failed');
-            console.error('Login error:', err);
+            setToken(null);
+            setUser(null);
+            setIsAuthenticated(false);
         } finally {
             setIsLoading(false);
         }
@@ -115,6 +151,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Logout function
     const logout = () => {
+        console.log('Logging out');
         localStorage.removeItem('token');
         localStorage.removeItem('currentTenantId');
         setToken(null);
@@ -124,12 +161,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Refresh user data
     const refreshUser = async () => {
+        console.log('Refreshing user data with token:', token ? 'exists' : 'null');
         setIsLoading(true);
         try {
-            // Using absolute URL to bypass baseURL
-            const response = await axios.get('/api/v1/auth/me');
+            // Using absolute URL to bypass baseURL, but with the token
+            const response = await axios.get('/api/v1/auth/me', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            console.log('User data received:', response.data);
             setUser(response.data);
             setIsAuthenticated(true);
+            console.log('User authenticated, isAuthenticated set to true');
         } catch (err) {
             console.error('Error fetching user data:', err);
             // If we get an error, clear auth state
