@@ -29,7 +29,9 @@ import {
   IconBuildingSkyscraper,
   IconUsers,
   IconWifi,
-  IconKey
+  IconKey,
+  IconBrain,
+  IconNetworkSearch
 } from '@tabler/icons-react';
 
 export function MainNavigation() {
@@ -77,22 +79,18 @@ export function MainNavigation() {
       ]
     },
     {
-      title: 'Network Inventory',
-      items: [
-        { icon: IconDatabase, label: 'Hardware Inventory', path: '/hardware-inventory' }
-      ]
-    },
-    {
-      title: 'Devices',
+      title: 'Network Intelligence',
       items: [
         { icon: IconNetwork, label: 'Interfaces', path: '/interfaces' },
-        { icon: IconKey, label: 'Credentials', path: '/credentials' }
+        { icon: IconNetworkSearch, label: 'ARP Table', path: '/arp-table' },
+        { icon: IconBrain, label: 'Device Inventory', path: '/device-inventory' }
       ]
     },
     {
       title: 'Administration',
       items: [
-        { icon: IconUsers, label: 'Tenants', path: '/tenants' }
+        { icon: IconUsers, label: 'Tenants', path: '/tenants' },
+        { icon: IconKey, label: 'Credentials', path: '/credentials' }
       ]
     }
   ];

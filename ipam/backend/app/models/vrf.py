@@ -48,7 +48,6 @@ class RouteTarget(BaseModel, table=True):
 
     # Basic fields
     name: str = Field(..., unique=True, description="Route target value (ASN:NN or IP:NN)")
-    description: Optional[str] = Field(default=None, description="Brief description")
 
     # Relationships for VRF import/export targets
     importing_vrfs: List["VRF"] = Relationship(
@@ -75,7 +74,6 @@ class VRF(BaseModel, table=True):
     # Basic fields
     name: str = Field(..., description="Name of the VRF", unique=True)
     rd: Optional[str] = Field(default=None, description="Route distinguisher value (ASN:NN or IP:NN)", unique=True)
-    description: Optional[str] = Field(default=None, description="Brief description")
     enforce_unique: bool = Field(
         default=True,
         description="Prevent duplicate prefixes/IP addresses within this VRF"

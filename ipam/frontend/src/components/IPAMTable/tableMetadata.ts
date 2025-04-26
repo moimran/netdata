@@ -19,7 +19,8 @@ export type TableName =
   | 'tenants'
   | 'platform_types'
   | 'interfaces'
-  | 'device_inventory';
+  | 'device_inventory'
+  | 'arp_table';
 
 // Define the structure for individual column metadata
 export interface ColumnMetadata {
@@ -252,5 +253,22 @@ export const TABLE_METADATA: Record<TableName, TableMetadata> = {
       { name: 'slug', type: 'string' },
       { name: 'description', type: 'string' }
     ],
+  },
+  arp_table: {
+    columns: [
+      { name: 'id', type: 'number', visible: false },
+      { name: 'ipv4_address', type: 'string', required: true, label: 'IPv4 Address' },
+      { name: 'mac_address', type: 'string', required: true, label: 'MAC Address' },
+      { name: 'ip_arp_age', type: 'string', required: true, label: 'ARP Age' },
+      { name: 'interface_name', type: 'string', required: true, label: 'Interface' },
+      { name: 'physical_interface', type: 'string', label: 'Physical Interface' },
+      { name: 'interface_module', type: 'string', label: 'Interface Module' },
+      { name: 'arp_state', type: 'string', label: 'ARP State' },
+      { name: 'ip_route_type', type: 'string', label: 'Route Type' },
+      { name: 'vrf_name', type: 'string', label: 'VRF' },
+      { name: 'device_id', type: 'string', reference: 'device_inventory', label: 'Device' },
+      { name: 'created_at', type: 'datetime', label: 'Created' },
+      { name: 'updated_at', type: 'datetime', label: 'Last Updated' }
+    ]
   },
 };

@@ -26,8 +26,6 @@ class Tenant(BaseModel, table=True):
     # Basic fields
     name: str = Field(..., description="Name of the tenant")
     slug: str = Field(..., description="URL-friendly name")
-    description: Optional[str] = Field(default=None, description="Brief description")
-    comments: Optional[str] = Field(default=None, description="Detailed comments")
     
     # Reference fields
     parent_tenant_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.tenants.id")

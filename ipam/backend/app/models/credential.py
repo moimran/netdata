@@ -1,15 +1,13 @@
 from typing import Optional, ClassVar
 import sqlalchemy as sa
-from sqlmodel import SQLModel, Field
+from .base import BaseModel
+from sqlmodel import Field
 
-class Credential(SQLModel, table=True):
+class Credential(BaseModel, table=True):
     """
     Stores authentication credentials for devices
     """
     __tablename__: ClassVar[str] = "credentials"
-    
-    # Primary key
-    id: Optional[int] = Field(default=None, primary_key=True)
     
     # Name must be unique
     name: str = Field(..., index=True, description="Unique name for this credential set")

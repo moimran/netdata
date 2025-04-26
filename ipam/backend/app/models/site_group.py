@@ -17,7 +17,6 @@ class SiteGroup(BaseModel, table=True):
     # Basic fields
     name: str = Field(..., description="Name of the site group")
     slug: Optional[str] = Field(default=None, description="URL-friendly name")
-    description: Optional[str] = Field(default=None, description="Brief description")
     
     # Foreign Keys
     tenant_id: uuid.UUID = Field(..., foreign_key="ipam.tenants.id", description="Tenant this site group belongs to")

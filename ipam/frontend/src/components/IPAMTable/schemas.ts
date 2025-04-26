@@ -7,6 +7,7 @@ export interface Column {
   reference?: string;
   width?: number;
   header?: string;
+  visible?: boolean;
 }
 
 export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
@@ -206,5 +207,21 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'is_active', type: 'boolean' },
     { name: 'is_staff', type: 'boolean' },
     { name: 'is_superuser', type: 'boolean' }
+  ],
+
+  arp_table: [
+    { name: 'id', type: 'number', visible: false },
+    { name: 'ipv4_address', type: 'string', required: true, width: 150 },
+    { name: 'mac_address', type: 'string', required: true, width: 150 },
+    { name: 'ip_arp_age', type: 'string', required: true, width: 100 },
+    { name: 'interface_name', type: 'string', required: true, width: 150 },
+    { name: 'physical_interface', type: 'string', width: 150 },
+    { name: 'interface_module', type: 'string', width: 150 },
+    { name: 'arp_state', type: 'string', width: 120 },
+    { name: 'ip_route_type', type: 'string', width: 120 },
+    { name: 'vrf_name', type: 'string', width: 120 },
+    { name: 'device_id', type: 'string', reference: 'device_inventory', width: 200 },
+    { name: 'created_at', type: 'datetime', width: 180 },
+    { name: 'updated_at', type: 'datetime', width: 180 }
   ]
 };

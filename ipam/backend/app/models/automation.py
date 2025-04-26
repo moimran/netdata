@@ -23,11 +23,6 @@ class NetJob(BaseModel, table=True):
     # Use job_name for the 'name' field, make slug optional
     name: str = Field(..., max_length=100, description="Job name")
     slug: Optional[str] = Field(default=None, index=True, nullable=True)
-    description: Optional[str] = Field(default=None, nullable=True)
-
-    # Override inherited timestamp types if they used TIMESTAMPTZ
-    created_at: datetime = Field(default_factory=datetime.utcnow, sa_column=Column(postgresql.TIMESTAMP(timezone=True), server_default=func.now(), nullable=False))
-    updated_at: Optional[datetime] = Field(default=None, sa_column=Column(postgresql.TIMESTAMP(timezone=True), nullable=True))
 
     # Specific fields
     job_uuid: uuid.UUID = Field(sa_column=Column(postgresql.UUID(as_uuid=True), unique=True, index=True, server_default=text("gen_random_uuid()"), nullable=False))

@@ -16,7 +16,6 @@ class Region(BaseModel, table=True):
     # Basic fields
     name: str = Field(..., description="Name of the region")
     slug: Optional[str] = Field(default=None, description="URL-friendly name")
-    description: Optional[str] = Field(default=None, description="Brief description")
 
     __table_args__ = (
         sa.UniqueConstraint('name', name='uq_region_name'),

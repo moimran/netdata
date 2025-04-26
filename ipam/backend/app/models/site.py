@@ -22,12 +22,7 @@ class Site(BaseModel, table=True):
     # Basic fields
     name: str = Field(..., description="Name of the site")
     slug: Optional[str] = Field(default=None, description="URL-friendly name")
-    description: Optional[str] = Field(default=None, description="Brief description")
-    
-    # Physical location attributes
-    facility: Optional[str] = Field(default=None, description="Data center/facility name")
-    physical_address: Optional[str] = Field(default=None, description="Physical address of the site")
-    
+      
     # Status and contact info
     status: str = Field(default="active")
     

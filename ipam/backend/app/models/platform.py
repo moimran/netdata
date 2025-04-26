@@ -21,22 +21,11 @@ class PlatformType(BaseModel, table=True):
     __table_args__: ClassVar[dict] = {"schema": "ni"}
 
     # Override base fields
-    name: Optional[str] = Field(default=None, index=True, nullable=True)
-    slug: Optional[str] = Field(default=None, index=True, nullable=True)
-    description: Optional[str] = Field(default=None, nullable=True)
-
-    # Override inherited timestamp types if they used TIMESTAMPTZ
-    created_at: datetime = Field(
-        default_factory=datetime.utcnow,
-        sa_column=Column(postgresql.TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
-    )
-    updated_at: Optional[datetime] = Field(
-        default=None,
-        sa_column=Column(postgresql.TIMESTAMP(timezone=True), nullable=True)
-    )
+    vendor: str = Field(default=None, index=True, nullable=True)
+    slug: str = Field(default=None, index=True, nullable=True)
 
     # Specific fields
-    platform_signature: str = Field(max_length=100, unique=True, index=True)
+    platform_signature: Optional[str] = Field(default=None, max_length=100, unique=True, index=True)
     platform_type: str = Field(max_length=100, unique=True, index=True)
     command: Optional[str] = Field(default=None, max_length=100)
     ignore_platform: bool = Field(default=False)

@@ -31,7 +31,6 @@ class Aggregate(BaseModel, table=True):
         description="IPv4 or IPv6 network with mask",
         sa_column=sa.Column(IPNetworkType)
     )
-    date_added: Optional[date] = Field(default=None)
 
     # Foreign Keys
     rir_id: uuid.UUID = Field(..., foreign_key="ipam.rirs.id")
@@ -43,8 +42,19 @@ class Aggregate(BaseModel, table=True):
 
     def validate(self) -> None:
         """Validate the aggregate."""
+        import ipaddress
+        
         if not self.rir_id:
             raise ValueError("RIR is required for an aggregate")
+        if not self.prefix:
+            raise ValueError("Prefix is required for an aggregate")
+        
+        # Validate prefix using ipaddress library
+        try:
+            # This will validate both IPv4 and IPv6 networks
+            ipaddress.ip_network(self.prefix, strict=True)
+        except ValueError as e:
+            raise ValueError(f"Invalid prefix format: {e}")
 
     def get_utilization(self) -> float:
         """

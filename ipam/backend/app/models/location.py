@@ -17,7 +17,6 @@ class Location(BaseModel, table=True):
     # Basic fields
     name: str = Field(..., description="Name of the location")
     slug: str = Field(..., description="URL-friendly name")
-    description: Optional[str] = Field(default=None, description="Brief description")
     status: str = Field(default="active", description="Operational status")
     
     # Foreign Keys

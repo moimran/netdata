@@ -3,8 +3,10 @@ import uuid
 import ipaddress
 from ipaddress import IPv4Network, IPv6Network
 import sqlalchemy as sa
-from sqlmodel import Field, Relationship, select
-from .base import BaseModel, TimestampedModel
+from sqlmodel import Field, Relationship, select, Session
+from sqlalchemy.sql.elements import BooleanClauseList
+from sqlalchemy.sql.expression import and_, or_
+from .base import BaseModel
 from .ip_constants import PrefixStatusEnum, IPRangeStatusEnum
 from .fields import IPNetworkType
 from .ip_utils import (
@@ -22,7 +24,7 @@ if TYPE_CHECKING:
     from .role import Role
     from .ip_address import IPAddress
 
-class Prefix(TimestampedModel, table=True):
+class Prefix(BaseModel, table=True):
     """
     A Prefix represents an IPv4 or IPv6 network, including mask length. Prefixes can
     optionally be assigned to Sites and VRFs. A Prefix must be assigned a status and
@@ -34,12 +36,6 @@ class Prefix(TimestampedModel, table=True):
         sa.UniqueConstraint('prefix', 'vrf_id', name='uq_prefix_vrf'),
         {"schema": "ipam"},
     )
-    
-    # Primary key
-    id: Optional[uuid.UUID] = Field(default=None, primary_key=True)
-    
-    # Basic fields
-    description: Optional[str] = Field(default=None, description="Brief description")
     
     # Fields specific to Prefix
     prefix: str = Field(
@@ -201,15 +197,13 @@ class Prefix(TimestampedModel, table=True):
 class IPRange(BaseModel, table=True):
     """
     A range of IP addresses, defined by start and end addresses.
+    Ranges must not overlap with other ranges within the same VRF and tenant.
     """
     __tablename__: ClassVar[str] = "ip_ranges"
     __table_args__: ClassVar[tuple] = (
         sa.UniqueConstraint('start_address', 'end_address', 'vrf_id', name='uq_iprange_vrf'),
-        {"schema": "ipam"},
+        {"schema": "ipam"}
     )
-    
-    # Basic fields
-    description: Optional[str] = Field(default=None, description="Brief description")
     
     # Fields specific to IPRange
     start_address: str = Field(
@@ -234,58 +228,135 @@ class IPRange(BaseModel, table=True):
     
     # Foreign Keys
     vrf_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.vrfs.id")
-    tenant_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.tenants.id")
+    tenant_id: uuid.UUID = Field(..., foreign_key="ipam.tenants.id", description="Tenant this IP range belongs to")
     
     # Relationships
     vrf: Optional["VRF"] = Relationship(back_populates="ip_ranges")
-    tenant: Optional["Tenant"] = Relationship(back_populates="ip_ranges")
+    tenant: "Tenant" = Relationship(back_populates="ip_ranges")
     
     class Config:
         arbitrary_types_allowed = True
-    
-    def calculate_size(self) -> Tuple[int, Optional[str]]:
+
+    def _ranges_overlap(self, other: "IPRange") -> bool:
         """
-        Calculate the size of the IP range and return it along with any error message.
-        Returns a tuple of (size, error_message).
+        Check if this range overlaps with another range.
+        
+        This method implements a comprehensive overlap check between two IP ranges.
+        An overlap occurs in any of these scenarios:
+        1. One range's start address falls within the other range
+        2. One range's end address falls within the other range
+        3. One range completely contains the other range
+        
+        Args:
+            other: Another IPRange instance to check against this one
+            
+        Returns:
+            bool: True if the ranges overlap, False otherwise
+            
+        Note:
+            - This check is commutative: a.overlaps(b) == b.overlaps(a)
+            - Ranges in different VRFs are considered non-overlapping
+            - Different IP versions (IPv4/IPv6) never overlap
         """
         try:
+            # Convert addresses to IP objects for comparison
+            this_start = ipaddress.ip_address(self.start_address)
+            this_end = ipaddress.ip_address(self.end_address)
+            other_start = ipaddress.ip_address(other.start_address)
+            other_end = ipaddress.ip_address(other.end_address)
+            
+            # If different IP versions, they can't overlap
+            if this_start.version != other_start.version:
+                return False
+                
+            # Convert to integers for comparison
+            # This avoids type issues with IPv4Address/IPv6Address comparisons
+            this_start_int = int(this_start)
+            this_end_int = int(this_end)
+            other_start_int = int(other_start)
+            other_end_int = int(other_end)
+            
+            # Check all possible overlap scenarios using integer comparisons
+            return (
+                (this_start_int <= other_start_int <= this_end_int) or   # other start within this range
+                (this_start_int <= other_end_int <= this_end_int) or     # other end within this range
+                (other_start_int <= this_start_int <= other_end_int) or  # this start within other range
+                (other_start_int <= this_end_int <= other_end_int)       # this end within other range
+            )
+        except ValueError:
+            # If we can't parse the addresses, assume no overlap
+            return False
+    
+    def validate(self, session: Session) -> None:
+        """
+        Validate the IP range:
+        1. Ensure start address is less than end address
+        2. Ensure start and end are same IP version
+        3. Check for overlaps with existing ranges in same VRF and tenant
+        
+        Args:
+            session: SQLAlchemy session for querying existing ranges
+            
+        Raises:
+            ValueError: If validation fails
+        """
+        try:
+            # Convert addresses to IP objects
             start_ip = ipaddress.ip_address(self.start_address)
             end_ip = ipaddress.ip_address(self.end_address)
             
-            # Ensure start and end are the same IP version
+            # Ensure same IP version
             if start_ip.version != end_ip.version:
-                return 0, "Start and end addresses must be the same IP version"
+                raise ValueError("Start and end addresses must be the same IP version")
             
-            # For IPv4
-            if isinstance(start_ip, ipaddress.IPv4Address):
-                size = int(end_ip) - int(start_ip) + 1
-            # For IPv6
-            else:
-                size = int(end_ip) - int(start_ip) + 1
+            # Convert to integers for comparison
+            start_int = int(start_ip)
+            end_int = int(end_ip)
             
-            return size, None
+            # Ensure start <= end
+            if start_int > end_int:
+                raise ValueError(f"Start address {self.start_address} must be less than or equal to end address {self.end_address}")
             
+            # Calculate and store size
+            self.size = end_int - start_int + 1
+            
+            # Query for existing ranges within the same VRF and tenant
+            overlapping_ranges = []
+            
+            # Get ranges with matching VRF
+            if self.vrf_id is not None:
+                matching_vrf_ranges = session.exec(
+                    select(IPRange).where(
+                        IPRange.id != self.id,  # Exclude self when updating
+                        IPRange.tenant_id == self.tenant_id,  # Same tenant
+                        IPRange.vrf_id == self.vrf_id  # Same VRF
+                    )
+                ).all()
+                overlapping_ranges += matching_vrf_ranges
+            
+            # Get ranges with no VRF if this range has no VRF
+            if self.vrf_id is None:
+                no_vrf_ranges = session.exec(
+                    select(IPRange).where(
+                        IPRange.id != self.id,  # Exclude self when updating
+                        IPRange.tenant_id == self.tenant_id,  # Same tenant
+                        IPRange.vrf_id == None  # No VRF
+                    )
+                ).all()
+                overlapping_ranges += no_vrf_ranges
+            
+            # Check for overlaps with each existing range
+            for existing in overlapping_ranges:
+                if self._ranges_overlap(existing):
+                    raise ValueError(
+                        f"IP range {self.start_address}-{self.end_address} overlaps with "
+                        f"existing range {existing.start_address}-{existing.end_address}"
+                    )
+            
+        except ValueError as e:
+            raise ValueError(f"Invalid IP range: {str(e)}")
         except Exception as e:
-            return 0, str(e)
-
-    def validate(self) -> Optional[str]:
-        """
-        Validate the IP range.
-        Returns None if valid, error message if invalid.
-        """
-        # Calculate size and get any error
-        size, error = self.calculate_size()
-        if error:
-            return error
-            
-        # Store the calculated size
-        self.size = size
-            
-        # Ensure start address is before end address
-        if size <= 0:
-            return "End address must be after start address"
-            
-        return None
+            raise ValueError(f"Error validating IP range: {str(e)}")
     
     def get_available_ips(self) -> List[str]:
         """Return all available IPs within this range."""

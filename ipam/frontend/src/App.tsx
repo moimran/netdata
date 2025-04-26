@@ -38,6 +38,8 @@ import { ASNRangeView } from './components/views/ASNRangeView';
 import { InterfacesView } from './components/views/InterfacesView';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TenantProvider } from './context/TenantContext';
+import { ARPTableView } from './components/views/ARPTableView';
+import { DeviceInventoryView } from './components/views/DeviceInventoryView';
 // Import views as needed
 
 // Loading component for suspense fallback
@@ -151,6 +153,8 @@ function AppContent() {
 
               {/* Devices */}
               <Route path="/interfaces" element={<ProtectedRoute><InterfacesView /></ProtectedRoute>} />
+              <Route path="/arp-table" element={<ProtectedRoute><ARPTableView /></ProtectedRoute>} />
+              <Route path="/device-inventory" element={<ProtectedRoute><DeviceInventoryView /></ProtectedRoute>} />
               <Route path="/credentials" element={<ProtectedRoute><CredentialView /></ProtectedRoute>} />
               <Route path="/racks" element={<ProtectedRoute><RackView /></ProtectedRoute>} />
 

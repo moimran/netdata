@@ -28,11 +28,8 @@ class IPAddress(BaseModel, table=True):
     name: Optional[str] = Field(default="", description="Name of the IP address")
     slug: Optional[str] = Field(default="", description="URL-friendly name")
     
-    # Basic fields
-    description: Optional[str] = Field(default=None, description="Brief description")
-    
     # Fields specific to IPAddress
-    address: str = Field(
+    ipv4_address: str = Field(
         ...,
         description="IPv4 or IPv6 address with mask",
         sa_column=sa.Column(IPNetworkType, index=True)
