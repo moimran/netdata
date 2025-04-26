@@ -4,165 +4,6 @@
  */
 
 export interface paths {
-    "/api/v1/credentials/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Credentials */
-        get: operations["read_credentials_api_v1_credentials__get"];
-        put?: never;
-        /** Create Credential */
-        post: operations["create_credential_api_v1_credentials__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/credentials/{name}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Credential */
-        get: operations["read_credential_api_v1_credentials__name__get"];
-        /** Update Credential */
-        put: operations["update_credential_api_v1_credentials__name__put"];
-        post?: never;
-        /** Delete Credential */
-        delete: operations["delete_credential_api_v1_credentials__name__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/devices/{device_id}/connection-details": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Device Connection Details
-         * @description Get connection details for a device including IP address and credentials.
-         *     This endpoint is used for establishing SSH connections to devices.
-         */
-        get: operations["get_device_connection_details_api_v1_devices__device_id__connection_details_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/devices/connect": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Connect To Device
-         * @description Connect to a device via webssh-rs.
-         *
-         *     This endpoint retrieves device connection details from the database
-         *     and forwards them to the webssh-rs server.
-         */
-        post: operations["connect_to_device_api_v1_devices_connect_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/prefixes/hierarchy": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Prefix Hierarchy
-         * @description Get prefixes in a hierarchical structure.
-         *
-         *     Args:
-         *         vrf_id: Optional VRF ID to filter by
-         *
-         *     Returns:
-         *         List of prefixes with hierarchical information
-         */
-        get: operations["get_prefix_hierarchy_api_v1_prefixes_hierarchy_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/prefixes/{prefix_id}/utilization": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Prefix Utilization
-         * @description Get utilization data for a prefix.
-         *
-         *     Args:
-         *         prefix_id: Prefix ID
-         *
-         *     Returns:
-         *         Utilization data including percentage, used IPs, and total IPs
-         */
-        get: operations["get_prefix_utilization_api_v1_prefixes__prefix_id__utilization_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/find-prefix": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Find Prefix
-         * @description Find the longest matching prefix for an IP address.
-         *
-         *     Args:
-         *         request: PrefixLookupRequest containing IP address and optional VRF ID
-         *
-         *     Returns:
-         *         PrefixLookupResponse with prefix_id, prefix, and vrf_id
-         */
-        post: operations["find_prefix_api_v1_find_prefix_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/schema/{table_name}": {
         parameters: {
             query?: never;
@@ -209,24 +50,6 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/device_inventory/{device_uuid}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Device Inventory By Device */
-        get: operations["read_device_inventory_by_device_api_v1_device_inventory__device_uuid__get"];
-        put?: never;
-        post?: never;
-        /** Delete Device Inventory By Device */
-        delete: operations["delete_device_inventory_by_device_api_v1_device_inventory__device_uuid__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -787,117 +610,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/devices": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get All */
-        get: operations["get_all_api_v1_devices_get"];
-        put?: never;
-        /** Create Item */
-        post: operations["create_item_api_v1_devices_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/devices/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_devices__item_id__get"];
-        /** Update Item */
-        put: operations["update_item_api_v1_devices__item_id__put"];
-        post?: never;
-        /** Delete Item */
-        delete: operations["delete_item_api_v1_devices__item_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/interfaces": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get All */
-        get: operations["get_all_api_v1_interfaces_get"];
-        put?: never;
-        /** Create Item */
-        post: operations["create_item_api_v1_interfaces_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/interfaces/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_interfaces__item_id__get"];
-        /** Update Item */
-        put: operations["update_item_api_v1_interfaces__item_id__put"];
-        post?: never;
-        /** Delete Item */
-        delete: operations["delete_item_api_v1_interfaces__item_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/device_inventory": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get All */
-        get: operations["get_all_api_v1_device_inventory_get"];
-        put?: never;
-        /** Create Item */
-        post: operations["create_item_api_v1_device_inventory_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/device_inventory/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_device_inventory__item_id__get"];
-        /** Update Item */
-        put: operations["update_item_api_v1_device_inventory__item_id__put"];
-        post?: never;
-        /** Delete Item */
-        delete: operations["delete_item_api_v1_device_inventory__item_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/asns": {
         parameters: {
             query?: never;
@@ -1241,11 +953,17 @@ export interface components {
          *         "allocation_source": "Internal"
          *       },
          *       "description": "RFC1918 Private Space",
+         *       "name": "RFC1918 Private Space",
          *       "prefix": "10.0.0.0/8",
-         *       "rir_id": 1
+         *       "rir_id": 1,
+         *       "slug": "rfc1918-private-space"
          *     }
          */
         AggregateCreate: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug?: string | null;
             /** Prefix */
             prefix: string;
             /** Rir Id */
@@ -1261,6 +979,10 @@ export interface components {
         };
         /** AggregateRead */
         AggregateRead: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug?: string | null;
             /** Prefix */
             prefix: string;
             /** Rir Id */
@@ -1285,6 +1007,10 @@ export interface components {
         };
         /** AggregateUpdate */
         AggregateUpdate: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug?: string | null;
             /** Prefix */
             prefix?: string | null;
             /** Rir Id */
@@ -1297,58 +1023,6 @@ export interface components {
             description?: string | null;
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
-        };
-        /**
-         * ConnectionDetails
-         * @description Response model for device connection details
-         */
-        ConnectionDetails: {
-            /** Device Id */
-            device_id: number;
-            /** Device Name */
-            device_name: string;
-            /** Ip Address */
-            ip_address: string;
-            /** Username */
-            username: string;
-            /** Password */
-            password: string;
-            /** Enable Password */
-            enable_password?: string | null;
-        };
-        /**
-         * Credential
-         * @description Stores authentication credentials for devices
-         */
-        Credential: {
-            /** Id */
-            id?: number | null;
-            /**
-             * Name
-             * @description Unique name for this credential set
-             */
-            name: string;
-            /**
-             * Username
-             * @description Username for authentication
-             */
-            username: string;
-            /**
-             * Password
-             * @description Password for authentication
-             */
-            password: string;
-            /**
-             * Enable Password
-             * @description Enable/privileged password
-             */
-            enable_password?: string | null;
-            /**
-             * Is Default
-             * @description Whether this is the default credential for new devices
-             * @default false
-             */
-            is_default: boolean;
         };
         /**
          * CredentialCreate
@@ -1417,211 +1091,6 @@ export interface components {
             /** Data */
             data?: Record<string, never> | null;
         };
-        /**
-         * DeviceConnectRequest
-         * @description Request model for device connection to webssh-rs
-         */
-        DeviceConnectRequest: {
-            /** Device Id */
-            device_id: number;
-            /** Session Id */
-            session_id: string;
-        };
-        /**
-         * DeviceCreate
-         * @example {
-         *       "credential_name": "global-creds",
-         *       "description": "Main core router for NYC site.",
-         *       "ip_address_id": 10,
-         *       "location_id": 1,
-         *       "name": "core-router-01",
-         *       "site_id": 1,
-         *       "tenant_id": 1
-         *     }
-         */
-        DeviceCreate: {
-            /**
-             * Name
-             * @description Name of the device
-             */
-            name: string;
-            /**
-             * Description
-             * @description Brief description
-             */
-            description?: string | null;
-            /** Tenant Id */
-            tenant_id?: number | null;
-            /** Site Id */
-            site_id?: number | null;
-            /** Location Id */
-            location_id?: number | null;
-            /** Ip Address Id */
-            ip_address_id?: number | null;
-            /** Credential Name */
-            credential_name?: string | null;
-            /** Fallback Credential Name */
-            fallback_credential_name?: string | null;
-        };
-        /**
-         * DeviceInventoryCreate
-         * @example {
-         *       "asset_tag": "PSUASSET1",
-         *       "custom_fields": {
-         *         "warranty_expires": "2026-01-15"
-         *       },
-         *       "description": "Primary power supply",
-         *       "device_id": 1,
-         *       "discovered": false,
-         *       "label": "PSU-1",
-         *       "manufacturer_id": 1,
-         *       "name": "Power Supply Unit 1",
-         *       "part_id": "PWR-C1-715WAC",
-         *       "serial": "PSU123456"
-         *     }
-         */
-        DeviceInventoryCreate: {
-            /** Device Id */
-            device_id: number;
-            /** Name */
-            name: string;
-            /** Label */
-            label?: string | null;
-            /** Manufacturer Id */
-            manufacturer_id?: number | null;
-            /** Serial */
-            serial?: string | null;
-            /** Asset Tag */
-            asset_tag?: string | null;
-            /**
-             * Discovered
-             * @default false
-             */
-            discovered: boolean;
-            /** Description */
-            description?: string | null;
-            /** Part Id */
-            part_id?: string | null;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
-        };
-        /** DeviceInventoryRead */
-        DeviceInventoryRead: {
-            /** Device Id */
-            device_id: number;
-            /** Name */
-            name: string;
-            /** Label */
-            label?: string | null;
-            /** Manufacturer Id */
-            manufacturer_id?: number | null;
-            /** Serial */
-            serial?: string | null;
-            /** Asset Tag */
-            asset_tag?: string | null;
-            /**
-             * Discovered
-             * @default false
-             */
-            discovered: boolean;
-            /** Description */
-            description?: string | null;
-            /** Part Id */
-            part_id?: string | null;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
-            /** Id */
-            id: number;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Updated At */
-            updated_at?: string | null;
-        };
-        /** DeviceInventoryUpdate */
-        DeviceInventoryUpdate: {
-            /** Device Id */
-            device_id?: number | null;
-            /** Name */
-            name?: string | null;
-            /** Label */
-            label?: string | null;
-            /** Manufacturer Id */
-            manufacturer_id?: number | null;
-            /** Serial */
-            serial?: string | null;
-            /** Asset Tag */
-            asset_tag?: string | null;
-            /** Discovered */
-            discovered?: boolean | null;
-            /** Description */
-            description?: string | null;
-            /** Part Id */
-            part_id?: string | null;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
-        };
-        /** DeviceRead */
-        DeviceRead: {
-            /**
-             * Name
-             * @description Name of the device
-             */
-            name?: string | null;
-            /**
-             * Description
-             * @description Brief description
-             */
-            description?: string | null;
-            /** Tenant Id */
-            tenant_id?: number | null;
-            /** Site Id */
-            site_id?: number | null;
-            /** Location Id */
-            location_id?: number | null;
-            /** Ip Address Id */
-            ip_address_id?: number | null;
-            /** Credential Name */
-            credential_name?: string | null;
-            /** Fallback Credential Name */
-            fallback_credential_name?: string | null;
-            /** Id */
-            id: number;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Updated At */
-            updated_at?: string | null;
-        };
-        /** DeviceUpdate */
-        DeviceUpdate: {
-            /**
-             * Name
-             * @description Name of the device
-             */
-            name?: string | null;
-            /**
-             * Description
-             * @description Brief description
-             */
-            description?: string | null;
-            /** Tenant Id */
-            tenant_id?: number | null;
-            /** Site Id */
-            site_id?: number | null;
-            /** Location Id */
-            location_id?: number | null;
-            /** Ip Address Id */
-            ip_address_id?: number | null;
-            /** Credential Name */
-            credential_name?: string | null;
-            /** Fallback Credential Name */
-            fallback_credential_name?: string | null;
-        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1647,6 +1116,8 @@ export interface components {
         IPAddressCreate: {
             /** Address */
             address: string;
+            /** Prefix Id */
+            prefix_id?: number | null;
             /** Vrf Id */
             vrf_id?: number | null;
             /** Tenant Id */
@@ -1670,6 +1141,8 @@ export interface components {
         IPAddressRead: {
             /** Address */
             address: string;
+            /** Prefix Id */
+            prefix_id?: number | null;
             /** Vrf Id */
             vrf_id?: number | null;
             /** Tenant Id */
@@ -1702,6 +1175,8 @@ export interface components {
         IPAddressUpdate: {
             /** Address */
             address?: string | null;
+            /** Prefix Id */
+            prefix_id?: number | null;
             /** Vrf Id */
             vrf_id?: number | null;
             /** Tenant Id */
@@ -1740,6 +1215,10 @@ export interface components {
          *     }
          */
         IPRangeCreate: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
             /** Start Address */
             start_address: string;
             /** End Address */
@@ -1765,6 +1244,10 @@ export interface components {
         };
         /** IPRangeRead */
         IPRangeRead: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
             /** Start Address */
             start_address: string;
             /** End Address */
@@ -1799,6 +1282,10 @@ export interface components {
         };
         /** IPRangeUpdate */
         IPRangeUpdate: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
             /** Start Address */
             start_address?: string | null;
             /** End Address */
@@ -1823,185 +1310,11 @@ export interface components {
             custom_fields?: Record<string, never> | null;
         };
         /**
-         * InterfaceCreate
-         * @example {
-         *       "custom_fields": {
-         *         "circuit_id": "CIRCUIT-XYZ"
-         *       },
-         *       "description": "Primary ISP connection",
-         *       "device_id": 1,
-         *       "enabled": true,
-         *       "label": "Uplink to ISP",
-         *       "mac_address": "00:11:22:33:44:55",
-         *       "mark_connected": false,
-         *       "mgmt_only": false,
-         *       "mode": "tagged",
-         *       "mtu": 1500,
-         *       "name": "GigabitEthernet0/1",
-         *       "type": "1000base-t"
-         *     }
-         */
-        InterfaceCreate: {
-            /** Device Id */
-            device_id: number;
-            /** Name */
-            name: string;
-            /** Label */
-            label?: string | null;
-            /** Type */
-            type: string;
-            /**
-             * Enabled
-             * @default true
-             */
-            enabled: boolean;
-            /** Parent Id */
-            parent_id?: number | null;
-            /** Mtu */
-            mtu?: number | null;
-            /** Mac Address */
-            mac_address?: string | null;
-            /** Wwn */
-            wwn?: string | null;
-            /**
-             * Mgmt Only
-             * @default false
-             */
-            mgmt_only: boolean;
-            /** Description */
-            description?: string | null;
-            /** Mode */
-            mode?: string | null;
-            /** Rf Role */
-            rf_role?: string | null;
-            /** Rf Channel */
-            rf_channel?: string | null;
-            /** Rf Channel Frequency */
-            rf_channel_frequency?: number | null;
-            /** Rf Channel Width */
-            rf_channel_width?: number | null;
-            /** Tx Power */
-            tx_power?: number | null;
-            /** Untagged Vlan Id */
-            untagged_vlan_id?: number | null;
-            /**
-             * Mark Connected
-             * @default false
-             */
-            mark_connected: boolean;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
-        };
-        /** InterfaceRead */
-        InterfaceRead: {
-            /** Device Id */
-            device_id: number;
-            /** Name */
-            name: string;
-            /** Label */
-            label?: string | null;
-            /** Type */
-            type: string;
-            /**
-             * Enabled
-             * @default true
-             */
-            enabled: boolean;
-            /** Parent Id */
-            parent_id?: number | null;
-            /** Mtu */
-            mtu?: number | null;
-            /** Mac Address */
-            mac_address?: string | null;
-            /** Wwn */
-            wwn?: string | null;
-            /**
-             * Mgmt Only
-             * @default false
-             */
-            mgmt_only: boolean;
-            /** Description */
-            description?: string | null;
-            /** Mode */
-            mode?: string | null;
-            /** Rf Role */
-            rf_role?: string | null;
-            /** Rf Channel */
-            rf_channel?: string | null;
-            /** Rf Channel Frequency */
-            rf_channel_frequency?: number | null;
-            /** Rf Channel Width */
-            rf_channel_width?: number | null;
-            /** Tx Power */
-            tx_power?: number | null;
-            /** Untagged Vlan Id */
-            untagged_vlan_id?: number | null;
-            /**
-             * Mark Connected
-             * @default false
-             */
-            mark_connected: boolean;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
-            /** Id */
-            id: number;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Updated At */
-            updated_at?: string | null;
-        };
-        /** InterfaceUpdate */
-        InterfaceUpdate: {
-            /** Device Id */
-            device_id?: number | null;
-            /** Name */
-            name?: string | null;
-            /** Label */
-            label?: string | null;
-            /** Type */
-            type?: string | null;
-            /** Enabled */
-            enabled?: boolean | null;
-            /** Parent Id */
-            parent_id?: number | null;
-            /** Mtu */
-            mtu?: number | null;
-            /** Mac Address */
-            mac_address?: string | null;
-            /** Wwn */
-            wwn?: string | null;
-            /** Mgmt Only */
-            mgmt_only?: boolean | null;
-            /** Description */
-            description?: string | null;
-            /** Mode */
-            mode?: string | null;
-            /** Rf Role */
-            rf_role?: string | null;
-            /** Rf Channel */
-            rf_channel?: string | null;
-            /** Rf Channel Frequency */
-            rf_channel_frequency?: number | null;
-            /** Rf Channel Width */
-            rf_channel_width?: number | null;
-            /** Tx Power */
-            tx_power?: number | null;
-            /** Untagged Vlan Id */
-            untagged_vlan_id?: number | null;
-            /** Mark Connected */
-            mark_connected?: boolean | null;
-            /** Custom Fields */
-            custom_fields?: Record<string, never> | null;
-        };
-        /**
          * LocationCreate
          * @example {
          *       "description": "Main server cage",
          *       "name": "Cage 101, Row B",
-         *       "site_id": 1,
+         *       "site_id": "123e4567-e89b-12d3-a456-426614174000",
          *       "slug": "cage-101-row-b"
          *     }
          */
@@ -2010,14 +1323,17 @@ export interface components {
             name: string;
             /** Slug */
             slug?: string | null;
-            /** Site Id */
-            site_id: number;
+            /**
+             * Site Id
+             * Format: uuid
+             */
+            site_id: string;
             /** Parent Id */
-            parent_id?: number | null;
+            parent_id?: string | null;
             /** Description */
             description?: string | null;
             /** Tenant Id */
-            tenant_id?: number | null;
+            tenant_id?: string | null;
         };
         /** LocationRead */
         LocationRead: {
@@ -2025,16 +1341,22 @@ export interface components {
             name: string;
             /** Slug */
             slug?: string | null;
-            /** Site Id */
-            site_id: number;
+            /**
+             * Site Id
+             * Format: uuid
+             */
+            site_id: string;
             /** Parent Id */
-            parent_id?: number | null;
+            parent_id?: string | null;
             /** Description */
             description?: string | null;
             /** Tenant Id */
-            tenant_id?: number | null;
-            /** Id */
-            id: number;
+            tenant_id?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
         };
         /** LocationUpdate */
         LocationUpdate: {
@@ -2043,13 +1365,13 @@ export interface components {
             /** Slug */
             slug?: string | null;
             /** Site Id */
-            site_id?: number | null;
+            site_id?: string | null;
             /** Parent Id */
-            parent_id?: number | null;
+            parent_id?: string | null;
             /** Description */
             description?: string | null;
             /** Tenant Id */
-            tenant_id?: number | null;
+            tenant_id?: string | null;
         };
         /**
          * NetJobCreate
@@ -2328,28 +1650,6 @@ export interface components {
             /** Size */
             size: number;
         };
-        /** PaginatedResponse[DeviceInventoryRead] */
-        PaginatedResponse_DeviceInventoryRead_: {
-            /** Items */
-            items: components["schemas"]["DeviceInventoryRead"][];
-            /** Total */
-            total: number;
-            /** Page */
-            page: number;
-            /** Size */
-            size: number;
-        };
-        /** PaginatedResponse[DeviceRead] */
-        PaginatedResponse_DeviceRead_: {
-            /** Items */
-            items: components["schemas"]["DeviceRead"][];
-            /** Total */
-            total: number;
-            /** Page */
-            page: number;
-            /** Size */
-            size: number;
-        };
         /** PaginatedResponse[IPAddressRead] */
         PaginatedResponse_IPAddressRead_: {
             /** Items */
@@ -2365,17 +1665,6 @@ export interface components {
         PaginatedResponse_IPRangeRead_: {
             /** Items */
             items: components["schemas"]["IPRangeRead"][];
-            /** Total */
-            total: number;
-            /** Page */
-            page: number;
-            /** Size */
-            size: number;
-        };
-        /** PaginatedResponse[InterfaceRead] */
-        PaginatedResponse_InterfaceRead_: {
-            /** Items */
-            items: components["schemas"]["InterfaceRead"][];
             /** Total */
             total: number;
             /** Page */
@@ -2658,22 +1947,6 @@ export interface components {
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
         };
-        /** PrefixLookupRequest */
-        PrefixLookupRequest: {
-            /** Ip */
-            ip: string;
-            /** Vrf Id */
-            vrf_id?: number | null;
-        };
-        /** PrefixLookupResponse */
-        PrefixLookupResponse: {
-            /** Prefix Id */
-            prefix_id: number;
-            /** Prefix */
-            prefix: string;
-            /** Vrf Id */
-            vrf_id?: number | null;
-        };
         /** PrefixRead */
         PrefixRead: {
             /** Prefix */
@@ -2795,7 +2068,7 @@ export interface components {
         /**
          * RegionCreate
          * @example {
-         *       "description": "North American region",
+         *       "description": "North American Region",
          *       "name": "North America",
          *       "slug": "north-america"
          *     }
@@ -2808,7 +2081,7 @@ export interface components {
             /** Description */
             description?: string | null;
             /** Parent Id */
-            parent_id?: number | null;
+            parent_id?: string | null;
         };
         /** RegionRead */
         RegionRead: {
@@ -2819,9 +2092,19 @@ export interface components {
             /** Description */
             description?: string | null;
             /** Parent Id */
-            parent_id?: number | null;
-            /** Id */
-            id: number;
+            parent_id?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** RegionUpdate */
         RegionUpdate: {
@@ -2832,7 +2115,7 @@ export interface components {
             /** Description */
             description?: string | null;
             /** Parent Id */
-            parent_id?: number | null;
+            parent_id?: string | null;
         };
         /**
          * RoleCreate
@@ -2909,26 +2192,11 @@ export interface components {
         /**
          * SiteCreate
          * @example {
-         *       "asn_id": 1,
-         *       "comments": "Access via main entrance only.",
-         *       "contact_email": "manager.nyc1@example.com",
-         *       "contact_name": "Site Manager",
-         *       "contact_phone": "+1-212-555-1212",
-         *       "custom_fields": {
-         *         "security_level": "High"
-         *       },
-         *       "description": "Primary NYC data center",
-         *       "facility": "Equinix NYC1",
-         *       "latitude": 40.7128,
-         *       "longitude": -74.006,
-         *       "name": "NYC Data Center 01",
-         *       "physical_address": "123 Main St, New York, NY 10001",
-         *       "region_id": 1,
-         *       "shipping_address": "456 Loading Dock Ave, New York, NY 10002",
-         *       "site_group_id": 1,
-         *       "slug": "nyc-dc-01",
-         *       "status": "active",
-         *       "time_zone": "America/New_York"
+         *       "description": "Main office location",
+         *       "name": "Main Office",
+         *       "region_id": "123e4567-e89b-12d3-a456-426614174000",
+         *       "slug": "main-office",
+         *       "status": "active"
          *     }
          */
         SiteCreate: {
@@ -2939,15 +2207,15 @@ export interface components {
             /** Status */
             status: string;
             /** Region Id */
-            region_id?: number | null;
+            region_id?: string | null;
             /** Site Group Id */
-            site_group_id?: number | null;
+            site_group_id?: string | null;
             /** Tenant Id */
-            tenant_id?: number | null;
+            tenant_id?: string | null;
             /** Facility */
             facility?: string | null;
             /** Asn Id */
-            asn_id?: number | null;
+            asn_id?: string | null;
             /** Time Zone */
             time_zone?: string | null;
             /** Description */
@@ -2987,7 +2255,7 @@ export interface components {
             /** Description */
             description?: string | null;
             /** Parent Id */
-            parent_id?: number | null;
+            parent_id?: string | null;
         };
         /** SiteGroupRead */
         SiteGroupRead: {
@@ -2998,9 +2266,12 @@ export interface components {
             /** Description */
             description?: string | null;
             /** Parent Id */
-            parent_id?: number | null;
-            /** Id */
-            id: number;
+            parent_id?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
         };
         /** SiteGroupUpdate */
         SiteGroupUpdate: {
@@ -3011,7 +2282,7 @@ export interface components {
             /** Description */
             description?: string | null;
             /** Parent Id */
-            parent_id?: number | null;
+            parent_id?: string | null;
         };
         /** SiteRead */
         SiteRead: {
@@ -3022,15 +2293,15 @@ export interface components {
             /** Status */
             status: string;
             /** Region Id */
-            region_id?: number | null;
+            region_id?: string | null;
             /** Site Group Id */
-            site_group_id?: number | null;
+            site_group_id?: string | null;
             /** Tenant Id */
-            tenant_id?: number | null;
+            tenant_id?: string | null;
             /** Facility */
             facility?: string | null;
             /** Asn Id */
-            asn_id?: number | null;
+            asn_id?: string | null;
             /** Time Zone */
             time_zone?: string | null;
             /** Description */
@@ -3053,8 +2324,11 @@ export interface components {
             comments?: string | null;
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
-            /** Id */
-            id: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
             /**
              * Created At
              * Format: date-time
@@ -3072,15 +2346,15 @@ export interface components {
             /** Status */
             status?: string | null;
             /** Region Id */
-            region_id?: number | null;
+            region_id?: string | null;
             /** Site Group Id */
-            site_group_id?: number | null;
+            site_group_id?: string | null;
             /** Tenant Id */
-            tenant_id?: number | null;
+            tenant_id?: string | null;
             /** Facility */
             facility?: string | null;
             /** Asn Id */
-            asn_id?: number | null;
+            asn_id?: string | null;
             /** Time Zone */
             time_zone?: string | null;
             /** Description */
@@ -3140,8 +2414,11 @@ export interface components {
             comments?: string | null;
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
-            /** Id */
-            id: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
             /**
              * Created At
              * Format: date-time
@@ -3211,7 +2488,8 @@ export interface components {
          *       "name": "NYC Office VLANs",
          *       "scope_id": 1,
          *       "scope_type": "site",
-         *       "slug": "nyc-office-vlans"
+         *       "slug": "nyc-office-vlans",
+         *       "vlan_id_ranges": "10-20,30-40,50-60"
          *     }
          */
         VLANGroupCreate: {
@@ -3227,6 +2505,11 @@ export interface components {
             min_vid?: number | null;
             /** Max Vid */
             max_vid?: number | null;
+            /**
+             * Vlan Id Ranges
+             * @description VLAN ID ranges in format like '1-20,60-90'
+             */
+            vlan_id_ranges?: string | null;
             /** Description */
             description?: string | null;
         };
@@ -3244,6 +2527,11 @@ export interface components {
             min_vid?: number | null;
             /** Max Vid */
             max_vid?: number | null;
+            /**
+             * Vlan Id Ranges
+             * @description VLAN ID ranges in format like '1-20,60-90'
+             */
+            vlan_id_ranges?: string | null;
             /** Description */
             description?: string | null;
             /** Id */
@@ -3270,6 +2558,8 @@ export interface components {
             min_vid?: number | null;
             /** Max Vid */
             max_vid?: number | null;
+            /** Vlan Id Ranges */
+            vlan_id_ranges?: string | null;
             /** Description */
             description?: string | null;
         };
@@ -3417,315 +2707,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    read_credentials_api_v1_credentials__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Credential"][];
-                };
-            };
-        };
-    };
-    create_credential_api_v1_credentials__post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Credential"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Credential"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_credential_api_v1_credentials__name__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Credential"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_credential_api_v1_credentials__name__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Credential"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Credential"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_credential_api_v1_credentials__name__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_device_connection_details_api_v1_devices__device_id__connection_details_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                device_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ConnectionDetails"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    connect_to_device_api_v1_devices_connect_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceConnectRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_prefix_hierarchy_api_v1_prefixes_hierarchy_get: {
-        parameters: {
-            query?: {
-                vrf_id?: number | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_prefix_utilization_api_v1_prefixes__prefix_id__utilization_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                prefix_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    find_prefix_api_v1_find_prefix_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PrefixLookupRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PrefixLookupResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_table_schema_api_v1_schema__table_name__get: {
         parameters: {
             query?: never;
@@ -3807,68 +2788,6 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
-                };
-            };
-        };
-    };
-    read_device_inventory_by_device_api_v1_device_inventory__device_uuid__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                device_uuid: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceInventoryRead"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_device_inventory_by_device_api_v1_device_inventory__device_uuid__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                device_uuid: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": Record<string, never>;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -3972,7 +2891,11 @@ export interface operations {
     };
     update_item_api_v1_regions__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -4007,7 +2930,10 @@ export interface operations {
     };
     delete_item_api_v1_regions__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -4133,7 +3059,11 @@ export interface operations {
     };
     update_item_api_v1_site_groups__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -4168,7 +3098,10 @@ export interface operations {
     };
     delete_item_api_v1_site_groups__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -4294,7 +3227,11 @@ export interface operations {
     };
     update_item_api_v1_sites__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -4329,7 +3266,10 @@ export interface operations {
     };
     delete_item_api_v1_sites__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -4455,7 +3395,11 @@ export interface operations {
     };
     update_item_api_v1_locations__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -4490,7 +3434,10 @@ export interface operations {
     };
     delete_item_api_v1_locations__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -4616,7 +3563,11 @@ export interface operations {
     };
     update_item_api_v1_rirs__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -4651,7 +3602,10 @@ export interface operations {
     };
     delete_item_api_v1_rirs__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -4777,7 +3731,11 @@ export interface operations {
     };
     update_item_api_v1_aggregates__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -4812,7 +3770,10 @@ export interface operations {
     };
     delete_item_api_v1_aggregates__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -4938,7 +3899,11 @@ export interface operations {
     };
     update_item_api_v1_vrfs__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -4973,7 +3938,10 @@ export interface operations {
     };
     delete_item_api_v1_vrfs__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -5099,7 +4067,11 @@ export interface operations {
     };
     update_item_api_v1_route_targets__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -5134,7 +4106,10 @@ export interface operations {
     };
     delete_item_api_v1_route_targets__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -5260,7 +4235,11 @@ export interface operations {
     };
     update_item_api_v1_roles__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -5295,7 +4274,10 @@ export interface operations {
     };
     delete_item_api_v1_roles__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -5421,7 +4403,11 @@ export interface operations {
     };
     update_item_api_v1_prefixes__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -5456,7 +4442,10 @@ export interface operations {
     };
     delete_item_api_v1_prefixes__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -5582,7 +4571,11 @@ export interface operations {
     };
     update_item_api_v1_ip_ranges__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -5617,7 +4610,10 @@ export interface operations {
     };
     delete_item_api_v1_ip_ranges__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -5743,7 +4739,11 @@ export interface operations {
     };
     update_item_api_v1_ip_addresses__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -5778,7 +4778,10 @@ export interface operations {
     };
     delete_item_api_v1_ip_addresses__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -5904,7 +4907,11 @@ export interface operations {
     };
     update_item_api_v1_vlans__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -5939,7 +4946,10 @@ export interface operations {
     };
     delete_item_api_v1_vlans__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -6065,7 +5075,11 @@ export interface operations {
     };
     update_item_api_v1_vlan_groups__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -6100,7 +5114,10 @@ export interface operations {
     };
     delete_item_api_v1_vlan_groups__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -6226,7 +5243,11 @@ export interface operations {
     };
     update_item_api_v1_tenants__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -6261,490 +5282,10 @@ export interface operations {
     };
     delete_item_api_v1_tenants__item_id__delete: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_all_api_v1_devices_get: {
-        parameters: {
             query?: {
-                skip?: number;
-                limit?: number;
-                search?: string | null;
+                current_crud_instance?: unknown;
+                current_path?: string;
             };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_DeviceRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_item_api_v1_devices_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_one_api_v1_devices__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_item_api_v1_devices__item_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_item_api_v1_devices__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_all_api_v1_interfaces_get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-                search?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_InterfaceRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_item_api_v1_interfaces_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InterfaceCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InterfaceRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_one_api_v1_interfaces__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InterfaceRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_item_api_v1_interfaces__item_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InterfaceUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InterfaceRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_item_api_v1_interfaces__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_all_api_v1_device_inventory_get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-                search?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_DeviceInventoryRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_item_api_v1_device_inventory_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceInventoryCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceInventoryRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_one_api_v1_device_inventory__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceInventoryRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_item_api_v1_device_inventory__item_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceInventoryUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceInventoryRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_item_api_v1_device_inventory__item_id__delete: {
-        parameters: {
-            query?: never;
             header?: never;
             path: {
                 item_id: number;
@@ -6870,7 +5411,11 @@ export interface operations {
     };
     update_item_api_v1_asns__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -6905,7 +5450,10 @@ export interface operations {
     };
     delete_item_api_v1_asns__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -7031,7 +5579,11 @@ export interface operations {
     };
     update_item_api_v1_asn_ranges__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -7066,7 +5618,10 @@ export interface operations {
     };
     delete_item_api_v1_asn_ranges__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -7192,7 +5747,11 @@ export interface operations {
     };
     update_item_api_v1_credentials__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -7227,7 +5786,10 @@ export interface operations {
     };
     delete_item_api_v1_credentials__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -7353,7 +5915,11 @@ export interface operations {
     };
     update_item_api_v1_platform_types__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -7388,7 +5954,10 @@ export interface operations {
     };
     delete_item_api_v1_platform_types__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -7514,7 +6083,11 @@ export interface operations {
     };
     update_item_api_v1_net_jobs__item_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
             header?: never;
             path: {
                 item_id: number;
@@ -7549,7 +6122,10 @@ export interface operations {
     };
     delete_item_api_v1_net_jobs__item_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
             header?: never;
             path: {
                 item_id: number;

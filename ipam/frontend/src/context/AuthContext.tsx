@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { apiClient } from '../api/client';
+import axios from 'axios';
 
 export interface User {
     id: string;
@@ -93,7 +94,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await apiClient.post('/api/v1/auth/login', { username, password });
+            // Using absolute URL to bypass baseURL
+            const response = await axios.post('/api/v1/auth/login', { username, password });
             const { access_token, user_id, tenant_id } = response.data;
 
             // Store token
@@ -124,8 +126,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const refreshUser = async () => {
         setIsLoading(true);
         try {
-            // Get user information
-            const response = await apiClient.get('/api/v1/auth/me');
+            // Using absolute URL to bypass baseURL
+            const response = await axios.get('/api/v1/auth/me');
             setUser(response.data);
             setIsAuthenticated(true);
         } catch (err) {

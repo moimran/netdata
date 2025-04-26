@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { apiClient } from '../api/client';
+import axios from 'axios';
 
 export interface Tenant {
     id: string;
@@ -45,11 +46,11 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
         setIsLoading(true);
         setError(null);
         try {
-            // Get user's tenant from auth endpoint
-            const userResponse = await apiClient.get('/api/v1/auth/me');
+            // Get user's tenant from auth endpoint - using absolute URL
+            const userResponse = await axios.get('/api/v1/auth/me');
 
             // Get all available tenants (for superusers) or just the user's tenant
-            const tenantsResponse = await apiClient.get('/api/v1/tenants/');
+            const tenantsResponse = await apiClient.get('tenants/');
 
             // Set available tenants
             setAvailableTenants(tenantsResponse.data);

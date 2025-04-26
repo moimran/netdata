@@ -24,7 +24,10 @@ export type TableName =
   | 'site_groups'
   | 'locations'
   | 'asn_ranges'
-  | 'device_inventory';
+  | 'device_inventory'
+  | 'platform_types'
+  | 'net_jobs'
+  | 'arp_table';
 
 export interface TableSchema {
   columns: Array<{

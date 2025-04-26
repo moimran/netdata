@@ -22,6 +22,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
     { name: 'slug', type: 'string' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants' },
     { name: 'description', type: 'string' }
   ],
   sites: [
@@ -31,6 +32,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'status', type: 'string', required: true },
     { name: 'region_id', type: 'number', reference: 'regions' },
     { name: 'site_group_id', type: 'number', reference: 'site_groups' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants', required: true },
     { name: 'description', type: 'string' }
   ],
   locations: [
@@ -45,22 +47,21 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
   vlans: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string' },
+    { name: 'slug', type: 'string', required: true },
     { name: 'vid', type: 'number', required: true },
     { name: 'status', type: 'string', required: true },
-    { name: 'group_id', type: 'number', reference: 'vlan_groups' },
-    { name: 'tenant_id', type: 'number', reference: 'tenants' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants', required: true },
     { name: 'site_id', type: 'number', reference: 'sites' },
-    { name: 'role_id', type: 'number', reference: 'roles' },
-    { name: 'description', type: 'string' }
+    { name: 'group_id', type: 'number', reference: 'vlan_groups' },
+    { name: 'role_id', type: 'number', reference: 'roles' }
   ],
   vlan_groups: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string' },
+    { name: 'min_vid', type: 'number', required: true },
+    { name: 'max_vid', type: 'number', required: true },
     { name: 'description', type: 'string' },
-    { name: 'vlan_id_ranges', type: 'string' }
-    // min_vid and max_vid are still stored in the database but not shown in the table
+    { name: 'site_id', type: 'number', reference: 'sites' }
   ],
   vrfs: [
     { name: 'id', type: 'number' },
@@ -68,7 +69,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'rd', type: 'string' },
     { name: 'description', type: 'string' },
     { name: 'enforce_unique', type: 'boolean' },
-    { name: 'tenant_id', type: 'number', reference: 'tenants' }
+    { name: 'tenant_id', type: 'number', reference: 'tenants', required: true }
   ],
   route_targets: [
     { name: 'id', type: 'number', width: 80 },
@@ -87,6 +88,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'name', type: 'string', required: true },
     { name: 'prefix', type: 'string', required: true },
     { name: 'rir_id', type: 'number', reference: 'rirs' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants' },
     { name: 'description', type: 'string' }
   ],
   roles: [
@@ -101,7 +103,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'vrf_id', type: 'number', reference: 'vrfs' },
     { name: 'site_id', type: 'number', reference: 'sites' },
     { name: 'vlan_id', type: 'number', reference: 'vlans' },
-    { name: 'tenant_id', type: 'number', reference: 'tenants' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants', required: true },
     { name: 'role_id', type: 'number', reference: 'roles' },
     { name: 'status', type: 'string', required: true },
     { name: 'is_pool', type: 'boolean' },
@@ -115,7 +117,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'start_address', type: 'string', required: true },
     { name: 'end_address', type: 'string', required: true },
     { name: 'vrf_id', type: 'number', reference: 'vrfs' },
-    { name: 'tenant_id', type: 'number', reference: 'tenants' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants', required: true },
     { name: 'status', type: 'string', required: true },
     { name: 'description', type: 'string' }
   ],
@@ -126,18 +128,32 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'role', type: 'string' },
     { name: 'dns_name', type: 'string' },
     { name: 'vrf_id', type: 'number', reference: 'vrfs' },
-    { name: 'tenant_id', type: 'number', reference: 'tenants' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants', required: true },
     { name: 'nat_inside_id', type: 'number', reference: 'ip_addresses' },
     { name: 'prefix_id', type: 'number', reference: 'prefixes' },
     { name: 'description', type: 'string' }
   ],
   interfaces: [
     { name: 'id', type: 'number' },
-    { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string' },
-    { name: 'description', type: 'string' },
-    { name: 'device_id', type: 'number', reference: 'devices' },
-    { name: 'ip_address_id', type: 'number', reference: 'ip_addresses' }
+    { name: 'interface_name', type: 'string', required: true },
+    { name: 'interface_status', type: 'string' },
+    { name: 'protocol_status', type: 'string' },
+    { name: 'operational_mode', type: 'string' },
+    { name: 'administrative_mode', type: 'string' },
+    { name: 'hardware_type', type: 'string', required: true },
+    { name: 'mac_address', type: 'string', required: true },
+    { name: 'bia', type: 'string', required: true },
+    { name: 'media_type', type: 'string' },
+    { name: 'ipv4_address', type: 'string' },
+    { name: 'subnet_mask', type: 'string' },
+    { name: 'ipv6_address', type: 'string' },
+    { name: 'virtual_ipv4_address', type: 'string' },
+    { name: 'mtu', type: 'string' },
+    { name: 'duplex', type: 'string' },
+    { name: 'speed', type: 'string' },
+    { name: 'bandwidth', type: 'string' },
+    { name: 'device_id', type: 'string', reference: 'device_inventory' },
+    { name: 'vrf_id', type: 'number', reference: 'vrfs' }
   ],
   asns: [
     { name: 'id', type: 'number' },
@@ -145,7 +161,8 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'name', type: 'string', required: true },
     { name: 'slug', type: 'string' },
     { name: 'description', type: 'string' },
-    { name: 'rir_id', type: 'number', reference: 'rirs' }
+    { name: 'rir_id', type: 'number', reference: 'rirs' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants', required: true }
   ],
   asn_ranges: [
     { name: 'id', type: 'number' },
@@ -154,6 +171,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'start', type: 'number', required: true },
     { name: 'end', type: 'number', required: true },
     { name: 'rir_id', type: 'number', reference: 'rirs' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants', required: true },
     { name: 'description', type: 'string' }
   ],
   tenants: [
@@ -172,19 +190,25 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
 
   // Add definition for device_inventory
   device_inventory: [
-    { name: 'time', type: 'datetime' }, // Use datetime type
-    { name: 'device_uuid', type: 'string', width: 300 }, // Treat UUID as string
+    { name: 'id', type: 'number' },
     { name: 'hostname', type: 'string' },
-    { name: 'platform_type_id', type: 'number', header: 'Platform Type ID' }, // Added
+    { name: 'platform_type_id', type: 'number', reference: 'platform_types' },
+    { name: 'connection_type', type: 'string' },
+    { name: 'management_ip', type: 'string' },
     { name: 'release', type: 'string' },
-    { name: 'running_image', type: 'string' },
     { name: 'version', type: 'string' },
-    { name: 'restarted', type: 'datetime' }, // Added
-    { name: 'reload_reason', type: 'string' }, // Added
-    { name: 'rommon', type: 'string' }, // Added
-    { name: 'serial', type: 'string' }, // Added (Assuming string for now, might need adjustment for Array)
-    { name: 'software_image', type: 'string' }, // Added
-    // Note: More fields like serial, mac, uptime, config_register, hardware could be added later or handled with custom renderers
+    { name: 'running_image', type: 'string' },
+    { name: 'restarted', type: 'datetime' },
+    { name: 'reload_reason', type: 'string' },
+    { name: 'uptime_years', type: 'number' },
+    { name: 'uptime_weeks', type: 'number' },
+    { name: 'uptime_days', type: 'number' },
+    { name: 'uptime_hours', type: 'number' },
+    { name: 'uptime_minutes', type: 'number' },
+    { name: 'ssh_handshake_time', type: 'number' },
+    { name: 'site_id', type: 'number', reference: 'sites' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants', required: true },
+    { name: 'location_id', type: 'number', reference: 'locations' }
   ],
 
   // Add missing table schemas
@@ -193,7 +217,7 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'name', type: 'string', required: true },
     { name: 'site_id', type: 'number', reference: 'sites' },
     { name: 'location_id', type: 'number', reference: 'locations' },
-    { name: 'tenant_id', type: 'number', reference: 'tenants' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants', required: true },
     { name: 'status', type: 'string', required: true },
     { name: 'description', type: 'string' }
   ],
@@ -206,7 +230,8 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'last_name', type: 'string' },
     { name: 'is_active', type: 'boolean' },
     { name: 'is_staff', type: 'boolean' },
-    { name: 'is_superuser', type: 'boolean' }
+    { name: 'is_superuser', type: 'boolean' },
+    { name: 'tenant_id', type: 'number', reference: 'tenants' }
   ],
 
   arp_table: [
@@ -223,5 +248,32 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'device_id', type: 'string', reference: 'device_inventory', width: 200 },
     { name: 'created_at', type: 'datetime', width: 180 },
     { name: 'updated_at', type: 'datetime', width: 180 }
+  ],
+
+  platform_types: [
+    { name: 'id', type: 'number' },
+    { name: 'vendor', type: 'string' },
+    { name: 'slug', type: 'string' },
+    { name: 'platform_signature', type: 'string' },
+    { name: 'platform_type', type: 'string', required: true },
+    { name: 'command', type: 'string' },
+    { name: 'ignore_platform', type: 'boolean' }
+  ],
+
+  net_jobs: [
+    { name: 'id', type: 'number' },
+    { name: 'name', type: 'string', required: true },
+    { name: 'slug', type: 'string' },
+    { name: 'job_uuid', type: 'string' },
+    { name: 'platform_type_id', type: 'number', reference: 'platform_types' },
+    { name: 'command_list', type: 'array' },
+    { name: 'is_scheduled', type: 'boolean' },
+    { name: 'next_run', type: 'datetime' },
+    { name: 'last_run', type: 'datetime' },
+    { name: 'connection_protocol', type: 'string' },
+    { name: 'connection_library', type: 'string' },
+    { name: 'is_encrypted', type: 'boolean' },
+    { name: 'is_parse', type: 'boolean' },
+    { name: 'status', type: 'string' }
   ]
 };

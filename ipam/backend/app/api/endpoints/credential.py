@@ -4,7 +4,6 @@ from sqlmodel import Session, select
 
 from app.database import get_session
 from app.models.credential import Credential
-from app.models.device import Device
 
 router = APIRouter()
 
@@ -54,20 +53,6 @@ def delete_credential(name: str, session: Session = Depends(get_session)):
     credential = session.exec(select(Credential).where(Credential.name == name)).first()
     if not credential:
         raise HTTPException(status_code=404, detail="Credential not found")
-    
-    # Check if credential is in use
-    devices = session.exec(
-        select(Device).where(
-            (Device.credential_name == name) | 
-            (Device.fallback_credential_name == name)
-        )
-    ).all()
-    
-    if devices:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot delete credential - it is in use by devices"
-        )
     
     session.delete(credential)
     session.commit()

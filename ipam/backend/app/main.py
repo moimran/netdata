@@ -44,7 +44,17 @@ app.add_exception_handler(RequestValidationError, cast(Any, validation_exception
 app.add_exception_handler(Exception, cast(Any, general_exception_handler))
 
 # Include the API router
-app.include_router(router)
+app.include_router(router, prefix="/api/v1")
+
+# Include auth router directly with explicit error handling
+try:
+    from app.api.endpoints.auth import router as auth_router
+    app.include_router(auth_router, prefix="/api/v1/auth")
+    logger.info("Auth router registered directly in main.py")
+except ImportError as e:
+    # Log the error but don't let it stop the application
+    logger.error(f"Failed to import auth router: {e}")
+    logger.info("Application will continue without authentication endpoints")
 
 # Set up Row-Level Security (RLS) for PostgreSQL
 def setup_row_level_security():

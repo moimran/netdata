@@ -94,7 +94,7 @@ export function useAddVRFRouteTargets(vrfId: string | number | undefined, type: 
       const currentVRF = await queryClient.fetchQuery<VRFReadWithTargets>({ 
         queryKey: ['vrfs', vrfId],
         queryFn: async () => { // Provide the actual fetch logic
-          const response = await apiClient.get(`/api/v1/vrfs/${vrfId}`);
+          const response = await apiClient.get(`/vrfs/${vrfId}`);
           return response.data;
         },
         staleTime: 0 // Ensure fresh data is fetched for the mutation
@@ -116,7 +116,7 @@ export function useAddVRFRouteTargets(vrfId: string | number | undefined, type: 
         : { export_target_ids: uniqueNewTargetIds };
 
       // 4. Send PUT request
-      const response = await apiClient.put(`/api/v1/vrfs/${vrfId}`, payload);
+      const response = await apiClient.put(`/vrfs/${vrfId}`, payload);
       return response.data; // This will be the updated VRF object
     },
     onSuccess: (updatedVRF) => { // Data returned by mutationFn is passed here
@@ -145,7 +145,7 @@ export function useRemoveVRFRouteTarget(vrfId: string | number | undefined, type
       const currentVRF = await queryClient.fetchQuery<VRFReadWithTargets>({ 
         queryKey: ['vrfs', vrfId],
         queryFn: async () => { 
-          const response = await apiClient.get(`/api/v1/vrfs/${vrfId}`);
+          const response = await apiClient.get(`/vrfs/${vrfId}`);
           return response.data;
         },
         staleTime: 0
@@ -166,7 +166,7 @@ export function useRemoveVRFRouteTarget(vrfId: string | number | undefined, type
         : { export_target_ids: updatedTargetIds };
 
       // 4. Send PUT request
-      const response = await apiClient.put(`/api/v1/vrfs/${vrfId}`, payload);
+      const response = await apiClient.put(`/vrfs/${vrfId}`, payload);
       return response.data; // Return updated VRF
     },
     onSuccess: (updatedVRF) => { // Use the 'type' argument from the hook's scope

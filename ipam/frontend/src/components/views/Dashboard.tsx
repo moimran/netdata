@@ -11,7 +11,7 @@ export function Dashboard() {
   const { data: prefixes = [], isLoading: prefixesLoading } = useQuery({
     queryKey: ['prefixes'],
     queryFn: async () => {
-      const response = await apiClient.get('/prefixes');
+      const response = await apiClient.get('prefixes');
       return response.data;
     }
   });
@@ -19,7 +19,7 @@ export function Dashboard() {
   const { data: ipAddresses = [], isLoading: ipAddressesLoading } = useQuery({
     queryKey: ['ip_addresses'],
     queryFn: async () => {
-      const response = await apiClient.get('/ip_addresses');
+      const response = await apiClient.get('ip_addresses');
       return response.data;
     }
   });
@@ -27,7 +27,7 @@ export function Dashboard() {
   const { data: sites = [], isLoading: sitesLoading } = useQuery({
     queryKey: ['sites'],
     queryFn: async () => {
-      const response = await apiClient.get('/sites');
+      const response = await apiClient.get('sites');
       return response.data;
     }
   });
@@ -35,7 +35,7 @@ export function Dashboard() {
   const { data: vrfs = [], isLoading: vrfsLoading } = useQuery({
     queryKey: ['vrfs'],
     queryFn: async () => {
-      const response = await apiClient.get('/vrfs');
+      const response = await apiClient.get('vrfs');
       return response.data;
     }
   });

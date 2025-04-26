@@ -31,7 +31,7 @@ import {
   IconWifi,
   IconKey,
   IconBrain,
-  IconNetworkSearch
+  IconSearch
 } from '@tabler/icons-react';
 
 export function MainNavigation() {
@@ -82,7 +82,7 @@ export function MainNavigation() {
       title: 'Network Intelligence',
       items: [
         { icon: IconNetwork, label: 'Interfaces', path: '/interfaces' },
-        { icon: IconNetworkSearch, label: 'ARP Table', path: '/arp-table' },
+        { icon: IconSearch, label: 'ARP Table', path: '/arp-table' },
         { icon: IconBrain, label: 'Device Inventory', path: '/device-inventory' }
       ]
     },

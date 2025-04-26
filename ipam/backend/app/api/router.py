@@ -29,6 +29,7 @@ from app.schemas import (
 
 # Import directly from devices schema to avoid the missing module error
 try:
+    # Use optional import for these modules that might not exist
     from app.schemas.devices import DeviceInventoryRead, InterfaceRead, DeviceInventoryCreate, DeviceInventoryUpdate, InterfaceCreate, InterfaceUpdate
 except ImportError:
     # If the import fails, we'll need to skip these routes
@@ -296,3 +297,14 @@ try:
 except (ImportError, AttributeError):
     # Endpoints module might not be available or might not have a router attribute
     pass
+
+# Include authentication router from endpoints - using absolute import path
+try:
+    from app.api.endpoints.auth import router as auth_router
+    # Don't include the auth router here, it's already included in endpoints/__init__.py
+    import logging
+    logging.getLogger(__name__).info("Authentication router imported successfully")
+except ImportError as e:
+    # Log error or warning that authentication router wasn't included
+    import logging
+    logging.getLogger(__name__).warning(f"Authentication router could not be imported: {e}")

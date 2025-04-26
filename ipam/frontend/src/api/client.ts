@@ -17,7 +17,9 @@ apiClient.interceptors.request.use(
   (config) => {
     console.log('API Request:', {
       method: config.method,
+      baseURL: config.baseURL,
       url: config.url,
+      fullUrl: `${config.baseURL}${config.url}`,
       params: config.params,
       data: config.data,
     });
@@ -46,7 +48,9 @@ apiClient.interceptors.response.use(
         data: error.response.data,
         headers: error.response.headers,
         config: {
+          baseURL: error.config.baseURL,
           url: error.config.url,
+          fullUrl: `${error.config.baseURL}${error.config.url}`,
           method: error.config.method,
           params: error.config.params,
           data: error.config.data
@@ -63,30 +67,30 @@ apiClient.interceptors.response.use(
 
 export const api = {
   // Regions
-  getRegions: () => apiClient.get('/regions'),
-  createRegion: (data: any) => apiClient.post('/regions', data),
+  getRegions: () => apiClient.get('regions'),
+  createRegion: (data: any) => apiClient.post('regions', data),
   
   // Site Groups
-  getSiteGroups: () => apiClient.get('/site_groups'),
-  createSiteGroup: (data: any) => apiClient.post('/site_groups', data),
+  getSiteGroups: () => apiClient.get('site_groups'),
+  createSiteGroup: (data: any) => apiClient.post('site_groups', data),
   
   // Sites
-  getSites: () => apiClient.get('/sites'),
-  createSite: (data: any) => apiClient.post('/sites', data),
+  getSites: () => apiClient.get('sites'),
+  createSite: (data: any) => apiClient.post('sites', data),
   
   // VRFs
-  getVRFs: () => apiClient.get('/vrfs'),
-  createVRF: (data: any) => apiClient.post('/vrfs', data),
+  getVRFs: () => apiClient.get('vrfs'),
+  createVRF: (data: any) => apiClient.post('vrfs', data),
   
   // Prefixes
-  getPrefixes: () => apiClient.get('/prefixes'),
-  createPrefix: (data: any) => apiClient.post('/prefixes', data),
+  getPrefixes: () => apiClient.get('prefixes'),
+  createPrefix: (data: any) => apiClient.post('prefixes', data),
   
   // IP Ranges
-  getIPRanges: () => apiClient.get('/ip_ranges'),
-  createIPRange: (data: any) => apiClient.post('/ip_ranges', data),
+  getIPRanges: () => apiClient.get('ip_ranges'),
+  createIPRange: (data: any) => apiClient.post('ip_ranges', data),
   
   // IP Addresses
-  getIPAddresses: () => apiClient.get('/ip_addresses'),
-  createIPAddress: (data: any) => apiClient.post('/ip_addresses', data),
+  getIPAddresses: () => apiClient.get('ip_addresses'),
+  createIPAddress: (data: any) => apiClient.post('ip_addresses', data),
 };
