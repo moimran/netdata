@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import List, Optional, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Dict, Any, TYPE_CHECKING, ClassVar
 
 from sqlalchemy import Column, text, func
 from sqlalchemy.dialects import postgresql
@@ -17,8 +17,8 @@ if TYPE_CHECKING:
 # Inherits id, created_at, updated_at from BaseModel -> TimestampedModel
 # Use 'job_name' as the 'name' field from BaseModel.
 class NetJob(BaseModel, table=True):
-    __tablename__ = "net_jobs"
-    __table_args__ = {"schema": "jobs"}
+    __tablename__: ClassVar[str] = "net_jobs"
+    __table_args__: ClassVar[dict] = {"schema": "jobs"}
 
     # Use job_name for the 'name' field, make slug optional
     name: str = Field(..., max_length=100, description="Job name")

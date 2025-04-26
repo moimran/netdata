@@ -27,7 +27,7 @@ from .vlan import VLAN, VLANGroup, VLANStatusEnum
 from .ip_prefix import Prefix, IPRange
 from .ip_address import IPAddress
 from .credential import Credential
-from .device import Device
+# Device model removed
 from .interface import Interface
 
 # Network device models
@@ -74,7 +74,7 @@ __all__ = [
     "IPAddressStatusEnum",
     "IPAddressRoleEnum",
     "IPAddress",
-    "Device",
+    # "Device" removed
     "Interface",
     "Credential",
     # Network device models

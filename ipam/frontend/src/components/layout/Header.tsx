@@ -1,7 +1,9 @@
 import React from 'react';
-import { Group, Avatar, Text, Box, Burger, Title } from '@mantine/core';
-import { IconNetwork } from '@tabler/icons-react';
+import { Group, Avatar, Text, Box, Burger, Title, Menu, Button } from '@mantine/core';
+import { IconNetwork, IconLogout, IconUser, IconChevronDown } from '@tabler/icons-react';
 import { PRIMARY, TEXT_PRIMARY, ICON_ACTIVE } from '../../theme/colors';
+import { TenantSelector } from '../TenantSelector';
+import { useAuth } from '../../context/AuthContext';
 
 interface HeaderProps {
     burgerProps?: {
@@ -11,6 +13,8 @@ interface HeaderProps {
 }
 
 export function Header({ burgerProps }: HeaderProps) {
+    const { user, logout } = useAuth();
+
     return (
         <Group justify="space-between" align="center" h="100%" p="md">
             <Group>
@@ -31,11 +35,47 @@ export function Header({ burgerProps }: HeaderProps) {
             </Group>
 
             <Group>
-                <Avatar color={PRIMARY} radius="xl">IP</Avatar>
-                <Box visibleFrom="sm">
-                    <Text c={TEXT_PRIMARY} fw={500}>Admin User</Text>
-                    <Text c={TEXT_PRIMARY} size="xs">Administrator</Text>
-                </Box>
+                <TenantSelector />
+
+                <Menu
+                    position="bottom-end"
+                    withArrow
+                    arrowPosition="center"
+                    shadow="md"
+                >
+                    <Menu.Target>
+                        <Group style={{ cursor: 'pointer' }}>
+                            <Avatar color={PRIMARY} radius="xl">
+                                {user?.username.substring(0, 2).toUpperCase() || 'IP'}
+                            </Avatar>
+                            <Box visibleFrom="sm">
+                                <Group gap={5}>
+                                    <Text c={TEXT_PRIMARY} fw={500}>
+                                        {user?.username || 'Guest'}
+                                    </Text>
+                                    <IconChevronDown size={14} color={TEXT_PRIMARY} />
+                                </Group>
+                                <Text c={TEXT_PRIMARY} size="xs">
+                                    {user?.is_superuser ? 'Administrator' : 'User'}
+                                    {user?.tenant_name ? ` - ${user.tenant_name}` : ''}
+                                </Text>
+                            </Box>
+                        </Group>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                        <Menu.Item leftSection={<IconUser size={16} />}>
+                            Profile
+                        </Menu.Item>
+                        <Menu.Divider />
+                        <Menu.Item
+                            leftSection={<IconLogout size={16} />}
+                            color="red"
+                            onClick={logout}
+                        >
+                            Logout
+                        </Menu.Item>
+                    </Menu.Dropdown>
+                </Menu>
             </Group>
         </Group>
     );

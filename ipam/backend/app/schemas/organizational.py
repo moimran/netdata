@@ -2,6 +2,7 @@
 
 from typing import Optional, Dict, Any
 from datetime import datetime
+import uuid
 from pydantic import BaseModel, Field, ConfigDict
 
 # Assuming models are imported elsewhere or adjust path as needed
@@ -12,7 +13,7 @@ class RegionBase(BaseModel):
     name: str = Field(..., max_length=100)
     slug: Optional[str] = Field(None, max_length=100)
     description: Optional[str] = None
-    parent_id: Optional[int] = None
+    parent_id: Optional[uuid.UUID] = None
 
 class RegionCreate(RegionBase):
     model_config = ConfigDict(
@@ -20,21 +21,22 @@ class RegionCreate(RegionBase):
             "example": {
                 "name": "North America",
                 "slug": "north-america",
-                "description": "North American region",
+                "description": "North American Region",
                 "parent_id": None
             }
         }
     )
 
 class RegionUpdate(RegionBase):
-    name: Optional[str] = None # Make fields optional for update
+    name: Optional[str] = None
     slug: Optional[str] = None
     description: Optional[str] = None
-    parent_id: Optional[int] = None
+    parent_id: Optional[uuid.UUID] = None
 
 class RegionRead(RegionBase):
-    id: int
-    # Add relationship fields if needed, e.g., parent: Optional['RegionRead'] = None
+    id: uuid.UUID
+    created_at: datetime
+    updated_at: Optional[datetime] = None
     class Config:
         from_attributes = True
 
@@ -43,7 +45,7 @@ class SiteGroupBase(BaseModel):
     name: str = Field(..., max_length=100)
     slug: Optional[str] = Field(None, max_length=100)
     description: Optional[str] = None
-    parent_id: Optional[int] = None
+    parent_id: Optional[uuid.UUID] = None
 
 class SiteGroupCreate(SiteGroupBase):
     model_config = ConfigDict(
@@ -61,11 +63,10 @@ class SiteGroupUpdate(SiteGroupBase):
     name: Optional[str] = None
     slug: Optional[str] = None
     description: Optional[str] = None
-    parent_id: Optional[int] = None
+    parent_id: Optional[uuid.UUID] = None
 
 class SiteGroupRead(SiteGroupBase):
-    id: int
-    # parent: Optional['SiteGroupRead'] = None
+    id: uuid.UUID
     class Config:
         from_attributes = True
 
@@ -74,11 +75,11 @@ class SiteBase(BaseModel):
     name: str = Field(..., max_length=100)
     slug: Optional[str] = Field(None, max_length=100)
     status: str = Field(..., max_length=50)
-    region_id: Optional[int] = None
-    site_group_id: Optional[int] = None
-    tenant_id: Optional[int] = None
+    region_id: Optional[uuid.UUID] = None
+    site_group_id: Optional[uuid.UUID] = None
+    tenant_id: Optional[uuid.UUID] = None
     facility: Optional[str] = Field(None, max_length=100)
-    asn_id: Optional[int] = None
+    asn_id: Optional[uuid.UUID] = None
     time_zone: Optional[str] = Field(None, max_length=50)
     description: Optional[str] = None
     physical_address: Optional[str] = None
@@ -95,25 +96,11 @@ class SiteCreate(SiteBase):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "name": "NYC Data Center 01",
-                "slug": "nyc-dc-01",
+                "name": "Main Office",
+                "slug": "main-office",
                 "status": "active",
-                "region_id": 1, # Assuming region 1 is North America
-                "site_group_id": 1, # Assuming group 1 is East Coast DCs
-                "tenant_id": None,
-                "facility": "Equinix NYC1",
-                "asn_id": 1, # Assuming ASN 1 is assigned
-                "time_zone": "America/New_York",
-                "description": "Primary NYC data center",
-                "physical_address": "123 Main St, New York, NY 10001",
-                "shipping_address": "456 Loading Dock Ave, New York, NY 10002",
-                "latitude": 40.7128,
-                "longitude": -74.0060,
-                "contact_name": "Site Manager",
-                "contact_phone": "+1-212-555-1212",
-                "contact_email": "manager.nyc1@example.com",
-                "comments": "Access via main entrance only.",
-                "custom_fields": {"security_level": "High"}
+                "region_id": "123e4567-e89b-12d3-a456-426614174000",
+                "description": "Main office location"
             }
         }
     )
@@ -122,11 +109,11 @@ class SiteUpdate(SiteBase):
     name: Optional[str] = None
     slug: Optional[str] = None
     status: Optional[str] = None
-    region_id: Optional[int] = None
-    site_group_id: Optional[int] = None
-    tenant_id: Optional[int] = None
+    region_id: Optional[uuid.UUID] = None
+    site_group_id: Optional[uuid.UUID] = None
+    tenant_id: Optional[uuid.UUID] = None
     facility: Optional[str] = None
-    asn_id: Optional[int] = None
+    asn_id: Optional[uuid.UUID] = None
     time_zone: Optional[str] = None
     description: Optional[str] = None
     physical_address: Optional[str] = None
@@ -140,10 +127,9 @@ class SiteUpdate(SiteBase):
     custom_fields: Optional[Dict[str, Any]] = None
 
 class SiteRead(SiteBase):
-    id: int
+    id: uuid.UUID
     created_at: datetime
     updated_at: Optional[datetime] = None
-    # Add relationships: region, site_group, tenant, asn etc.
     class Config:
         from_attributes = True
 
@@ -151,10 +137,10 @@ class SiteRead(SiteBase):
 class LocationBase(BaseModel):
     name: str = Field(..., max_length=100)
     slug: Optional[str] = Field(None, max_length=100)
-    site_id: int
-    parent_id: Optional[int] = None
+    site_id: uuid.UUID
+    parent_id: Optional[uuid.UUID] = None
     description: Optional[str] = None
-    tenant_id: Optional[int] = None
+    tenant_id: Optional[uuid.UUID] = None
 
 class LocationCreate(LocationBase):
     model_config = ConfigDict(
@@ -162,8 +148,8 @@ class LocationCreate(LocationBase):
             "example": {
                 "name": "Cage 101, Row B",
                 "slug": "cage-101-row-b",
-                "site_id": 1, # Assuming site 1 is NYC DC 01
-                "parent_id": None, # Could link to a 'Floor 1' location etc.
+                "site_id": "123e4567-e89b-12d3-a456-426614174000",
+                "parent_id": None,
                 "description": "Main server cage",
                 "tenant_id": None
             }
@@ -173,15 +159,12 @@ class LocationCreate(LocationBase):
 class LocationUpdate(LocationBase):
     name: Optional[str] = None
     slug: Optional[str] = None
-    site_id: Optional[int] = None # Typically site wouldn't change, but allow for flexibility
-    parent_id: Optional[int] = None
+    site_id: Optional[uuid.UUID] = None
+    parent_id: Optional[uuid.UUID] = None
     description: Optional[str] = None
-    tenant_id: Optional[int] = None
+    tenant_id: Optional[uuid.UUID] = None
 
 class LocationRead(LocationBase):
-    id: int
-    # site: SiteRead
-    # parent: Optional['LocationRead'] = None
-    # tenant: Optional[TenantRead] = None
+    id: uuid.UUID
     class Config:
         from_attributes = True

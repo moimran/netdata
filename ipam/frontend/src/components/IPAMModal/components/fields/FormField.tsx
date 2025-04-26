@@ -35,24 +35,24 @@ export const FormField = memo(({
 }: FormFieldProps) => {
   // Skip ID field since it's auto-generated
   if (column.name === 'id') return null;
-  
+
   // Skip vlan_id_ranges field in VLAN groups since it's handled by a custom component
   if (tableName === 'vlan_groups' && column.name === 'vlan_id_ranges') return null;
-  
+
   // Get field label
   const label = column.label || getFieldLabel(column.name);
-  
+
   // Handle onChange for this field
   const onChange = (value: any) => {
     handleChange(column.name, value);
   };
-  
+
   // Field name for reference
   const name = column.name;
-  
+
   // Get error message for this field
   const error = validationErrors[column.name];
-  
+
   // Special handling for specific tables and fields
   if (tableName === 'ip_addresses') {
     // Handle VRF reference field
@@ -60,11 +60,11 @@ export const FormField = memo(({
       const hasVrfs = referenceData.vrfs && referenceData.vrfs.length > 0;
       const vrfOptions = hasVrfs
         ? referenceData.vrfs.map(vrf => ({
-            value: String(vrf.id),
-            label: vrf.name || `VRF #${vrf.id}`
-          }))
+          value: String(vrf.id),
+          label: vrf.name || `VRF #${vrf.id}`
+        }))
         : [];
-        
+
       return (
         <Select
           label="VRF"
@@ -81,17 +81,17 @@ export const FormField = memo(({
         />
       );
     }
-    
+
     // Handle Tenant reference field
     if (column.name === 'tenant_id' && column.reference === 'tenants') {
       const hasTenants = referenceData.tenants && referenceData.tenants.length > 0;
       const tenantOptions = hasTenants
         ? referenceData.tenants.map(tenant => ({
-            value: String(tenant.id),
-            label: tenant.name || `Tenant #${tenant.id}`
-          }))
+          value: String(tenant.id),
+          label: tenant.name || `Tenant #${tenant.id}`
+        }))
         : [];
-        
+
       return (
         <Select
           label="Tenant"
@@ -108,17 +108,17 @@ export const FormField = memo(({
         />
       );
     }
-    
+
     // Handle Prefix reference field
     if (column.name === 'prefix_id' && column.reference === 'prefixes') {
       const hasPrefixes = referenceData.prefixes && referenceData.prefixes.length > 0;
       const prefixOptions = hasPrefixes
         ? referenceData.prefixes.map(prefix => ({
-            value: String(prefix.id),
-            label: prefix.prefix || `Prefix #${prefix.id}`
-          }))
+          value: String(prefix.id),
+          label: prefix.prefix || `Prefix #${prefix.id}`
+        }))
         : [];
-        
+
       return (
         <Select
           label="Prefix"
@@ -135,7 +135,7 @@ export const FormField = memo(({
         />
       );
     }
-    
+
     // Handle IP address field
     if (column.name === 'address') {
       return (
@@ -148,7 +148,7 @@ export const FormField = memo(({
         />
       );
     }
-    
+
     // Handle Role field for IP addresses
     if (column.name === 'role') {
       // Define common IP address roles
@@ -164,7 +164,7 @@ export const FormField = memo(({
         { value: 'infrastructure', label: 'Infrastructure' },
         { value: 'customer', label: 'Customer' }
       ];
-      
+
       return (
         <Select
           label="Role"
@@ -182,18 +182,18 @@ export const FormField = memo(({
       );
     }
   }
-  
+
   if (tableName === 'ip_ranges') {
     // Handle VRF reference field
     if (column.name === 'vrf_id' && column.reference === 'vrfs') {
       const hasVrfs = referenceData.vrfs && referenceData.vrfs.length > 0;
       const vrfOptions = hasVrfs
         ? referenceData.vrfs.map(vrf => ({
-            value: String(vrf.id),
-            label: vrf.name || `VRF #${vrf.id}`
-          }))
+          value: String(vrf.id),
+          label: vrf.name || `VRF #${vrf.id}`
+        }))
         : [];
-        
+
       return (
         <Select
           label="VRF"
@@ -210,17 +210,17 @@ export const FormField = memo(({
         />
       );
     }
-    
+
     // Handle Tenant reference field
     if (column.name === 'tenant_id' && column.reference === 'tenants') {
       const hasTenants = referenceData.tenants && referenceData.tenants.length > 0;
       const tenantOptions = hasTenants
         ? referenceData.tenants.map(tenant => ({
-            value: String(tenant.id),
-            label: tenant.name || `Tenant #${tenant.id}`
-          }))
+          value: String(tenant.id),
+          label: tenant.name || `Tenant #${tenant.id}`
+        }))
         : [];
-        
+
       return (
         <Select
           label="Tenant"
@@ -238,18 +238,18 @@ export const FormField = memo(({
       );
     }
   }
-  
+
   if (tableName === 'vlans') {
     // Handle VLAN Group reference field
     if (column.name === 'group_id' && column.reference === 'vlan_groups') {
       const hasGroups = referenceData.vlan_groups && referenceData.vlan_groups.length > 0;
       const groupOptions = hasGroups
         ? referenceData.vlan_groups.map(group => ({
-            value: String(group.id),
-            label: group.name || `Group #${group.id}`
-          }))
+          value: String(group.id),
+          label: group.name || `Group #${group.id}`
+        }))
         : [];
-        
+
       return (
         <Select
           label="VLAN Group"
@@ -263,17 +263,17 @@ export const FormField = memo(({
         />
       );
     }
-    
+
     // Handle Tenant reference field
     if (column.name === 'tenant_id' && column.reference === 'tenants') {
       const hasTenants = referenceData.tenants && referenceData.tenants.length > 0;
       const tenantOptions = hasTenants
         ? referenceData.tenants.map(tenant => ({
-            value: String(tenant.id),
-            label: tenant.name || `Tenant #${tenant.id}`
-          }))
+          value: String(tenant.id),
+          label: tenant.name || `Tenant #${tenant.id}`
+        }))
         : [];
-        
+
       return (
         <Select
           label="Tenant"
@@ -290,17 +290,17 @@ export const FormField = memo(({
         />
       );
     }
-    
+
     // Handle Role reference field
     if (column.name === 'role_id' && column.reference === 'roles') {
       const hasRoles = referenceData.roles && referenceData.roles.length > 0;
       const roleOptions = hasRoles
         ? referenceData.roles.map(role => ({
-            value: String(role.id),
-            label: role.name || `Role #${role.id}`
-          }))
+          value: String(role.id),
+          label: role.name || `Role #${role.id}`
+        }))
         : [];
-        
+
       return (
         <Select
           label="Role"
@@ -317,7 +317,7 @@ export const FormField = memo(({
         />
       );
     }
-    
+
     // Handle VLAN ID field
     if (column.name === 'vid') {
       return (
@@ -331,18 +331,18 @@ export const FormField = memo(({
       );
     }
   }
-  
+
   if (tableName === 'prefixes') {
     // Handle VRF reference field
     if (column.name === 'vrf_id' && column.reference === 'vrfs') {
       const hasVrfs = referenceData.vrfs && referenceData.vrfs.length > 0;
       const vrfOptions = hasVrfs
         ? referenceData.vrfs.map(vrf => ({
-            value: String(vrf.id),
-            label: vrf.name || `VRF #${vrf.id}`
-          }))
+          value: String(vrf.id),
+          label: vrf.name || `VRF #${vrf.id}`
+        }))
         : [];
-        
+
       return (
         <Select
           label="VRF"
@@ -359,17 +359,17 @@ export const FormField = memo(({
         />
       );
     }
-    
+
     // Handle Site reference field
     if (column.name === 'site_id' && column.reference === 'sites') {
       const hasSites = referenceData.sites && referenceData.sites.length > 0;
       const siteOptions = hasSites
         ? referenceData.sites.map(site => ({
-            value: String(site.id),
-            label: site.name || `Site #${site.id}`
-          }))
+          value: String(site.id),
+          label: site.name || `Site #${site.id}`
+        }))
         : [];
-      
+
       return (
         <Select
           label="Site"
@@ -386,17 +386,17 @@ export const FormField = memo(({
         />
       );
     }
-    
+
     // Handle VLAN reference field
     if (column.name === 'vlan_id' && column.reference === 'vlans') {
       const hasVlans = referenceData.vlans && referenceData.vlans.length > 0;
       const vlanOptions = hasVlans
         ? referenceData.vlans.map(vlan => ({
-            value: String(vlan.id),
-            label: `${vlan.name || ''} (${vlan.vid || ''})`.trim() || `VLAN #${vlan.id}`
-          }))
+          value: String(vlan.id),
+          label: `${vlan.name || ''} (${vlan.vid || ''})`.trim() || `VLAN #${vlan.id}`
+        }))
         : [];
-      
+
       return (
         <Select
           label="VLAN"
@@ -413,17 +413,17 @@ export const FormField = memo(({
         />
       );
     }
-    
+
     // Handle Tenant reference field
     if (column.name === 'tenant_id' && column.reference === 'tenants') {
       const hasTenants = referenceData.tenants && referenceData.tenants.length > 0;
       const tenantOptions = hasTenants
         ? referenceData.tenants.map(tenant => ({
-            value: String(tenant.id),
-            label: tenant.name || `Tenant #${tenant.id}`
-          }))
+          value: String(tenant.id),
+          label: tenant.name || `Tenant #${tenant.id}`
+        }))
         : [];
-      
+
       return (
         <Select
           label="Tenant"
@@ -440,17 +440,17 @@ export const FormField = memo(({
         />
       );
     }
-    
+
     // Handle Role reference field
     if (column.name === 'role_id' && column.reference === 'roles') {
       const hasRoles = referenceData.roles && referenceData.roles.length > 0;
       const roleOptions = hasRoles
         ? referenceData.roles.map(role => ({
-            value: String(role.id),
-            label: role.name || `Role #${role.id}`
-          }))
+          value: String(role.id),
+          label: role.name || `Role #${role.id}`
+        }))
         : [];
-      
+
       return (
         <Select
           label="Role"
@@ -467,7 +467,7 @@ export const FormField = memo(({
         />
       );
     }
-    
+
     // Handle Prefix field
     if (column.name === 'prefix') {
       return (
@@ -482,157 +482,19 @@ export const FormField = memo(({
       );
     }
   }
-  
-  // Special handling for device forms
-  if (tableName === 'devices') {
-    // Handle Location reference field for devices
-    if (column.name === 'location_id' && column.reference === 'locations') {
-      const hasLocations = referenceData.locations && referenceData.locations.length > 0;
-      const locationOptions = hasLocations
-        ? referenceData.locations.map(location => ({
-            value: String(location.id),
-            label: location.name || `Location #${location.id}`
-          }))
-        : [];
-      
-      return (
-        <Select
-          label="Location"
-          data={locationOptions}
-          value={formData.location_id ? String(formData.location_id) : ''}
-          onChange={(selectedValue) => {
-            console.log('Device Location selected:', selectedValue);
-            handleChange('location_id', selectedValue ? Number(selectedValue) : null);
-          }}
-          error={error}
-          placeholder={hasLocations ? "Select Location" : "No Locations available"}
-          searchable
-          clearable
-        />
-      );
-    }
-    
-    // Handle IP Address reference field for devices
-    if (column.name === 'ip_address_id' && column.reference === 'ip_addresses') {
-      const hasIpAddresses = referenceData.ip_addresses && referenceData.ip_addresses.length > 0;
-      const ipAddressOptions = hasIpAddresses
-        ? referenceData.ip_addresses.map(ip => ({
-            value: String(ip.id),
-            label: ip.address || `IP #${ip.id}`
-          }))
-        : [];
-      
-      return (
-        <Select
-          label="IP Address"
-          data={ipAddressOptions}
-          value={formData.ip_address_id ? String(formData.ip_address_id) : ''}
-          onChange={(selectedValue) => {
-            console.log('Device IP Address selected:', selectedValue);
-            handleChange('ip_address_id', selectedValue ? Number(selectedValue) : null);
-          }}
-          error={error}
-          placeholder={hasIpAddresses ? "Select IP Address" : "No IP Addresses available"}
-          searchable
-          clearable
-        />
-      );
-    }
-    
-    // Handle Credential reference field for devices
-    if (column.name === 'credential_name' && column.reference === 'credentials') {
-      const hasCredentials = referenceData.credentials && referenceData.credentials.length > 0;
-      const credentialOptions = hasCredentials
-        ? referenceData.credentials.map(cred => ({
-            value: cred.name,
-            label: cred.name
-          }))
-        : [];
-      
-      return (
-        <Select
-          label="Credential"
-          data={credentialOptions}
-          value={formData.credential_name || ''}
-          onChange={(selectedValue) => {
-            console.log('Device Credential selected:', selectedValue);
-            handleChange('credential_name', selectedValue);
-          }}
-          error={error}
-          placeholder={hasCredentials ? "Select Credential" : "No Credentials available"}
-          searchable
-          clearable
-        />
-      );
-    }
-    
-    // Handle Fallback Credential reference field for devices
-    if (column.name === 'fallback_credential_name' && column.reference === 'credentials') {
-      const hasCredentials = referenceData.credentials && referenceData.credentials.length > 0;
-      const credentialOptions = hasCredentials
-        ? referenceData.credentials.map(cred => ({
-            value: cred.name,
-            label: cred.name
-          }))
-        : [];
-      
-      return (
-        <Select
-          label="Fallback Credential"
-          data={credentialOptions}
-          value={formData.fallback_credential_name || ''}
-          onChange={(selectedValue) => {
-            console.log('Device Fallback Credential selected:', selectedValue);
-            handleChange('fallback_credential_name', selectedValue);
-          }}
-          error={error}
-          placeholder={hasCredentials ? "Select Fallback Credential" : "No Credentials available"}
-          searchable
-          clearable
-        />
-      );
-    }
-  }
-  
+
   // Special handling for interface forms
   if (tableName === 'interfaces') {
-    // Handle Device reference field for interfaces
-    if (column.name === 'device_id' && column.reference === 'devices') {
-      const hasDevices = referenceData.devices && referenceData.devices.length > 0;
-      const deviceOptions = hasDevices
-        ? referenceData.devices.map(device => ({
-            value: String(device.id),
-            label: device.name || `Device #${device.id}`
-          }))
-        : [];
-      
-      return (
-        <Select
-          label="Device"
-          data={deviceOptions}
-          value={formData.device_id ? String(formData.device_id) : ''}
-          onChange={(selectedValue) => {
-            console.log('Interface Device selected:', selectedValue);
-            handleChange('device_id', selectedValue ? Number(selectedValue) : null);
-          }}
-          error={error}
-          placeholder={hasDevices ? "Select Device" : "No Devices available"}
-          searchable
-          clearable
-        />
-      );
-    }
-    
     // Handle IP Address reference field for interfaces
     if (column.name === 'ip_address_id' && column.reference === 'ip_addresses') {
       const hasIpAddresses = referenceData.ip_addresses && referenceData.ip_addresses.length > 0;
       const ipAddressOptions = hasIpAddresses
         ? referenceData.ip_addresses.map(ip => ({
-            value: String(ip.id),
-            label: ip.address || `IP #${ip.id}`
-          }))
+          value: String(ip.id),
+          label: ip.address || `IP #${ip.id}`
+        }))
         : [];
-      
+
       return (
         <Select
           label="IP Address"
@@ -650,7 +512,7 @@ export const FormField = memo(({
       );
     }
   }
-  
+
   // Special handling for VRF forms
   if (tableName === 'vrfs') {
     // Handle Tenant reference field for VRFs
@@ -658,11 +520,11 @@ export const FormField = memo(({
       const hasTenants = referenceData.tenants && referenceData.tenants.length > 0;
       const tenantOptions = hasTenants
         ? referenceData.tenants.map(tenant => ({
-            value: String(tenant.id),
-            label: tenant.name || `Tenant #${tenant.id}`
-          }))
+          value: String(tenant.id),
+          label: tenant.name || `Tenant #${tenant.id}`
+        }))
         : [];
-      
+
       return (
         <Select
           label="Tenant"
@@ -693,7 +555,7 @@ export const FormField = memo(({
           error={error}
         />
       );
-      
+
     case 'number':
       return (
         <NumberField
@@ -704,7 +566,7 @@ export const FormField = memo(({
           error={error}
         />
       );
-      
+
     case 'string':
       // Special handling for status fields
       if (column.name === 'status') {
@@ -718,7 +580,7 @@ export const FormField = memo(({
           />
         );
       }
-      
+
       // Special handling for description fields
       if (column.name === 'description') {
         return (
@@ -731,7 +593,7 @@ export const FormField = memo(({
           />
         );
       }
-      
+
       // Default string field
       return (
         <TextField
@@ -742,7 +604,7 @@ export const FormField = memo(({
           error={error}
         />
       );
-      
+
     case 'foreignKey':
     case 'manyToMany':
       if (column.reference) {
@@ -761,7 +623,7 @@ export const FormField = memo(({
         );
       }
       break;
-      
+
     default:
       return (
         <TextField

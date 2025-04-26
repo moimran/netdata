@@ -1,33 +1,27 @@
 import { useState } from 'react';
-import { TextInput, PasswordInput, Button, Stack, Card, Title, Text, Group } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
+import { TextInput, PasswordInput, Button, Stack, Card, Title, Text, Group, Alert } from '@mantine/core';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { IconAlertCircle } from '@tabler/icons-react';
+import { useAuth } from '../../context/AuthContext';
 
 export function LoginView() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const { login, isLoading, error } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Get the redirect path or default to home
+    const from = (location.state as any)?.from?.pathname || '/';
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-        setError(null);
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // In a real app, this would be an actual API call
-            // const response = await apiClient.post('/auth/login', { username, password });
-
-            // For demo purposes, just accept any login
-            localStorage.setItem('isAuthenticated', 'true');
-            navigate('/');
+            await login(username, password);
+            // Redirect will happen automatically once authentication state updates
         } catch (err) {
-            setError('Invalid username or password');
-        } finally {
-            setLoading(false);
+            // Error is handled by the auth context
         }
     };
 
@@ -39,12 +33,17 @@ export function LoginView() {
             minHeight: 'calc(100vh - 140px)'
         }}>
             <Card shadow="sm" p="xl" withBorder style={{ width: '100%', maxWidth: 400 }}>
-                <Title order={2} mb="md" ta="center">Login</Title>
+                <Title order={2} mb="md" ta="center">Login to IPAM</Title>
 
                 {error && (
-                    <Text color="red" mb="md" ta="center">
+                    <Alert
+                        icon={<IconAlertCircle size={16} />}
+                        title="Authentication Error"
+                        color="red"
+                        mb="md"
+                    >
                         {error}
-                    </Text>
+                    </Alert>
                 )}
 
                 <form onSubmit={handleLogin}>
@@ -65,7 +64,7 @@ export function LoginView() {
                             required
                         />
 
-                        <Button type="submit" loading={loading} mt="md">
+                        <Button type="submit" loading={isLoading} mt="md">
                             Login
                         </Button>
 

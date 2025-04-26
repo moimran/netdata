@@ -1,6 +1,4 @@
-from datetime import datetime
-from typing import Optional, ClassVar, Dict, Any
-from sqlmodel import SQLModel, Field
+from typing import ClassVar
 from .base import TimestampedModel
 
 class HypertableModel(TimestampedModel):

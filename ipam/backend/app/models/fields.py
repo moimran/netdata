@@ -1,6 +1,6 @@
-from typing import Any, Optional, Type, Union
+from typing import Any, Optional, Type, Union, Dict
 from ipaddress import IPv4Network, IPv6Network, ip_network
-from sqlalchemy import TypeDecorator
+from sqlalchemy import TypeDecorator, String, Column, Integer
 from sqlalchemy.dialects.postgresql import CIDR
 from netaddr import IPNetwork, AddrFormatError
 from sqlmodel import Field
@@ -30,7 +30,7 @@ class IPNetworkType(TypeDecorator):
             return None
         return ip_network(value)
 
-class IPNetworkField:
+class IPNetworkFieldType:
     """Field type for IP networks using CIDR notation"""
     
     @classmethod
@@ -121,18 +121,24 @@ class ASNField:
 
 def ASNNumberField(
     *,
-    default: Any = None,
+    default: Optional[int] = None,
     nullable: bool = False,
     index: bool = False,
+    sa_column_kwargs: Optional[Dict[str, Any]] = None,
     **kwargs: Any,
 ) -> Any:
     """Create a Field for storing ASN numbers"""
-    return Field(
-        default=default,
+    column_kwargs = sa_column_kwargs or {}
+    column = Column(
+        Integer,
         nullable=nullable,
         index=index,
-        sa_type=Any,
-        **kwargs,
+        **column_kwargs
+    )
+    return Field(
+        default=default,
+        sa_column=column,
+        **kwargs
     )
 
 class DNSNameStr(str):
@@ -182,14 +188,20 @@ class DNSNameStr(str):
 
 def DNSNameField(
     *,
-    default: Any = None,
+    default: Optional[str] = None,
     nullable: bool = False,
+    sa_column_kwargs: Optional[Dict[str, Any]] = None,
     **kwargs: Any,
 ) -> Any:
     """Create a Field for storing DNS names"""
+    column_kwargs = sa_column_kwargs or {}
+    column = Column(
+        String(255),
+        nullable=nullable,
+        **column_kwargs
+    )
     return Field(
         default=default,
-        nullable=nullable,
-        sa_type=Any,
-        **kwargs,
+        sa_column=column,
+        **kwargs
     )

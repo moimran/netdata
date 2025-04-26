@@ -22,8 +22,12 @@ def is_subnet_of(subnet: str, parent: str) -> bool:
         if subnet_network.version != parent_network.version:
             return False
             
-        # Check if subnet is a subnet of parent
-        return subnet_network.subnet_of(parent_network)
+        # Handle IPv4 and IPv6 networks separately
+        if isinstance(subnet_network, ipaddress.IPv4Network) and isinstance(parent_network, ipaddress.IPv4Network):
+            return subnet_network.subnet_of(parent_network)
+        elif isinstance(subnet_network, ipaddress.IPv6Network) and isinstance(parent_network, ipaddress.IPv6Network):
+            return subnet_network.subnet_of(parent_network)
+        return False
     except ValueError:
         # If there's an error parsing the networks, return False
         return False
@@ -105,27 +109,24 @@ def calculate_ip_range_size(start: str, end: str) -> Tuple[int, Optional[str]]:
         if start_ip.version != end_ip.version:
             return 0, "Start and end addresses must be of the same IP version"
             
-        # Ensure start <= end
-        if start_ip > end_ip:
+        # Ensure start <= end (compare integers to avoid type issues)
+        if int(start_ip) > int(end_ip):
             return 0, "Start address must be less than or equal to end address"
             
         # Calculate size
-        if isinstance(start_ip, ipaddress.IPv4Address):
-            size = int(end_ip) - int(start_ip) + 1
-        else:
-            size = int(end_ip) - int(start_ip) + 1
-            
+        size = int(end_ip) - int(start_ip) + 1
         return size, None
     except ValueError as e:
         return 0, str(e)
 
-def get_available_ips(network: str, used_ips: List[str] = None) -> List[str]:
+def get_available_ips(network: str, used_ips: Optional[List[str]] = None) -> List[str]:
     """
     Get list of available IPs in a network, excluding used IPs.
     """
     try:
         net = ipaddress.ip_network(network)
-        used = {ipaddress.ip_address(ip.split('/')[0]) for ip in (used_ips or [])}
+        used_list = used_ips if used_ips is not None else []
+        used = {ipaddress.ip_address(ip.split('/')[0]) for ip in used_list}
         
         # For IPv4, exclude network and broadcast addresses
         if net.version == 4 and net.prefixlen < 31:
@@ -141,13 +142,14 @@ def get_available_ips(network: str, used_ips: List[str] = None) -> List[str]:
     except ValueError:
         return []
 
-def get_first_available_ip(network: str, used_ips: List[str] = None) -> Optional[str]:
+def get_first_available_ip(network: str, used_ips: Optional[List[str]] = None) -> Optional[str]:
     """Get the first available IP in a network."""
-    available = get_available_ips(network, used_ips)
+    used_list = used_ips if used_ips is not None else []
+    available = get_available_ips(network, used_list)
     return available[0] if available else None
 
-def calculate_prefix_utilization(prefix: str, child_prefixes: List[str] = None, 
-                               used_ips: List[str] = None) -> float:
+def calculate_prefix_utilization(prefix: str, child_prefixes: Optional[List[str]] = None, 
+                               used_ips: Optional[List[str]] = None) -> float:
     """
     Calculate the utilization percentage of a prefix.
     """
@@ -157,16 +159,17 @@ def calculate_prefix_utilization(prefix: str, child_prefixes: List[str] = None,
         
         # Count addresses in child prefixes
         child_addresses = 0
-        if child_prefixes:
-            for child in child_prefixes:
-                try:
-                    child_net = ipaddress.ip_network(child)
-                    child_addresses += child_net.num_addresses
-                except ValueError:
-                    continue
+        child_list = child_prefixes if child_prefixes is not None else []
+        for child in child_list:
+            try:
+                child_net = ipaddress.ip_network(child)
+                child_addresses += child_net.num_addresses
+            except ValueError:
+                continue
         
         # Count individual IP addresses
-        ip_count = len(used_ips) if used_ips else 0
+        used_list = used_ips if used_ips is not None else []
+        ip_count = len(used_list)
         
         # Calculate utilization
         utilized = max(child_addresses, ip_count)

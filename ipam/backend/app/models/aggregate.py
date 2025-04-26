@@ -1,9 +1,10 @@
 from datetime import date
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, ClassVar
+import uuid
 import sqlalchemy as sa
 from sqlmodel import Field, Relationship
 from .base import BaseModel
-from .fields import IPNetworkField
+from .fields import IPNetworkType
 from .ip_utils import calculate_prefix_utilization
 
 if TYPE_CHECKING:
@@ -18,31 +19,30 @@ class Aggregate(BaseModel, table=True):
     of available address space. Each Aggregate is assigned to a RIR.
     """
 
-    __tablename__ = "aggregates"
+    __tablename__: ClassVar[str] = "aggregates"
+    __table_args__ = (
+        sa.UniqueConstraint("prefix", name="uq_aggregate"),
+        {"schema": "ipam"}
+    )
 
     # Fields specific to Aggregate
-    prefix: str = IPNetworkField(
-        description="IPv4 or IPv6 network with mask", index=True
+    prefix: str = Field(
+        ...,
+        description="IPv4 or IPv6 network with mask",
+        sa_column=sa.Column(IPNetworkType)
     )
     date_added: Optional[date] = Field(default=None)
 
-    __table_args__ = (
-        sa.UniqueConstraint("prefix", name="uq_aggregate"),
-        {"schema": "ipam"},
-    )
-
     # Foreign Keys
-    rir_id: Optional[int] = Field(default=None, foreign_key="ipam.rirs.id")
-    tenant_id: Optional[int] = Field(default=None, foreign_key="ipam.tenants.id")
+    rir_id: uuid.UUID = Field(..., foreign_key="ipam.rirs.id")
+    tenant_id: uuid.UUID = Field(..., foreign_key="ipam.tenants.id", description="Tenant this aggregate belongs to")
 
     # Relationships
-    rir: Optional["RIR"] = Relationship(back_populates="aggregates")
-    tenant: Optional["Tenant"] = Relationship(back_populates="aggregates")
+    rir: "RIR" = Relationship(back_populates="aggregates")
+    tenant: "Tenant" = Relationship(back_populates="aggregates")
 
-    def clean(self) -> None:
+    def validate(self) -> None:
         """Validate the aggregate."""
-        super().clean()
-
         if not self.rir_id:
             raise ValueError("RIR is required for an aggregate")
 

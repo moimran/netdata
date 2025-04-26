@@ -10,7 +10,6 @@ export type TableName =
   | 'vlan_groups' 
   | 'route_targets' 
   | 'sites' 
-  | 'devices' 
   | 'racks' 
   | 'regions' 
   | 'tenants' 
@@ -161,17 +160,6 @@ export interface ASNRange extends BaseEntity {
   description?: string;
 }
 
-export interface Device extends BaseEntity {
-  name: string;
-  status: 'active' | 'offline' | 'planned' | 'staged' | 'failed';
-  site_id?: number | null;
-  tenant_id?: number | null;
-  platform?: string | null;
-  primary_ip4_id?: number | null;
-  primary_ip6_id?: number | null;
-  description?: string;
-}
-
 export interface Interface extends BaseEntity {
   name: string;
   device_id: number;
@@ -201,7 +189,6 @@ export type EntityTypeMap = {
   'roles': Role;
   'asns': ASN;
   'asn_ranges': ASNRange;
-  'devices': Device;
   'interfaces': Interface;
   'credentials': Credential;
   [key: string]: BaseEntity;

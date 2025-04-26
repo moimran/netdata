@@ -1,31 +1,36 @@
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, ClassVar, List, TYPE_CHECKING
+import uuid
+
 from sqlmodel import Field, Relationship
-from .base import BaseModel
+
+from app.models.base import BaseModel
 
 if TYPE_CHECKING:
-    from .asn import ASN, ASNRange
+    from app.models.asn import ASN, ASNRange
     from .aggregate import Aggregate
 
 class RIR(BaseModel, table=True):
     """
-    A Regional Internet Registry (RIR) is an organization that manages the allocation
-    and registration of Internet number resources within a region.
+    Regional Internet Registry (RIR) - An organization that manages the allocation and registration
+    of Internet number resources (IP addresses and ASNs) within a particular region of the world.
     """
-    __tablename__ = "rirs"
+    __tablename__: ClassVar[str] = "rirs"
     __table_args__ = {"schema": "ipam"}
     
     # Basic fields
     name: str = Field(..., description="Name of the RIR")
     slug: str = Field(..., description="URL-friendly name")
-    description: Optional[str] = Field(default=None, description="Brief description of the RIR")
+    description: Optional[str] = Field(default=None, description="Brief description")
+    website: Optional[str] = Field(default=None, description="RIR's website URL")
+    whois_server: Optional[str] = Field(default=None, description="WHOIS server hostname")
     is_private: bool = Field(
         default=False,
         description="IP space managed by this RIR is considered private"
     )
     
     # Relationships
-    asns: List["ASN"] = Relationship(back_populates="rir")
     asn_ranges: List["ASNRange"] = Relationship(back_populates="rir")
+    asns: List["ASN"] = Relationship(back_populates="rir")
     aggregates: List["Aggregate"] = Relationship(back_populates="rir")
     
     class Config:

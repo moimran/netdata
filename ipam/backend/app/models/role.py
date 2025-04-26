@@ -1,4 +1,4 @@
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING, ClassVar
 from sqlmodel import Field, Relationship
 from .base import BaseModel
 
@@ -10,7 +10,7 @@ class Role(BaseModel, table=True):
     """
     Functional role for prefixes, VLANs, etc.
     """
-    __tablename__ = "roles"
+    __tablename__: ClassVar[str] = "roles"
     __table_args__ = {"schema": "ipam"}
     
     # Basic fields

@@ -1,8 +1,9 @@
 from enum import Enum
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING, ClassVar
 import sqlalchemy as sa
 from sqlmodel import Field, Relationship
 from .base import BaseModel
+import uuid
 
 if TYPE_CHECKING:
     from .tenant import Tenant
@@ -19,7 +20,7 @@ class VLANGroup(BaseModel, table=True):
     """
     A VLAN group is an arbitrary collection of VLANs within which VLAN IDs and names must be unique.
     """
-    __tablename__ = "vlan_groups"
+    __tablename__: ClassVar[str] = "vlan_groups"
     __table_args__ = {"schema": "ipam"}
     
     # Basic fields
@@ -48,9 +49,8 @@ class VLANGroup(BaseModel, table=True):
     # Relationships
     vlans: List["VLAN"] = Relationship(back_populates="group")
     
-    def clean(self) -> None:
+    def validate(self) -> None:
         """Validate the VLANGroup."""
-        super().clean()
         if self.max_vid < self.min_vid:
             raise ValueError(
                 f"Maximum VID ({self.max_vid}) cannot be less than minimum VID ({self.min_vid})"
@@ -66,7 +66,7 @@ class VLAN(BaseModel, table=True):
     Each VLAN must be assigned to a Site, however VLAN IDs need not be unique within a Site.
     A VLAN may optionally be assigned to a VLANGroup, within which all VLAN IDs and names must be unique.
     """
-    __tablename__ = "vlans"
+    __tablename__: ClassVar[str] = "vlans"
     
     # Basic fields
     name: str = Field(..., description="Name of the VLAN")
@@ -86,7 +86,7 @@ class VLAN(BaseModel, table=True):
     )
     
     # Foreign Keys
-    tenant_id: Optional[int] = Field(default=None, foreign_key="ipam.tenants.id")
+    tenant_id: uuid.UUID = Field(..., foreign_key="ipam.tenants.id", description="Tenant this VLAN belongs to")
     site_id: Optional[int] = Field(default=None, foreign_key="ipam.sites.id")
     group_id: Optional[int] = Field(default=None, foreign_key="ipam.vlan_groups.id")
     role_id: Optional[int] = Field(default=None, foreign_key="ipam.roles.id")
@@ -101,7 +101,7 @@ class VLAN(BaseModel, table=True):
     )
     
     # Relationships
-    tenant: Optional["Tenant"] = Relationship(back_populates="vlans")
+    tenant: "Tenant" = Relationship(back_populates="vlans")
     site: Optional["Site"] = Relationship(back_populates="vlans")
     group: Optional[VLANGroup] = Relationship(back_populates="vlans")
     role: Optional["Role"] = Relationship(back_populates="vlans")

@@ -18,7 +18,6 @@ export type TableName =
   | 'asn_ranges'
   | 'tenants'
   | 'platform_types'
-  | 'devices'
   | 'interfaces'
   | 'device_inventory';
 
@@ -216,19 +215,6 @@ export const TABLE_METADATA: Record<TableName, TableMetadata> = {
       { name: 'name', type: 'string', required: true },
       { name: 'slug', type: 'string' },
       { name: 'description', type: 'string' }
-    ],
-  },
-  devices: {
-    columns: [
-      { name: 'id', type: 'number', visible: false },
-      { name: 'name', type: 'string', required: true },
-      { name: 'description', type: 'string' }, 
-      { name: 'tenant_id', type: 'number', label: 'Tenant', reference: 'tenants' },
-      { name: 'site_id', type: 'number', label: 'Site', reference: 'sites' }, 
-      { name: 'location_id', type: 'number', label: 'Location', reference: 'locations' },
-      { name: 'ip_address_id', type: 'number', label: 'Primary IP', reference: 'ip_addresses' }, 
-      { name: 'credential_name', type: 'string', label: 'Credential' }, 
-      { name: 'fallback_credential_name', type: 'string', label: 'Fallback Credential' }, 
     ],
   },
   interfaces: {

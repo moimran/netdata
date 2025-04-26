@@ -130,16 +130,6 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'prefix_id', type: 'number', reference: 'prefixes' },
     { name: 'description', type: 'string' }
   ],
-  devices: [
-    { name: 'id', type: 'number' },
-    { name: 'name', type: 'string', required: true },
-    { name: 'slug', type: 'string' },
-    { name: 'description', type: 'string' },
-    { name: 'location_id', type: 'number', reference: 'locations' },
-    { name: 'ip_address_id', type: 'number', reference: 'ip_addresses' },
-    { name: 'credential_name', type: 'string', reference: 'credentials' },
-    { name: 'fallback_credential_name', type: 'string', reference: 'credentials' }
-  ],
   interfaces: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },

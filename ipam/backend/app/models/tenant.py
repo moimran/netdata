@@ -1,5 +1,7 @@
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING, ClassVar
+import uuid
 from sqlmodel import Field, Relationship
+from sqlalchemy import Column, String, Table
 from .base import BaseModel
 
 if TYPE_CHECKING:
@@ -9,21 +11,26 @@ if TYPE_CHECKING:
     from .site import Site
     from .vlan import VLAN
     from .aggregate import Aggregate
-    from .device import Device
+    from .deviceinventory import DeviceInventory
     from .ip_address import IPAddress
+    from .user import User
 
 class Tenant(BaseModel, table=True):
     """
     A Tenant represents an organization or customer that can own or manage various network resources.
     """
-    __tablename__ = "tenants"
-    __table_args__ = {"schema": "ipam"}
+    # Use ClassVar to avoid type checking issues
+    __tablename__: ClassVar[str] = "tenants"
+    __table_args__: ClassVar[dict] = {"schema": "ipam"}
     
     # Basic fields
     name: str = Field(..., description="Name of the tenant")
     slug: str = Field(..., description="URL-friendly name")
     description: Optional[str] = Field(default=None, description="Brief description")
     comments: Optional[str] = Field(default=None, description="Detailed comments")
+    
+    # Reference fields
+    parent_tenant_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.tenants.id")
     
     # Relationships
     vrfs: List["VRF"] = Relationship(back_populates="tenant")
@@ -32,11 +39,12 @@ class Tenant(BaseModel, table=True):
     sites: List["Site"] = Relationship(back_populates="tenant")
     vlans: List["VLAN"] = Relationship(back_populates="tenant")
     aggregates: List["Aggregate"] = Relationship(back_populates="tenant")
-    devices: List["Device"] = Relationship(
+    devices: List["DeviceInventory"] = Relationship(
         back_populates="tenant",
-        sa_relationship_kwargs={"primaryjoin": "Tenant.id == Device.tenant_id"}
+        sa_relationship_kwargs={"primaryjoin": "Tenant.id == DeviceInventory.tenant_id"}
     )
     ip_addresses: List["IPAddress"] = Relationship(back_populates="tenant")
+    users: List["User"] = Relationship(back_populates="tenant")
     
     class Config:
         arbitrary_types_allowed = True

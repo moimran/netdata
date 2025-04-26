@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import './App.css';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppShell, ScrollArea } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Header } from './components/layout/Header';
@@ -13,7 +13,6 @@ import { VLANGroupView } from './components/views/VLANGroupView';
 import { RouteTargetView } from './components/views/RouteTargetView';
 import { VRFView } from './components/views/VRFView';
 import { RackView } from './components/views/RackView';
-import { DeviceView } from './components/views/DeviceView';
 import { SiteView } from './components/views/SiteView';
 import { RIRView } from './components/views/RIRView';
 import { UserView } from './components/views/UserView';
@@ -37,6 +36,8 @@ import VRFImportTargetsView from './components/views/VRFImportTargetsView';
 import VRFExportTargetsView from './components/views/VRFExportTargetsView';
 import { ASNRangeView } from './components/views/ASNRangeView';
 import { InterfacesView } from './components/views/InterfacesView';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { TenantProvider } from './context/TenantContext';
 // Import views as needed
 
 // Loading component for suspense fallback
@@ -55,8 +56,35 @@ const LoadingComponent = () => (
   </div>
 );
 
-function App() {
+// Protected route wrapper
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return <LoadingComponent />;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+function AppContent() {
   const [opened, { toggle }] = useDisclosure();
+  const { isAuthenticated } = useAuth();
+
+  // If not authenticated, only show login page
+  if (!isAuthenticated) {
+    return (
+      <Routes>
+        <Route path="/login" element={<LoginView />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
 
   return (
     <AppShell
@@ -94,47 +122,42 @@ function App() {
         <ErrorBoundary>
           <Suspense fallback={<LoadingComponent />}>
             <Routes>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
               {/* Organization */}
-              <Route path="/regions" element={<RegionsView />} />
-              <Route path="/site-groups" element={<SiteGroupsView />} />
-              <Route path="/sites" element={<SiteView />} />
-              <Route path="/locations" element={<LocationsView />} />
+              <Route path="/regions" element={<ProtectedRoute><RegionsView /></ProtectedRoute>} />
+              <Route path="/site-groups" element={<ProtectedRoute><SiteGroupsView /></ProtectedRoute>} />
+              <Route path="/sites" element={<ProtectedRoute><SiteView /></ProtectedRoute>} />
+              <Route path="/locations" element={<ProtectedRoute><LocationsView /></ProtectedRoute>} />
 
               {/* IP Management */}
-              <Route path="/rirs" element={<RIRView />} />
-              <Route path="/aggregates" element={<AggregatesView />} />
-              <Route path="/prefixes" element={<PrefixView />} />
-              <Route path="/ip-ranges" element={<IPRangesView />} />
-              <Route path="/ip-addresses" element={<IPAddressView />} />
-              <Route path="/ips" element={<IPView />} />
-              <Route path="/vrfs" element={<VRFView />} />
-              <Route path="/vrfs/:id" element={<VRFDetailView />} />
-              <Route path="/route-targets" element={<RouteTargetView />} />
-              <Route path="/vrf-import-targets" element={<VRFImportTargetsView />} />
-              <Route path="/vrf-export-targets" element={<VRFExportTargetsView />} />
-              <Route path="/roles" element={<RolesView />} />
-              <Route path="/vlans" element={<VLANView />} />
-              <Route path="/vlan-groups" element={<VLANGroupView />} />
-              <Route path="/vlan-groups/:id" element={<VLANGroupDetailView />} />
-              <Route path="/asns" element={<ASNView />} />
-              <Route path="/asn-ranges" element={<ASNRangeView />} />
+              <Route path="/rirs" element={<ProtectedRoute><RIRView /></ProtectedRoute>} />
+              <Route path="/aggregates" element={<ProtectedRoute><AggregatesView /></ProtectedRoute>} />
+              <Route path="/prefixes" element={<ProtectedRoute><PrefixView /></ProtectedRoute>} />
+              <Route path="/ip-ranges" element={<ProtectedRoute><IPRangesView /></ProtectedRoute>} />
+              <Route path="/ip-addresses" element={<ProtectedRoute><IPAddressView /></ProtectedRoute>} />
+              <Route path="/ips" element={<ProtectedRoute><IPView /></ProtectedRoute>} />
+              <Route path="/vrfs" element={<ProtectedRoute><VRFView /></ProtectedRoute>} />
+              <Route path="/vrfs/:id" element={<ProtectedRoute><VRFDetailView /></ProtectedRoute>} />
+              <Route path="/route-targets" element={<ProtectedRoute><RouteTargetView /></ProtectedRoute>} />
+              <Route path="/vrf-import-targets" element={<ProtectedRoute><VRFImportTargetsView /></ProtectedRoute>} />
+              <Route path="/vrf-export-targets" element={<ProtectedRoute><VRFExportTargetsView /></ProtectedRoute>} />
+              <Route path="/roles" element={<ProtectedRoute><RolesView /></ProtectedRoute>} />
+              <Route path="/vlans" element={<ProtectedRoute><VLANView /></ProtectedRoute>} />
+              <Route path="/vlan-groups" element={<ProtectedRoute><VLANGroupView /></ProtectedRoute>} />
+              <Route path="/vlan-groups/:id" element={<ProtectedRoute><VLANGroupDetailView /></ProtectedRoute>} />
+              <Route path="/asns" element={<ProtectedRoute><ASNView /></ProtectedRoute>} />
+              <Route path="/asn-ranges" element={<ProtectedRoute><ASNRangeView /></ProtectedRoute>} />
 
               {/* Devices */}
-              <Route path="/devices" element={<DeviceView />} />
-              <Route path="/device-inventory" element={<DeviceView />} />
-              <Route path="/interfaces" element={<InterfacesView />} />
-              <Route path="/credentials" element={<CredentialView />} />
-              <Route path="/racks" element={<RackView />} />
+              <Route path="/interfaces" element={<ProtectedRoute><InterfacesView /></ProtectedRoute>} />
+              <Route path="/credentials" element={<ProtectedRoute><CredentialView /></ProtectedRoute>} />
+              <Route path="/racks" element={<ProtectedRoute><RackView /></ProtectedRoute>} />
 
               {/* Administration */}
-              <Route path="/tenants" element={<TenantView />} />
-              <Route path="/users" element={<UserView />} />
+              <Route path="/tenants" element={<ProtectedRoute><TenantView /></ProtectedRoute>} />
+              <Route path="/users" element={<ProtectedRoute><UserView /></ProtectedRoute>} />
               <Route path="/login" element={<LoginView />} />
-
-              {/* Migration to Mantine React Table is complete */}
-              {/* All views now use the MRT implementation through the compatibility wrapper */}
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
@@ -142,6 +165,16 @@ function App() {
         </ErrorBoundary>
       </AppShell.Main>
     </AppShell>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <TenantProvider>
+        <AppContent />
+      </TenantProvider>
+    </AuthProvider>
   );
 }
 

@@ -8,7 +8,6 @@ export * from './views/VRFView';
 export * from './views/details/VRFDetailView';
 export * from './views/ASNView';
 export * from './views/ASNRangeView';
-export * from './views/DeviceView';
 export * from './views/CredentialView';
 export * from './views/SitesView';
 export * from './views/details/VLANGroupDetailView';

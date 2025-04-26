@@ -1,15 +1,12 @@
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, ClassVar
 import sqlalchemy as sa
-from sqlmodel import SQLModel, Field, Relationship
-
-if TYPE_CHECKING:
-    from .device import Device
+from sqlmodel import SQLModel, Field
 
 class Credential(SQLModel, table=True):
     """
     Stores authentication credentials for devices
     """
-    __tablename__ = "credentials"
+    __tablename__: ClassVar[str] = "credentials"
     
     # Primary key
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -24,16 +21,6 @@ class Credential(SQLModel, table=True):
     
     # Default credential flag
     is_default: bool = Field(default=False, description="Whether this is the default credential for new devices")
-    
-    # Relationships
-    devices: List["Device"] = Relationship(
-        back_populates="credential",
-        sa_relationship_kwargs={"foreign_keys": "[Device.credential_name]"}
-    )
-    fallback_devices: List["Device"] = Relationship(
-        back_populates="fallback_credential",
-        sa_relationship_kwargs={"foreign_keys": "[Device.fallback_credential_name]"}
-    )
     
     # Add unique constraint for name
     __table_args__ = (

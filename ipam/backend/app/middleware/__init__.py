@@ -1,3 +1,4 @@
 from .logging import LoggingMiddleware
+from .tenant import TenantMiddleware
 
-__all__ = ["LoggingMiddleware"]
+__all__ = ["LoggingMiddleware", "TenantMiddleware"]

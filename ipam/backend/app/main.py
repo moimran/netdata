@@ -1,12 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, Session
+from sqlalchemy import text
 import logging
 import signal
+from typing import cast, Any, Callable
 
 from .database import engine
-from .middleware import LoggingMiddleware
+from .middleware import LoggingMiddleware, TenantMiddleware
 from .exception_handlers import validation_exception_handler, general_exception_handler
 from .utils import CustomJSONResponse
 from .api import router
@@ -19,6 +21,9 @@ app = FastAPI(title="IPAM API")
 
 # Add logging middleware
 app.add_middleware(LoggingMiddleware)
+
+# Add tenant middleware
+app.add_middleware(TenantMiddleware)
 
 # Configure CORS
 app.add_middleware(
@@ -34,33 +39,72 @@ app.add_middleware(
 app.router.default_response_class = CustomJSONResponse
 
 # Add exception handlers
-app.add_exception_handler(RequestValidationError, validation_exception_handler)
-app.add_exception_handler(Exception, general_exception_handler)
+# Cast the exception handlers to Any to satisfy the type checker
+app.add_exception_handler(RequestValidationError, cast(Any, validation_exception_handler))
+app.add_exception_handler(Exception, cast(Any, general_exception_handler))
 
 # Include the API router
 app.include_router(router)
 
-# Create tables
-SQLModel.metadata.create_all(engine)
+# Set up Row-Level Security (RLS) for PostgreSQL
+def setup_row_level_security():
+    """
+    Set up PostgreSQL Row-Level Security (RLS) for tenant isolation.
+    This function creates the necessary RLS policies and functions.
+    """
+    logger.info("Setting up Row-Level Security for PostgreSQL...")
+    with Session(engine) as session:
+        # Create app schema if it doesn't exist
+        session.execute(text("CREATE SCHEMA IF NOT EXISTS app"))
+        
+        # Create function to get current tenant ID
+        session.execute(text("""
+        CREATE OR REPLACE FUNCTION app.get_current_tenant_id()
+        RETURNS UUID AS $$
+        BEGIN
+            RETURN current_setting('app.current_tenant_id', TRUE)::UUID;
+        EXCEPTION
+            WHEN OTHERS THEN
+                RETURN NULL;
+        END;
+        $$ LANGUAGE plpgsql;
+        """))
+        
+        # Enable RLS on tables that need tenant isolation
+        tables_with_tenant_id = [
+            "prefixes", "ip_ranges", "ip_addresses", "sites", "vlans",
+            "vrfs", "aggregates", "devices", "interfaces"
+        ]
+        
+        for table in tables_with_tenant_id:
+            # Enable RLS on table
+            session.execute(text(f"ALTER TABLE ipam.{table} ENABLE ROW LEVEL SECURITY"))
+            
+            # Create policy for data isolation
+            session.execute(text(f"""
+            CREATE POLICY tenant_isolation_{table}_policy ON ipam.{table}
+            USING (
+                tenant_id IS NULL OR 
+                tenant_id = app.get_current_tenant_id() OR
+                app.get_current_tenant_id() IS NULL
+            )
+            """))
+        
+        # Commit all changes
+        session.commit()
+        
+        logger.info("Row-Level Security setup complete")
 
-# WebSSH server should be started manually
-# The following function has been commented out to prevent automatic starting
-'''
-def start_webssh_server_thread():
-    # Wait a bit for the main server to start
-    time.sleep(2)
+# Create tables and RLS policies
+@app.on_event("startup")
+async def startup_event():
+    # Create tables (existing behavior)
+    SQLModel.metadata.create_all(engine)
     
-    # Check if the server is already running
-    if not is_server_running():
-        logger.info("Starting WebSSH server automatically...")
-        try:
-            result = start_server()
-            logger.info(f"WebSSH server start result: {result}")
-        except Exception as e:
-            logger.error(f"Error starting WebSSH server: {e}")
-    else:
-        logger.info("WebSSH server is already running")
-'''
+    # Set up Row-Level Security
+    setup_row_level_security()
+    
+    logger.info("Startup complete - server ready")
 
 # Store the original signal handlers
 original_sigint_handler = signal.getsignal(signal.SIGINT)
@@ -80,13 +124,6 @@ def signal_handler(sig, frame):
     shutdown_initiated = True
     
     logger.info("Shutting down backend server...")
-    # WebSSH server should be stopped manually
-    # The following code has been removed:
-    # try:
-    #     stop_result = stop_server()
-    #     logger.info(f"WebSSH server stop result: {stop_result}")
-    # except Exception as e:
-    #     logger.error(f"Error stopping WebSSH server: {e}")
     
     # Call the original signal handler to let the server shut down normally
     if sig == signal.SIGINT and original_sigint_handler:
@@ -104,24 +141,6 @@ signal.signal(signal.SIGTERM, signal_handler)  # Termination signal
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("FastAPI shutdown event triggered")
-    # WebSSH server should be stopped manually
-    # The following code has been removed:
-    # if not shutdown_initiated:
-    #     logger.info("Stopping WebSSH server from shutdown event...")
-    #     try:
-    #         stop_result = stop_server()
-    #         logger.info(f"WebSSH server stop result: {stop_result}")
-    #     except Exception as e:
-    #         logger.error(f"Error stopping WebSSH server: {e}")
-
-# WebSSH server should be started manually
-# The following code has been removed to prevent automatic starting
-'''
-# Start the WebSSH server in a background thread
-webssh_thread = threading.Thread(target=start_webssh_server_thread)
-webssh_thread.daemon = True  # Make the thread a daemon so it exits when the main process exits
-webssh_thread.start()
-'''
 
 # Add a simple test endpoint at the root
 @app.get("/")

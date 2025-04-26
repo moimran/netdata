@@ -68,16 +68,17 @@ endlegend
 ' Group tables by category
 package "Location Management" {
   location_table(regions) {
-    primary_key(id) INT
+    primary_key(id) UUID
     not_null(name) VARCHAR(255)
     not_null(slug) VARCHAR(255)
     description VARCHAR(255)
+    foreign_key(parent_id) UUID
     created_at TIMESTAMP
     updated_at TIMESTAMP
   }
 
   location_table(site_groups) {
-    primary_key(id) INT
+    primary_key(id) UUID
     not_null(name) VARCHAR(255)
     not_null(slug) VARCHAR(255)
     description VARCHAR(255)
@@ -86,7 +87,7 @@ package "Location Management" {
   }
 
   location_table(sites) {
-    primary_key(id) INT
+    primary_key(id) UUID
     not_null(name) VARCHAR(255)
     not_null(slug) VARCHAR(255)
     description VARCHAR(255)
@@ -98,21 +99,21 @@ package "Location Management" {
     contact_name VARCHAR(255)
     contact_email VARCHAR(255)
     contact_phone VARCHAR(255)
-    foreign_key(tenant_id) INT
-    foreign_key(region_id) INT
-    foreign_key(site_group_id) INT
+    foreign_key(tenant_id) UUID
+    foreign_key(region_id) UUID
+    foreign_key(site_group_id) UUID
     created_at TIMESTAMP
     updated_at TIMESTAMP
   }
 
   location_table(locations) {
-    primary_key(id) INT
+    primary_key(id) UUID
     not_null(name) VARCHAR(255)
     not_null(slug) VARCHAR(255)
     description VARCHAR(255)
     not_null(status) VARCHAR(50)
-    foreign_key(site_id) INT
-    foreign_key(parent_id) INT
+    foreign_key(site_id) UUID
+    foreign_key(parent_id) UUID
     created_at TIMESTAMP
     updated_at TIMESTAMP
   }
@@ -120,7 +121,7 @@ package "Location Management" {
 
 package "Administrative Data" {
   admin_table(tenants) {
-    primary_key(id) INT
+    primary_key(id) UUID
     not_null(name) VARCHAR(255)
     not_null(slug) VARCHAR(255)
     description VARCHAR(255)
@@ -130,7 +131,7 @@ package "Administrative Data" {
   }
 
   admin_table(rirs) {
-    primary_key(id) INT
+    primary_key(id) UUID
     not_null(name) VARCHAR(255)
     not_null(slug) VARCHAR(255)
     description VARCHAR(255)
@@ -140,7 +141,7 @@ package "Administrative Data" {
   }
 
   admin_table(roles) {
-    primary_key(id) INT
+    primary_key(id) UUID
     not_null(name) VARCHAR(255)
     not_null(slug) VARCHAR(255)
     description VARCHAR(255)

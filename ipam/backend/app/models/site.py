@@ -1,4 +1,5 @@
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING, ClassVar
+import uuid
 from sqlmodel import Field, Relationship
 from .base import BaseModel
 
@@ -9,13 +10,13 @@ if TYPE_CHECKING:
     from .region import Region
     from .site_group import SiteGroup
     from .location import Location
-    from .device import Device
+    from .deviceinventory import DeviceInventory
 
 class Site(BaseModel, table=True):
     """
     A Site represents a physical location where devices and networks are located.
     """
-    __tablename__ = "sites"
+    __tablename__: ClassVar[str] = "sites"
     __table_args__ = {"schema": "ipam"}
     
     # Basic fields
@@ -26,30 +27,25 @@ class Site(BaseModel, table=True):
     # Physical location attributes
     facility: Optional[str] = Field(default=None, description="Data center/facility name")
     physical_address: Optional[str] = Field(default=None, description="Physical address of the site")
-    latitude: Optional[float] = Field(default=None, description="GPS latitude coordinate")
-    longitude: Optional[float] = Field(default=None, description="GPS longitude coordinate")
     
     # Status and contact info
     status: str = Field(default="active")
-    contact_name: Optional[str] = Field(default=None)
-    contact_email: Optional[str] = Field(default=None)
-    contact_phone: Optional[str] = Field(default=None)
     
     # Foreign Keys
-    tenant_id: Optional[int] = Field(default=None, foreign_key="ipam.tenants.id")
-    region_id: Optional[int] = Field(default=None, foreign_key="ipam.regions.id")
-    site_group_id: Optional[int] = Field(default=None, foreign_key="ipam.site_groups.id")
+    tenant_id: uuid.UUID = Field(..., foreign_key="ipam.tenants.id", description="Tenant this site belongs to")
+    region_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.regions.id")
+    site_group_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.site_groups.id")
     
     # Relationships
-    tenant: Optional["Tenant"] = Relationship(back_populates="sites")
+    tenant: "Tenant" = Relationship(back_populates="sites")
     region: Optional["Region"] = Relationship(back_populates="sites")
     site_group: Optional["SiteGroup"] = Relationship(back_populates="sites")
     vlans: List["VLAN"] = Relationship(back_populates="site")
     prefixes: List["Prefix"] = Relationship(back_populates="site")
     locations: List["Location"] = Relationship(back_populates="site")
-    devices: List["Device"] = Relationship(
+    devices: List["DeviceInventory"] = Relationship(
         back_populates="site",
-        sa_relationship_kwargs={"primaryjoin": "Site.id == Device.site_id"}
+        sa_relationship_kwargs={"primaryjoin": "Site.id == DeviceInventory.site_id"}
     )
     
     class Config:

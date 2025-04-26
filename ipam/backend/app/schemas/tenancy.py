@@ -2,6 +2,7 @@
 
 from typing import Optional, Dict, Any
 from datetime import datetime
+import uuid
 from pydantic import BaseModel, Field, ConfigDict
 
 # Tenant
@@ -33,7 +34,7 @@ class TenantUpdate(TenantBase):
     custom_fields: Optional[Dict[str, Any]] = None
 
 class TenantRead(TenantBase):
-    id: int
+    id: uuid.UUID
     created_at: datetime
     updated_at: Optional[datetime] = None
     # group: Optional[TenantGroupRead] = None # Assuming TenantGroup model/schema exists

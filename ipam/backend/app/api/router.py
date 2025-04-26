@@ -5,7 +5,6 @@ from typing import List, Dict, Any
 from uuid import UUID
 
 from . import crud_router
-from . import endpoints
 from .. import crud_legacy as crud
 from ..database import get_session, engine 
 from ..models import (
@@ -27,7 +26,6 @@ from app.schemas import (
     platform,
     automation
 )
-from app.schemas.devices import DeviceInventoryRead
 
 # Import necessary Read schemas
 from app.schemas.organizational import (

@@ -1,20 +1,21 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, ClassVar
+import uuid
 import sqlalchemy as sa
 from sqlmodel import Field, Relationship
 from .base import BaseModel
 
 if TYPE_CHECKING:
     from .ip_address import IPAddress
-    from .device import Device
+    from .deviceinventory import DeviceInventory
 
 class Interface(BaseModel, table=True):
     """
     An Interface represents a network interface on a device.
     """
-    __tablename__ = "interfaces"
-    __table_args__ = (
+    __tablename__: ClassVar[str] = "interfaces"
+    __table_args__: ClassVar[tuple] = (
         sa.UniqueConstraint('name', name='uq_interface_name'),
-        {"schema": "ipam"},
+        {"schema": "ipam"}
     )
     
     # Basic fields
@@ -22,11 +23,11 @@ class Interface(BaseModel, table=True):
     description: Optional[str] = Field(default=None, description="Brief description")
     
     # Foreign Keys
-    device_id: int = Field(foreign_key="ipam.devices.id")
-    ip_address_id: Optional[int] = Field(default=None, foreign_key="ipam.ip_addresses.id")
+    device_uuid: uuid.UUID = Field(foreign_key="ni.device_inventory.device_uuid")
+    ip_address_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.ip_addresses.id")
     
     # Relationships
-    device: "Device" = Relationship(back_populates="interfaces")
+    device: "DeviceInventory" = Relationship(back_populates="interfaces")
     ip_address: Optional["IPAddress"] = Relationship(back_populates="interfaces")
 
     class Config:

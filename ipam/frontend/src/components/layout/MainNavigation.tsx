@@ -35,7 +35,7 @@ import {
 export function MainNavigation() {
   const location = useLocation();
   const [collapsedGroups, setCollapsedGroups] = React.useState<Record<string, boolean>>({});
-  
+
   const toggleGroup = (groupTitle: string) => {
     setCollapsedGroups(prev => ({
       ...prev,
@@ -77,16 +77,14 @@ export function MainNavigation() {
       ]
     },
     {
-      title: 'Inventory',
+      title: 'Network Inventory',
       items: [
-        { icon: IconServer, label: 'Device Inventory', path: '/device-inventory' },
         { icon: IconDatabase, label: 'Hardware Inventory', path: '/hardware-inventory' }
       ]
     },
     {
       title: 'Devices',
       items: [
-        { icon: IconServer, label: 'Devices', path: '/devices' },
         { icon: IconNetwork, label: 'Interfaces', path: '/interfaces' },
         { icon: IconKey, label: 'Credentials', path: '/credentials' }
       ]
@@ -112,7 +110,7 @@ export function MainNavigation() {
 
       {navigationGroups.map((group, index) => (
         <Box key={index} mb="md">
-          <UnstyledButton 
+          <UnstyledButton
             onClick={() => toggleGroup(group.title)}
             style={{ width: '100%' }}
             px="md"
@@ -127,10 +125,10 @@ export function MainNavigation() {
               >
                 {group.title}
               </Text>
-              <IconChevronDown 
-                size={14} 
-                color={TEXT_BRIGHT} 
-                style={{ 
+              <IconChevronDown
+                size={14}
+                color={TEXT_BRIGHT}
+                style={{
                   transform: collapsedGroups[group.title] ? 'rotate(-90deg)' : 'rotate(0deg)',
                   transition: 'transform 200ms ease'
                 }}

@@ -1,10 +1,12 @@
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING, ClassVar, Union, Tuple
+import uuid
 import ipaddress
+from ipaddress import IPv4Network, IPv6Network
 import sqlalchemy as sa
 from sqlmodel import Field, Relationship, select
 from .base import BaseModel, TimestampedModel
 from .ip_constants import PrefixStatusEnum, IPRangeStatusEnum
-from .fields import IPNetworkField
+from .fields import IPNetworkType
 from .ip_utils import (
     validate_ip_network,
     calculate_ip_range_size,
@@ -27,22 +29,23 @@ class Prefix(TimestampedModel, table=True):
     may optionally be assigned a user-defined Role. A Prefix can also be assigned to
     a VLAN where appropriate.
     """
-    __tablename__ = "prefixes"
-    __table_args__ = (
+    __tablename__: ClassVar[str] = "prefixes"
+    __table_args__: ClassVar[tuple] = (
         sa.UniqueConstraint('prefix', 'vrf_id', name='uq_prefix_vrf'),
         {"schema": "ipam"},
     )
     
     # Primary key
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[uuid.UUID] = Field(default=None, primary_key=True)
     
     # Basic fields
     description: Optional[str] = Field(default=None, description="Brief description")
     
     # Fields specific to Prefix
-    prefix: str = IPNetworkField(
+    prefix: str = Field(
+        ...,
         description="IPv4 or IPv6 network with mask",
-        index=True
+        sa_column=sa.Column(IPNetworkType, index=True)
     )
     status: PrefixStatusEnum = Field(
         default=PrefixStatusEnum.ACTIVE,
@@ -62,19 +65,19 @@ class Prefix(TimestampedModel, table=True):
     child_count: int = Field(default=0, description="Number of child prefixes")
     
     # Hierarchical relationship fields
-    parent_id: Optional[int] = Field(default=None, foreign_key="ipam.prefixes.id", index=True)
+    parent_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.prefixes.id", index=True)
     
     # Foreign Keys
-    site_id: Optional[int] = Field(default=None, foreign_key="ipam.sites.id")
-    vrf_id: Optional[int] = Field(default=None, foreign_key="ipam.vrfs.id")
-    tenant_id: Optional[int] = Field(default=None, foreign_key="ipam.tenants.id")
-    vlan_id: Optional[int] = Field(default=None, foreign_key="ipam.vlans.id")
-    role_id: Optional[int] = Field(default=None, foreign_key="ipam.roles.id")
+    site_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.sites.id")
+    vrf_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.vrfs.id")
+    tenant_id: uuid.UUID = Field(..., foreign_key="ipam.tenants.id", description="Tenant this prefix belongs to")
+    vlan_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.vlans.id")
+    role_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.roles.id")
     
     # Relationships
     site: Optional["Site"] = Relationship(back_populates="prefixes")
     vrf: Optional["VRF"] = Relationship(back_populates="prefixes")
-    tenant: Optional["Tenant"] = Relationship(back_populates="prefixes")
+    tenant: "Tenant" = Relationship(back_populates="prefixes")
     vlan: Optional["VLAN"] = Relationship(back_populates="prefixes")
     role: Optional["Role"] = Relationship(back_populates="prefixes")
     ip_addresses: List["IPAddress"] = Relationship(back_populates="prefix")
@@ -90,9 +93,8 @@ class Prefix(TimestampedModel, table=True):
     class Config:
         arbitrary_types_allowed = True
     
-    def clean(self) -> None:
+    def validate(self) -> None:
         """Validate the prefix."""
-        super().clean()
         validate_ip_network(self.prefix)
     
     def get_available_ips(self) -> List[str]:
@@ -140,7 +142,11 @@ class Prefix(TimestampedModel, table=True):
                         continue
                     
                     # Check if this prefix is a subnet of the potential parent
-                    if this_network.subnet_of(parent_network) and this_network != parent_network:
+                    # Handle IPv4 and IPv6 networks separately
+                    if (
+                        (isinstance(this_network, IPv4Network) and isinstance(parent_network, IPv4Network) and this_network.subnet_of(parent_network)) or
+                        (isinstance(this_network, IPv6Network) and isinstance(parent_network, IPv6Network) and this_network.subnet_of(parent_network))
+                    ) and this_network != parent_network:
                         # If we found a better (more specific) parent
                         if parent_network.prefixlen > best_mask:
                             best_parent = prefix
@@ -196,8 +202,8 @@ class IPRange(BaseModel, table=True):
     """
     A range of IP addresses, defined by start and end addresses.
     """
-    __tablename__ = "ip_ranges"
-    __table_args__ = (
+    __tablename__: ClassVar[str] = "ip_ranges"
+    __table_args__: ClassVar[tuple] = (
         sa.UniqueConstraint('start_address', 'end_address', 'vrf_id', name='uq_iprange_vrf'),
         {"schema": "ipam"},
     )
@@ -206,13 +212,15 @@ class IPRange(BaseModel, table=True):
     description: Optional[str] = Field(default=None, description="Brief description")
     
     # Fields specific to IPRange
-    start_address: str = IPNetworkField(
+    start_address: str = Field(
+        ...,
         description="IPv4 or IPv6 start address",
-        index=True
+        sa_column=sa.Column(IPNetworkType, index=True)
     )
-    end_address: str = IPNetworkField(
+    end_address: str = Field(
+        ...,
         description="IPv4 or IPv6 end address",
-        index=True
+        sa_column=sa.Column(IPNetworkType, index=True)
     )
     size: int = Field(default=0)
     status: IPRangeStatusEnum = Field(
@@ -225,8 +233,8 @@ class IPRange(BaseModel, table=True):
     )
     
     # Foreign Keys
-    vrf_id: Optional[int] = Field(default=None, foreign_key="ipam.vrfs.id")
-    tenant_id: Optional[int] = Field(default=None, foreign_key="ipam.tenants.id")
+    vrf_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.vrfs.id")
+    tenant_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.tenants.id")
     
     # Relationships
     vrf: Optional["VRF"] = Relationship(back_populates="ip_ranges")
@@ -235,14 +243,49 @@ class IPRange(BaseModel, table=True):
     class Config:
         arbitrary_types_allowed = True
     
-    def clean(self) -> None:
-        """Validate the IP range."""
-        super().clean()
-        validate_ip_network(self.start_address)
-        validate_ip_network(self.end_address)
-        
-        # Calculate and set size
-        self.size = calculate_ip_range_size(self.start_address, self.end_address)
+    def calculate_size(self) -> Tuple[int, Optional[str]]:
+        """
+        Calculate the size of the IP range and return it along with any error message.
+        Returns a tuple of (size, error_message).
+        """
+        try:
+            start_ip = ipaddress.ip_address(self.start_address)
+            end_ip = ipaddress.ip_address(self.end_address)
+            
+            # Ensure start and end are the same IP version
+            if start_ip.version != end_ip.version:
+                return 0, "Start and end addresses must be the same IP version"
+            
+            # For IPv4
+            if isinstance(start_ip, ipaddress.IPv4Address):
+                size = int(end_ip) - int(start_ip) + 1
+            # For IPv6
+            else:
+                size = int(end_ip) - int(start_ip) + 1
+            
+            return size, None
+            
+        except Exception as e:
+            return 0, str(e)
+
+    def validate(self) -> Optional[str]:
+        """
+        Validate the IP range.
+        Returns None if valid, error message if invalid.
+        """
+        # Calculate size and get any error
+        size, error = self.calculate_size()
+        if error:
+            return error
+            
+        # Store the calculated size
+        self.size = size
+            
+        # Ensure start address is before end address
+        if size <= 0:
+            return "End address must be after start address"
+            
+        return None
     
     def get_available_ips(self) -> List[str]:
         """Return all available IPs within this range."""

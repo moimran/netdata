@@ -1,4 +1,5 @@
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING, ClassVar
+import uuid
 from sqlmodel import Field, Relationship
 from .base import BaseModel
 import sqlalchemy as sa
@@ -10,7 +11,7 @@ class Region(BaseModel, table=True):
     """
     A Region represents a geographic region in which Sites reside.
     """
-    __tablename__ = "regions"
+    __tablename__: ClassVar[str] = "regions"
     
     # Basic fields
     name: str = Field(..., description="Name of the region")
@@ -23,7 +24,7 @@ class Region(BaseModel, table=True):
     )
     
     # Foreign Keys
-    parent_id: Optional[int] = Field(default=None, foreign_key="ipam.regions.id")
+    parent_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.regions.id")
     
     # Relationships
     sites: List["Site"] = Relationship(back_populates="region")
