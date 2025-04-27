@@ -8,6 +8,8 @@ from .arp import router as arp_router
 from .deviceinventory import router as deviceinventory_router
 from .platform import router as platform_router
 from .interface import router as interface_router
+from .reference import router as reference_router
+from .regions import router as regions_router
 
 router = APIRouter()
 
@@ -23,6 +25,8 @@ router.include_router(arp_router, tags=["ARP Table"])
 router.include_router(deviceinventory_router, tags=["Device Inventory"])
 router.include_router(platform_router, tags=["Platform Types"])
 router.include_router(interface_router, tags=["Interfaces"])
+router.include_router(regions_router, tags=["Regions"])
+router.include_router(reference_router, tags=["Reference Data"])
 
 # Print debug info about registered routes
 import logging

@@ -44,7 +44,12 @@ export const ReferenceField = memo(({
     <Select
       label={label}
       value={value ? String(value) : ''}
-      onChange={(selectedValue) => handleDropdownSelection(name, selectedValue, onChange)}
+      onChange={(selectedValue) => {
+        // Check if this is a UUID field (36 characters with hyphens)
+        const isUuidField = selectedValue && selectedValue.length === 36 && selectedValue.includes('-');
+        // Pass isNumeric=false for UUID fields to prevent conversion to number
+        handleDropdownSelection(name, selectedValue, onChange, !isUuidField);
+      }}
       data={selectOptions}
       error={error}
       placeholder={hasReferenceData ? `Select ${label}` : `No ${referenceTable} available`}

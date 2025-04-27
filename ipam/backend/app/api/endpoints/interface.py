@@ -10,7 +10,7 @@ from ...crud_legacy import BaseCRUD
 router = APIRouter()
 interface_crud = BaseCRUD(Interface)
 
-@router.get("/interfaces", response_model=List[dict])
+@router.get("/", response_model=List[dict])
 def get_interfaces(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
@@ -26,7 +26,7 @@ def get_interfaces(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving interfaces: {str(e)}")
 
-@router.get("/interfaces/{interface_id}", response_model=dict)
+@router.get("/{interface_id}", response_model=dict)
 def get_interface_by_id(
     interface_id: int,
     session: Session = Depends(get_session)

@@ -15,14 +15,14 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
     { name: 'slug', type: 'string' },
-    { name: 'parent_id', type: 'number', reference: 'regions', header: 'Parent Region' },
+    { name: 'parent_id', type: 'foreignKey', reference: 'regions', header: 'Parent Region' },
     { name: 'description', type: 'string' }
   ],
   site_groups: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
     { name: 'slug', type: 'string' },
-    { name: 'tenant_id', type: 'number', reference: 'tenants' },
+    { name: 'tenant_id', type: 'foreignKey', reference: 'tenants' },
     { name: 'description', type: 'string' }
   ],
   sites: [
@@ -30,17 +30,17 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'name', type: 'string', required: true },
     { name: 'slug', type: 'string' },
     { name: 'status', type: 'string', required: true },
-    { name: 'region_id', type: 'number', reference: 'regions' },
-    { name: 'site_group_id', type: 'number', reference: 'site_groups' },
-    { name: 'tenant_id', type: 'number', reference: 'tenants', required: true },
+    { name: 'region_id', type: 'foreignKey', reference: 'regions' },
+    { name: 'site_group_id', type: 'foreignKey', reference: 'site_groups' },
+    { name: 'tenant_id', type: 'foreignKey', reference: 'tenants', required: true },
     { name: 'description', type: 'string' }
   ],
   locations: [
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
     { name: 'slug', type: 'string' },
-    { name: 'site_id', type: 'number', reference: 'sites' },
-    { name: 'parent_id', type: 'number', reference: 'locations' },
+    { name: 'site_id', type: 'foreignKey', reference: 'sites' },
+    { name: 'parent_id', type: 'foreignKey', reference: 'locations' },
     { name: 'status', type: 'string', required: true },
     { name: 'description', type: 'string' }
   ],
@@ -87,8 +87,8 @@ export const TABLE_SCHEMAS: Record<TableName, Column[]> = {
     { name: 'id', type: 'number' },
     { name: 'name', type: 'string', required: true },
     { name: 'prefix', type: 'string', required: true },
-    { name: 'rir_id', type: 'number', reference: 'rirs' },
-    { name: 'tenant_id', type: 'number', reference: 'tenants' },
+    { name: 'rir_id', type: 'foreignKey', reference: 'rirs' },
+    { name: 'tenant_id', type: 'foreignKey', reference: 'tenants' },
     { name: 'description', type: 'string' }
   ],
   roles: [

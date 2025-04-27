@@ -1,8 +1,8 @@
 """initial_commit
 
-Revision ID: 6ad1f8552846
+Revision ID: a355f67622ef
 Revises: 
-Create Date: 2025-04-26 21:08:50.072523
+Create Date: 2025-04-27 19:40:29.606301
 
 """
 from alembic import op
@@ -21,7 +21,7 @@ from app.types import UUIDType
 from app.models.fields import IPNetworkType
 
 # revision identifiers, used by Alembic.
-revision = '6ad1f8552846'
+revision = 'a355f67622ef'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -395,6 +395,25 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_ipam_prefixes_parent_id'), 'prefixes', ['parent_id'], unique=False, schema='ipam')
     op.create_index(op.f('ix_ipam_prefixes_prefix'), 'prefixes', ['prefix'], unique=False, schema='ipam')
+    op.create_table('arp_table',
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('id', UUIDType(), nullable=False),
+    sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('ipv4_address', IPNetworkType(), nullable=True),
+    sa.Column('mac_address', sqlmodel.sql.sqltypes.AutoString(length=64), nullable=False),
+    sa.Column('ip_arp_age', sqlmodel.sql.sqltypes.AutoString(length=32), nullable=False),
+    sa.Column('interface_name', sqlmodel.sql.sqltypes.AutoString(length=128), nullable=False),
+    sa.Column('physical_interface', sqlmodel.sql.sqltypes.AutoString(length=128), nullable=True),
+    sa.Column('interface_module', sqlmodel.sql.sqltypes.AutoString(length=128), nullable=True),
+    sa.Column('arp_state', sqlmodel.sql.sqltypes.AutoString(length=128), nullable=True),
+    sa.Column('ip_route_type', sqlmodel.sql.sqltypes.AutoString(length=128), nullable=True),
+    sa.Column('vrf_name', sqlmodel.sql.sqltypes.AutoString(length=64), nullable=True),
+    sa.Column('device_id', sa.Uuid(), nullable=False),
+    sa.ForeignKeyConstraint(['device_id'], ['ni.device_inventory.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    schema='ni'
+    )
     op.create_table('interfaces',
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -474,6 +493,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_ipam_ip_addresses_ipv4_address'), table_name='ip_addresses', schema='ipam')
     op.drop_table('ip_addresses', schema='ipam')
     op.drop_table('interfaces', schema='ni')
+    op.drop_table('arp_table', schema='ni')
     op.drop_index(op.f('ix_ipam_prefixes_prefix'), table_name='prefixes', schema='ipam')
     op.drop_index(op.f('ix_ipam_prefixes_parent_id'), table_name='prefixes', schema='ipam')
     op.drop_table('prefixes', schema='ipam')
