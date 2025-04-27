@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from sqlmodel import Session, select
 from typing import Optional, List, TypeVar, Generic
 from pydantic import BaseModel, ValidationError
+from uuid import UUID
 from ..database import get_session
 # Import CRUDBase only when needed for type checking
 import logging
@@ -102,7 +103,7 @@ def create_crud_routes(router: APIRouter, path: str, crud_module, crud_instance,
             raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
     @router.get(f"/{path}/{{item_id}}", tags=tags, response_model=ReadSchema)
-    def get_one(item_id: int, session: Session = Depends(get_session)):
+    def get_one(item_id: UUID, session: Session = Depends(get_session)):
         item = crud_instance.get_by_id(session, item_id)
         if not item:
             raise HTTPException(status_code=404, detail=f"{path} not found")
@@ -289,7 +290,7 @@ def create_crud_routes(router: APIRouter, path: str, crud_module, crud_instance,
 
     @router.delete(f"/{path}/{{item_id}}", status_code=204, tags=tags, response_model=None)
     def delete_item(
-        item_id: int,
+        item_id: UUID,
         session: Session = Depends(get_session),
         current_crud_instance = crud_instance,
         current_path: str = path

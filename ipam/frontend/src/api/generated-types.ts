@@ -55,6 +55,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/device_inventory/{device_uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Device Inventory By Device */
+        get: operations["read_device_inventory_by_device_api_v1_device_inventory__device_uuid__get"];
+        put?: never;
+        post?: never;
+        /** Delete Device Inventory By Device */
+        delete: operations["delete_device_inventory_by_device_api_v1_device_inventory__device_uuid__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/regions": {
         parameters: {
             query?: never;
@@ -573,6 +591,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform_types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get All */
+        get: operations["get_all_api_v1_platform_types_get"];
+        put?: never;
+        /** Create Item */
+        post: operations["create_item_api_v1_platform_types_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform_types/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_platform_types__item_id__get"];
+        /** Update Item */
+        put: operations["update_item_api_v1_platform_types__item_id__put"];
+        post?: never;
+        /** Delete Item */
+        delete: operations["delete_item_api_v1_platform_types__item_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tenants": {
         parameters: {
             query?: never;
@@ -605,6 +660,80 @@ export interface paths {
         post?: never;
         /** Delete Item */
         delete: operations["delete_item_api_v1_tenants__item_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interfaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get All */
+        get: operations["get_all_api_v1_interfaces_get"];
+        put?: never;
+        /** Create Item */
+        post: operations["create_item_api_v1_interfaces_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interfaces/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_interfaces__item_id__get"];
+        /** Update Item */
+        put: operations["update_item_api_v1_interfaces__item_id__put"];
+        post?: never;
+        /** Delete Item */
+        delete: operations["delete_item_api_v1_interfaces__item_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/device_inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get All */
+        get: operations["get_all_api_v1_device_inventory_get"];
+        put?: never;
+        /** Create Item */
+        post: operations["create_item_api_v1_device_inventory_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/device_inventory/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_device_inventory__item_id__get"];
+        /** Update Item */
+        put: operations["update_item_api_v1_device_inventory__item_id__put"];
+        post?: never;
+        /** Delete Item */
+        delete: operations["delete_item_api_v1_device_inventory__item_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -721,43 +850,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/platform_types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get All */
-        get: operations["get_all_api_v1_platform_types_get"];
-        put?: never;
-        /** Create Item */
-        post: operations["create_item_api_v1_platform_types_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/platform_types/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_platform_types__item_id__get"];
-        /** Update Item */
-        put: operations["update_item_api_v1_platform_types__item_id__put"];
-        post?: never;
-        /** Delete Item */
-        delete: operations["delete_item_api_v1_platform_types__item_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/net_jobs": {
         parameters: {
             query?: never;
@@ -790,6 +882,83 @@ export interface paths {
         post?: never;
         /** Delete Item */
         delete: operations["delete_item_api_v1_net_jobs__item_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Login For Access Token */
+        post: operations["login_for_access_token_api_v1_auth_token_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Login
+         * @description More user-friendly login endpoint that accepts JSON instead of form data
+         */
+        post: operations["login_api_v1_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register User
+         * @description Register a new user
+         */
+        post: operations["register_user_api_v1_auth_register_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Users Me
+         * @description Get current user information
+         */
+        get: operations["read_users_me_api_v1_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1024,6 +1193,24 @@ export interface components {
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
         };
+        /** Body_login_for_access_token_api_v1_auth_token_post */
+        Body_login_for_access_token_api_v1_auth_token_post: {
+            /** Grant Type */
+            grant_type?: string | null;
+            /** Username */
+            username: string;
+            /** Password */
+            password: string;
+            /**
+             * Scope
+             * @default
+             */
+            scope: string;
+            /** Client Id */
+            client_id?: string | null;
+            /** Client Secret */
+            client_secret?: string | null;
+        };
         /**
          * CredentialCreate
          * @example {
@@ -1090,6 +1277,178 @@ export interface components {
             custom_fields?: Record<string, never> | null;
             /** Data */
             data?: Record<string, never> | null;
+        };
+        /** DeviceInventoryCreate */
+        DeviceInventoryCreate: {
+            /**
+             * Hostname
+             * @description Hostname of the device
+             */
+            hostname: string;
+            /**
+             * Ip Address
+             * @description IP address of the device
+             */
+            ip_address: string;
+            /**
+             * Serial Number
+             * @description Serial number of the device
+             */
+            serial_number?: string | null;
+            /**
+             * Model
+             * @description Model of the device
+             */
+            model?: string | null;
+            /**
+             * Vendor
+             * @description Vendor of the device
+             */
+            vendor?: string | null;
+            /**
+             * Os Version
+             * @description OS version of the device
+             */
+            os_version?: string | null;
+            /**
+             * Uptime
+             * @description Uptime of the device
+             */
+            uptime?: string | null;
+            /**
+             * Last Seen
+             * @description Last time the device was seen
+             */
+            last_seen?: string | null;
+            /**
+             * Status
+             * @description Status of the device
+             * @default active
+             */
+            status: string | null;
+            /**
+             * Site Id
+             * @description Site ID
+             */
+            site_id?: string | null;
+            /**
+             * Tenant Id
+             * @description Tenant ID
+             */
+            tenant_id?: string | null;
+            /**
+             * Platform Type Id
+             * @description Platform type ID
+             */
+            platform_type_id?: string | null;
+            /**
+             * Credential Id
+             * @description Credential ID
+             */
+            credential_id?: string | null;
+        };
+        /** DeviceInventoryRead */
+        DeviceInventoryRead: {
+            /**
+             * Hostname
+             * @description Hostname of the device
+             */
+            hostname: string;
+            /**
+             * Ip Address
+             * @description IP address of the device
+             */
+            ip_address: string;
+            /**
+             * Serial Number
+             * @description Serial number of the device
+             */
+            serial_number?: string | null;
+            /**
+             * Model
+             * @description Model of the device
+             */
+            model?: string | null;
+            /**
+             * Vendor
+             * @description Vendor of the device
+             */
+            vendor?: string | null;
+            /**
+             * Os Version
+             * @description OS version of the device
+             */
+            os_version?: string | null;
+            /**
+             * Uptime
+             * @description Uptime of the device
+             */
+            uptime?: string | null;
+            /**
+             * Last Seen
+             * @description Last time the device was seen
+             */
+            last_seen?: string | null;
+            /**
+             * Status
+             * @description Status of the device
+             * @default active
+             */
+            status: string | null;
+            /**
+             * Site Id
+             * @description Site ID
+             */
+            site_id?: string | null;
+            /**
+             * Tenant Id
+             * @description Tenant ID
+             */
+            tenant_id?: string | null;
+            /**
+             * Platform Type Id
+             * @description Platform type ID
+             */
+            platform_type_id?: string | null;
+            /**
+             * Credential Id
+             * @description Credential ID
+             */
+            credential_id?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+        };
+        /** DeviceInventoryUpdate */
+        DeviceInventoryUpdate: {
+            /** Hostname */
+            hostname?: string | null;
+            /** Ip Address */
+            ip_address?: string | null;
+            /** Serial Number */
+            serial_number?: string | null;
+            /** Model */
+            model?: string | null;
+            /** Vendor */
+            vendor?: string | null;
+            /** Os Version */
+            os_version?: string | null;
+            /** Uptime */
+            uptime?: string | null;
+            /** Last Seen */
+            last_seen?: string | null;
+            /** Status */
+            status?: string | null;
+            /** Site Id */
+            site_id?: string | null;
+            /** Tenant Id */
+            tenant_id?: string | null;
+            /** Platform Type Id */
+            platform_type_id?: string | null;
+            /** Credential Id */
+            credential_id?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1309,6 +1668,523 @@ export interface components {
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
         };
+        /** InterfaceCreate */
+        InterfaceCreate: {
+            /**
+             * Interface Name
+             * @description Name of the interface
+             */
+            interface_name: string;
+            /**
+             * Hardware Type
+             * @description Hardware type of the interface
+             */
+            hardware_type: string;
+            /**
+             * Mac Address
+             * @description MAC address of the interface
+             */
+            mac_address: string;
+            /**
+             * Bia
+             * @description Burned-in MAC address
+             */
+            bia: string;
+            /**
+             * Interface Status
+             * @description Status of the interface
+             */
+            interface_status?: string | null;
+            /**
+             * Protocol Status
+             * @description Protocol status of the interface
+             */
+            protocol_status?: string | null;
+            /**
+             * Operational Mode
+             * @description Operational mode of the interface
+             */
+            operational_mode?: string | null;
+            /**
+             * Administrative Mode
+             * @description Administrative mode of the interface
+             */
+            administrative_mode?: string | null;
+            /**
+             * Media Type
+             * @description Media type of the interface
+             */
+            media_type?: string | null;
+            /**
+             * Ipv4 Address
+             * @description IPv4 address of the interface
+             */
+            ipv4_address?: string | null;
+            /**
+             * Subnet Mask
+             * @description Subnet mask of the interface
+             */
+            subnet_mask?: string | null;
+            /**
+             * Ipv6 Address
+             * @description IPv6 address of the interface
+             */
+            ipv6_address?: string | null;
+            /**
+             * Virtual Ipv4 Address
+             * @description Virtual IPv4 address of the interface
+             */
+            virtual_ipv4_address?: string | null;
+            /**
+             * Mtu
+             * @description MTU of the interface
+             */
+            mtu?: string | null;
+            /**
+             * Duplex
+             * @description Duplex mode of the interface
+             */
+            duplex?: string | null;
+            /**
+             * Speed
+             * @description Speed of the interface
+             */
+            speed?: string | null;
+            /**
+             * Bandwidth
+             * @description Bandwidth of the interface
+             */
+            bandwidth?: string | null;
+            /**
+             * Net Port Channel Id
+             * @description Port channel ID
+             */
+            net_port_channel_id?: number | null;
+            /**
+             * Group Number
+             * @description Group number
+             */
+            group_number?: string | null;
+            /**
+             * Group Name
+             * @description Group name
+             */
+            group_name?: string | null;
+            /**
+             * Native Vlan
+             * @description Native VLAN
+             */
+            native_vlan?: string | null;
+            /**
+             * Access Vlan
+             * @description Access VLAN
+             */
+            access_vlan?: string | null;
+            /**
+             * Voice Vlan
+             * @description Voice VLAN
+             */
+            voice_vlan?: string | null;
+            /**
+             * Switchport
+             * @description Switchport mode
+             */
+            switchport?: string | null;
+            /**
+             * Switchport Monitor
+             * @description Switchport monitor mode
+             */
+            switchport_monitor?: string | null;
+            /**
+             * Trunking Vlans
+             * @description Trunking VLANs
+             */
+            trunking_vlans?: string | null;
+            /**
+             * Version
+             * @description HSRP version
+             */
+            version?: string | null;
+            /**
+             * Preempt
+             * @description HSRP preempt
+             */
+            preempt?: string | null;
+            /**
+             * Active Router
+             * @description HSRP active router
+             */
+            active_router?: string | null;
+            /**
+             * Active Virtual Mac
+             * @description HSRP active virtual MAC
+             */
+            active_virtual_mac?: string | null;
+            /**
+             * Hsrp Router State
+             * @description HSRP router state
+             */
+            hsrp_router_state?: string | null;
+            /**
+             * Configured Priority
+             * @description HSRP configured priority
+             */
+            configured_priority?: string | null;
+            /**
+             * Priority
+             * @description HSRP priority
+             */
+            priority?: string | null;
+            /**
+             * Standby Router
+             * @description HSRP standby router
+             */
+            standby_router?: string | null;
+            /**
+             * Standby Router Priority
+             * @description HSRP standby router priority
+             */
+            standby_router_priority?: string | null;
+            /**
+             * Num State Changes
+             * @description HSRP number of state changes
+             */
+            num_state_changes?: string | null;
+            /**
+             * Last State Change
+             * @description HSRP last state change
+             */
+            last_state_change?: string | null;
+            /**
+             * Interface Zone
+             * @description Interface security zone
+             */
+            interface_zone?: string | null;
+            /**
+             * Vrf Id
+             * @description VRF ID
+             */
+            vrf_id?: string | null;
+            /**
+             * Device Id
+             * Format: uuid
+             * @description Device ID
+             */
+            device_id: string;
+            /**
+             * Parent Id
+             * @description Parent interface ID
+             */
+            parent_id?: number | null;
+            /**
+             * Untagged Vlan Id
+             * @description Untagged VLAN ID
+             */
+            untagged_vlan_id?: number | null;
+        };
+        /** InterfaceRead */
+        InterfaceRead: {
+            /**
+             * Interface Name
+             * @description Name of the interface
+             */
+            interface_name: string;
+            /**
+             * Hardware Type
+             * @description Hardware type of the interface
+             */
+            hardware_type: string;
+            /**
+             * Mac Address
+             * @description MAC address of the interface
+             */
+            mac_address: string;
+            /**
+             * Bia
+             * @description Burned-in MAC address
+             */
+            bia: string;
+            /**
+             * Interface Status
+             * @description Status of the interface
+             */
+            interface_status?: string | null;
+            /**
+             * Protocol Status
+             * @description Protocol status of the interface
+             */
+            protocol_status?: string | null;
+            /**
+             * Operational Mode
+             * @description Operational mode of the interface
+             */
+            operational_mode?: string | null;
+            /**
+             * Administrative Mode
+             * @description Administrative mode of the interface
+             */
+            administrative_mode?: string | null;
+            /**
+             * Media Type
+             * @description Media type of the interface
+             */
+            media_type?: string | null;
+            /**
+             * Ipv4 Address
+             * @description IPv4 address of the interface
+             */
+            ipv4_address?: string | null;
+            /**
+             * Subnet Mask
+             * @description Subnet mask of the interface
+             */
+            subnet_mask?: string | null;
+            /**
+             * Ipv6 Address
+             * @description IPv6 address of the interface
+             */
+            ipv6_address?: string | null;
+            /**
+             * Virtual Ipv4 Address
+             * @description Virtual IPv4 address of the interface
+             */
+            virtual_ipv4_address?: string | null;
+            /**
+             * Mtu
+             * @description MTU of the interface
+             */
+            mtu?: string | null;
+            /**
+             * Duplex
+             * @description Duplex mode of the interface
+             */
+            duplex?: string | null;
+            /**
+             * Speed
+             * @description Speed of the interface
+             */
+            speed?: string | null;
+            /**
+             * Bandwidth
+             * @description Bandwidth of the interface
+             */
+            bandwidth?: string | null;
+            /**
+             * Net Port Channel Id
+             * @description Port channel ID
+             */
+            net_port_channel_id?: number | null;
+            /**
+             * Group Number
+             * @description Group number
+             */
+            group_number?: string | null;
+            /**
+             * Group Name
+             * @description Group name
+             */
+            group_name?: string | null;
+            /**
+             * Native Vlan
+             * @description Native VLAN
+             */
+            native_vlan?: string | null;
+            /**
+             * Access Vlan
+             * @description Access VLAN
+             */
+            access_vlan?: string | null;
+            /**
+             * Voice Vlan
+             * @description Voice VLAN
+             */
+            voice_vlan?: string | null;
+            /**
+             * Switchport
+             * @description Switchport mode
+             */
+            switchport?: string | null;
+            /**
+             * Switchport Monitor
+             * @description Switchport monitor mode
+             */
+            switchport_monitor?: string | null;
+            /**
+             * Trunking Vlans
+             * @description Trunking VLANs
+             */
+            trunking_vlans?: string | null;
+            /**
+             * Version
+             * @description HSRP version
+             */
+            version?: string | null;
+            /**
+             * Preempt
+             * @description HSRP preempt
+             */
+            preempt?: string | null;
+            /**
+             * Active Router
+             * @description HSRP active router
+             */
+            active_router?: string | null;
+            /**
+             * Active Virtual Mac
+             * @description HSRP active virtual MAC
+             */
+            active_virtual_mac?: string | null;
+            /**
+             * Hsrp Router State
+             * @description HSRP router state
+             */
+            hsrp_router_state?: string | null;
+            /**
+             * Configured Priority
+             * @description HSRP configured priority
+             */
+            configured_priority?: string | null;
+            /**
+             * Priority
+             * @description HSRP priority
+             */
+            priority?: string | null;
+            /**
+             * Standby Router
+             * @description HSRP standby router
+             */
+            standby_router?: string | null;
+            /**
+             * Standby Router Priority
+             * @description HSRP standby router priority
+             */
+            standby_router_priority?: string | null;
+            /**
+             * Num State Changes
+             * @description HSRP number of state changes
+             */
+            num_state_changes?: string | null;
+            /**
+             * Last State Change
+             * @description HSRP last state change
+             */
+            last_state_change?: string | null;
+            /**
+             * Interface Zone
+             * @description Interface security zone
+             */
+            interface_zone?: string | null;
+            /**
+             * Vrf Id
+             * @description VRF ID
+             */
+            vrf_id?: string | null;
+            /**
+             * Device Id
+             * Format: uuid
+             * @description Device ID
+             */
+            device_id: string;
+            /**
+             * Parent Id
+             * @description Parent interface ID
+             */
+            parent_id?: number | null;
+            /**
+             * Untagged Vlan Id
+             * @description Untagged VLAN ID
+             */
+            untagged_vlan_id?: number | null;
+            /** Id */
+            id: number;
+        };
+        /** InterfaceUpdate */
+        InterfaceUpdate: {
+            /** Interface Name */
+            interface_name?: string | null;
+            /** Hardware Type */
+            hardware_type?: string | null;
+            /** Mac Address */
+            mac_address?: string | null;
+            /** Bia */
+            bia?: string | null;
+            /** Interface Status */
+            interface_status?: string | null;
+            /** Protocol Status */
+            protocol_status?: string | null;
+            /** Operational Mode */
+            operational_mode?: string | null;
+            /** Administrative Mode */
+            administrative_mode?: string | null;
+            /** Media Type */
+            media_type?: string | null;
+            /** Ipv4 Address */
+            ipv4_address?: string | null;
+            /** Subnet Mask */
+            subnet_mask?: string | null;
+            /** Ipv6 Address */
+            ipv6_address?: string | null;
+            /** Virtual Ipv4 Address */
+            virtual_ipv4_address?: string | null;
+            /** Mtu */
+            mtu?: string | null;
+            /** Duplex */
+            duplex?: string | null;
+            /** Speed */
+            speed?: string | null;
+            /** Bandwidth */
+            bandwidth?: string | null;
+            /** Net Port Channel Id */
+            net_port_channel_id?: number | null;
+            /** Group Number */
+            group_number?: string | null;
+            /** Group Name */
+            group_name?: string | null;
+            /** Native Vlan */
+            native_vlan?: string | null;
+            /** Access Vlan */
+            access_vlan?: string | null;
+            /** Voice Vlan */
+            voice_vlan?: string | null;
+            /** Switchport */
+            switchport?: string | null;
+            /** Switchport Monitor */
+            switchport_monitor?: string | null;
+            /** Trunking Vlans */
+            trunking_vlans?: string | null;
+            /** Version */
+            version?: string | null;
+            /** Preempt */
+            preempt?: string | null;
+            /** Active Router */
+            active_router?: string | null;
+            /** Active Virtual Mac */
+            active_virtual_mac?: string | null;
+            /** Hsrp Router State */
+            hsrp_router_state?: string | null;
+            /** Configured Priority */
+            configured_priority?: string | null;
+            /** Priority */
+            priority?: string | null;
+            /** Standby Router */
+            standby_router?: string | null;
+            /** Standby Router Priority */
+            standby_router_priority?: string | null;
+            /** Num State Changes */
+            num_state_changes?: string | null;
+            /** Last State Change */
+            last_state_change?: string | null;
+            /** Interface Zone */
+            interface_zone?: string | null;
+            /** Vrf Id */
+            vrf_id?: string | null;
+            /** Device Id */
+            device_id?: string | null;
+            /** Parent Id */
+            parent_id?: number | null;
+            /** Untagged Vlan Id */
+            untagged_vlan_id?: number | null;
+        };
         /**
          * LocationCreate
          * @example {
@@ -1372,6 +2248,19 @@ export interface components {
             description?: string | null;
             /** Tenant Id */
             tenant_id?: string | null;
+        };
+        /**
+         * LoginRequest
+         * @example {
+         *       "password": "securepassword",
+         *       "username": "johndoe"
+         *     }
+         */
+        LoginRequest: {
+            /** Username */
+            username: string;
+            /** Password */
+            password: string;
         };
         /**
          * NetJobCreate
@@ -1650,6 +2539,17 @@ export interface components {
             /** Size */
             size: number;
         };
+        /** PaginatedResponse[DeviceInventoryRead] */
+        PaginatedResponse_DeviceInventoryRead_: {
+            /** Items */
+            items: components["schemas"]["DeviceInventoryRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
         /** PaginatedResponse[IPAddressRead] */
         PaginatedResponse_IPAddressRead_: {
             /** Items */
@@ -1665,6 +2565,17 @@ export interface components {
         PaginatedResponse_IPRangeRead_: {
             /** Items */
             items: components["schemas"]["IPRangeRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+        };
+        /** PaginatedResponse[InterfaceRead] */
+        PaginatedResponse_InterfaceRead_: {
+            /** Items */
+            items: components["schemas"]["InterfaceRead"][];
             /** Total */
             total: number;
             /** Page */
@@ -2440,6 +3351,88 @@ export interface components {
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
         };
+        /** Token */
+        Token: {
+            /** Access Token */
+            access_token: string;
+            /** Token Type */
+            token_type: string;
+            /** User Id */
+            user_id: string;
+            /** Tenant Id */
+            tenant_id?: string | null;
+            /** Username */
+            username: string;
+            /** Is Superuser */
+            is_superuser: boolean;
+        };
+        /**
+         * UserCreate
+         * @example {
+         *       "email": "johndoe@example.com",
+         *       "is_active": true,
+         *       "is_superuser": false,
+         *       "password": "securepassword",
+         *       "tenant_id": "550e8400-e29b-41d4-a716-446655440000",
+         *       "username": "johndoe"
+         *     }
+         */
+        UserCreate: {
+            /** Username */
+            username: string;
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /**
+             * Is Superuser
+             * @default false
+             */
+            is_superuser: boolean;
+            /** Tenant Id */
+            tenant_id?: string | null;
+            /** Password */
+            password: string;
+        };
+        /** UserRead */
+        UserRead: {
+            /** Username */
+            username: string;
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /**
+             * Is Superuser
+             * @default false
+             */
+            is_superuser: boolean;
+            /** Tenant Id */
+            tenant_id?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** Tenant Name */
+            tenant_name?: string | null;
+        };
         /**
          * VLANCreate
          * @example {
@@ -2792,6 +3785,68 @@ export interface operations {
             };
         };
     };
+    read_device_inventory_by_device_api_v1_device_inventory__device_uuid__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                device_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceInventoryRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_device_inventory_by_device_api_v1_device_inventory__device_uuid__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                device_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_all_api_v1_regions_get: {
         parameters: {
             query?: {
@@ -2863,7 +3918,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -2936,7 +3991,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -3031,7 +4086,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -3104,7 +4159,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -3199,7 +4254,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -3272,7 +4327,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -3367,7 +4422,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -3440,7 +4495,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -3535,7 +4590,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -3608,7 +4663,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -3703,7 +4758,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -3776,7 +4831,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -3871,7 +4926,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -3944,7 +4999,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -4039,7 +5094,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -4112,7 +5167,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -4207,7 +5262,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -4280,7 +5335,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -4375,7 +5430,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -4448,7 +5503,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -4543,7 +5598,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -4616,7 +5671,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -4711,7 +5766,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -4784,7 +5839,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -4879,7 +5934,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -4952,7 +6007,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -5047,7 +6102,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -5120,679 +6175,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_all_api_v1_tenants_get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-                search?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_TenantRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_item_api_v1_tenants_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TenantCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TenantRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_one_api_v1_tenants__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TenantRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_item_api_v1_tenants__item_id__put: {
-        parameters: {
-            query?: {
-                current_crud_module?: unknown;
-                current_UpdateSchema?: unknown;
-                current_path?: unknown;
-            };
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TenantUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TenantRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_item_api_v1_tenants__item_id__delete: {
-        parameters: {
-            query?: {
-                current_crud_instance?: unknown;
-                current_path?: string;
-            };
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_all_api_v1_asns_get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-                search?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_ASNRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_item_api_v1_asns_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ASNCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ASNRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_one_api_v1_asns__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ASNRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_item_api_v1_asns__item_id__put: {
-        parameters: {
-            query?: {
-                current_crud_module?: unknown;
-                current_UpdateSchema?: unknown;
-                current_path?: unknown;
-            };
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ASNUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ASNRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_item_api_v1_asns__item_id__delete: {
-        parameters: {
-            query?: {
-                current_crud_instance?: unknown;
-                current_path?: string;
-            };
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_all_api_v1_asn_ranges_get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-                search?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_ASNRangeRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_item_api_v1_asn_ranges_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ASNRangeCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ASNRangeRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_one_api_v1_asn_ranges__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ASNRangeRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_item_api_v1_asn_ranges__item_id__put: {
-        parameters: {
-            query?: {
-                current_crud_module?: unknown;
-                current_UpdateSchema?: unknown;
-                current_path?: unknown;
-            };
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ASNRangeUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ASNRangeRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_item_api_v1_asn_ranges__item_id__delete: {
-        parameters: {
-            query?: {
-                current_crud_instance?: unknown;
-                current_path?: string;
-            };
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_all_api_v1_credentials_get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-                search?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_CredentialRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_item_api_v1_credentials_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CredentialCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CredentialRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_one_api_v1_credentials__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CredentialRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_item_api_v1_credentials__item_id__put: {
-        parameters: {
-            query?: {
-                current_crud_module?: unknown;
-                current_UpdateSchema?: unknown;
-                current_path?: unknown;
-            };
-            header?: never;
-            path: {
-                item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CredentialUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CredentialRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_item_api_v1_credentials__item_id__delete: {
-        parameters: {
-            query?: {
-                current_crud_instance?: unknown;
-                current_path?: string;
-            };
-            header?: never;
-            path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -5887,7 +6270,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -5960,7 +6343,1015 @@ export interface operations {
             };
             header?: never;
             path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_all_api_v1_tenants_get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_TenantRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_item_api_v1_tenants_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TenantCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenantRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_tenants__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenantRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_item_api_v1_tenants__item_id__put: {
+        parameters: {
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
+            header?: never;
+            path: {
                 item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TenantUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenantRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_item_api_v1_tenants__item_id__delete: {
+        parameters: {
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_all_api_v1_interfaces_get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_InterfaceRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_item_api_v1_interfaces_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterfaceCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterfaceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_interfaces__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterfaceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_item_api_v1_interfaces__item_id__put: {
+        parameters: {
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterfaceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterfaceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_item_api_v1_interfaces__item_id__delete: {
+        parameters: {
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_all_api_v1_device_inventory_get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_DeviceInventoryRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_item_api_v1_device_inventory_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceInventoryCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceInventoryRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_device_inventory__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceInventoryRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_item_api_v1_device_inventory__item_id__put: {
+        parameters: {
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceInventoryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceInventoryRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_item_api_v1_device_inventory__item_id__delete: {
+        parameters: {
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_all_api_v1_asns_get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_ASNRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_item_api_v1_asns_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ASNCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ASNRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_asns__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ASNRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_item_api_v1_asns__item_id__put: {
+        parameters: {
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ASNUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ASNRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_item_api_v1_asns__item_id__delete: {
+        parameters: {
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_all_api_v1_asn_ranges_get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_ASNRangeRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_item_api_v1_asn_ranges_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ASNRangeCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ASNRangeRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_asn_ranges__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ASNRangeRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_item_api_v1_asn_ranges__item_id__put: {
+        parameters: {
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ASNRangeUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ASNRangeRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_item_api_v1_asn_ranges__item_id__delete: {
+        parameters: {
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_all_api_v1_credentials_get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_CredentialRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_item_api_v1_credentials_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CredentialCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_credentials__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_item_api_v1_credentials__item_id__put: {
+        parameters: {
+            query?: {
+                current_crud_module?: unknown;
+                current_UpdateSchema?: unknown;
+                current_path?: unknown;
+            };
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CredentialUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_item_api_v1_credentials__item_id__delete: {
+        parameters: {
+            query?: {
+                current_crud_instance?: unknown;
+                current_path?: string;
+            };
+            header?: never;
+            path: {
+                item_id: string;
             };
             cookie?: never;
         };
@@ -6055,7 +7446,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -6128,7 +7519,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                item_id: number;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -6148,6 +7539,125 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    login_for_access_token_api_v1_auth_token_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["Body_login_for_access_token_api_v1_auth_token_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Token"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    login_api_v1_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Token"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    register_user_api_v1_auth_register_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_users_me_api_v1_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRead"];
                 };
             };
         };

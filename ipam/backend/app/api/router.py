@@ -66,70 +66,6 @@ model_mapping = {
     'arp_table': ARP
 }
 
-reference_mappings = {
-    "sites": {
-        "region_id": (Region, crud.region, "name"),
-        "site_group_id": (SiteGroup, crud.site_group, "name"),
-        "tenant_id": (Tenant, crud.tenant, "name"),
-        "asn_id": (ASN, crud.asn, "asn")
-    },
-    "locations": {
-        "site_id": (Site, crud.site, "name"),
-        "parent_id": (Location, crud.location, "name"),
-        "tenant_id": (Tenant, crud.tenant, "name")
-    },
-    "prefixes": {
-        "site_id": (Site, crud.site, "name"),
-        "vrf_id": (VRF, crud.vrf, "name"),
-        "tenant_id": (Tenant, crud.tenant, "name"),
-        "vlan_id": (VLAN, crud.vlan, "name"),
-        "role_id": (Role, crud.role, "name")
-    },
-    "ip_addresses": {
-        "interface_id": (Interface, crud.interface, "name"),
-        "tenant_id": (Tenant, crud.tenant, "name"),
-        "vrf_id": (VRF, crud.vrf, "name")
-    },
-    "ip_ranges": {
-        "tenant_id": (Tenant, crud.tenant, "name"),
-        "vrf_id": (VRF, crud.vrf, "name"),
-        "role_id": (Role, crud.role, "name")
-    },
-    "aggregates": {
-        "rir_id": (RIR, crud.rir, "name"),
-        "tenant_id": (Tenant, crud.tenant, "name")
-    },
-    "interfaces": {
-        "parent_id": (Interface, crud.interface, "name"),
-        "untagged_vlan_id": (VLAN, crud.vlan, "name")
-    },
-    "vlans": {
-        "site_id": (Site, crud.site, "name"),
-        "tenant_id": (Tenant, crud.tenant, "name"),
-        "role_id": (Role, crud.role, "name"),
-        "group_id": (VLANGroup, crud.vlan_group, "name")
-    },
-    "vlan_groups": {
-    },
-    "asns": {
-        "rir_id": (RIR, crud.rir, "name"),
-        "tenant_id": (Tenant, crud.tenant, "name")
-    },
-    "asn_ranges": {
-        "rir_id": (RIR, crud.rir, "name"),
-        "tenant_id": (Tenant, crud.tenant, "name")
-    },
-    "route_targets": {
-        "tenant_id": (Tenant, crud.tenant, "name")
-    },
-    "credentials": {
-    },
-    "net_jobs": {
-    },
-    "device_inventory": {
-    }
-}
-
 @router.get("/schema/{table_name}", tags=["Schema Information"])
 def get_table_schema(table_name: str) -> Dict[str, Any]:
     if table_name not in model_mapping:
@@ -163,30 +99,7 @@ def get_table_schema(table_name: str) -> Dict[str, Any]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error getting schema for {table_name}: {str(e)}")
 
-@router.get("/reference/{table_name}/{field_name}", tags=["Schema Information"])
-def get_reference_options(table_name: str, field_name: str, db: Session = Depends(get_session)) -> List[Dict[str, Any]]:
-    if table_name not in reference_mappings:
-        raise HTTPException(status_code=404, detail=f"No reference mappings defined for table {table_name}")
-    if field_name not in reference_mappings[table_name]:
-        return []
-
-    try:
-        ref_model, crud_instance, display_field = reference_mappings[table_name][field_name]
-
-        options = crud_instance.get_multi(db=db, skip=0, limit=1000) 
-
-        formatted_options = []
-        for option in options:
-            display_value = getattr(option, display_field, f"ID: {option.id}")
-            formatted_options.append({
-                "id": option.id,
-                "label": str(display_value) 
-            })
-        return formatted_options
-    except AttributeError as e:
-         raise HTTPException(status_code=500, detail=f"Configuration error for {table_name}.{field_name}: {str(e)}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error getting reference options for {table_name}.{field_name}: {str(e)}")
+# The reference endpoint has been moved to app/api/endpoints/reference.py
 
 @router.get("/all-tables", tags=["Schema Information"])
 def get_all_tables() -> Dict[str, str]:
@@ -243,6 +156,9 @@ crud_router.create_crud_routes(router, "ip_addresses", crud.ip_address, crud.ip_
 crud_router.create_crud_routes(router, "vlans", crud.vlan, crud.vlan, VLAN, ipam.VLANCreate, ipam.VLANUpdate, ReadSchema=ipam.VLANRead, tags=["VLANs"])
 crud_router.create_crud_routes(router, "vlan_groups", crud.vlan_group, crud.vlan_group, VLANGroup, ipam.VLANGroupCreate, ipam.VLANGroupUpdate, ReadSchema=ipam.VLANGroupRead, tags=["VLAN Groups"])
 
+# Platform Routes
+crud_router.create_crud_routes(router, "platform_types", crud.platform_type, crud.platform_type, PlatformType, platform.PlatformTypeCreate, platform.PlatformTypeUpdate, ReadSchema=platform.PlatformTypeRead, tags=["Platform Types"])
+
 # Tenancy Routes
 crud_router.create_crud_routes(router, "tenants", crud.tenant, crud.tenant, Tenant, tenancy.TenantCreate, tenancy.TenantUpdate, ReadSchema=tenancy.TenantRead, tags=["Tenants"])
 
@@ -260,9 +176,6 @@ crud_router.create_crud_routes(router, "asn_ranges", crud.asn_range, crud.asn_ra
 
 # Credential Routes
 crud_router.create_crud_routes(router, "credentials", crud.credential, crud.credential, Credential, credentials.CredentialCreate, credentials.CredentialUpdate, ReadSchema=credentials.CredentialRead, tags=["Credentials"])
-
-# Platform Routes
-crud_router.create_crud_routes(router, "platform_types", crud.platform_type, crud.platform_type, PlatformType, platform.PlatformTypeCreate, platform.PlatformTypeUpdate, ReadSchema=platform.PlatformTypeRead, tags=["Platform Types"])
 
 # Automation Routes
 crud_router.create_crud_routes(router, "net_jobs", crud.net_job, crud.net_job, NetJob, automation.NetJobCreate, automation.NetJobUpdate, ReadSchema=automation.NetJobRead, tags=["Net Jobs"])
