@@ -14,6 +14,7 @@ class RegionBase(BaseModel):
     slug: Optional[str] = Field(None, max_length=100)
     description: Optional[str] = None
     parent_id: Optional[uuid.UUID] = None
+    tenant_id: uuid.UUID
 
 class RegionCreate(RegionBase):
     model_config = ConfigDict(
@@ -22,7 +23,8 @@ class RegionCreate(RegionBase):
                 "name": "North America",
                 "slug": "north-america",
                 "description": "North American Region",
-                "parent_id": None
+                "parent_id": None,
+                "tenant_id": "00000000-0000-0000-0000-000000000000"
             }
         }
     )
@@ -32,6 +34,7 @@ class RegionUpdate(RegionBase):
     slug: Optional[str] = None
     description: Optional[str] = None
     parent_id: Optional[uuid.UUID] = None
+    tenant_id: Optional[uuid.UUID] = None
 
 class RegionRead(RegionBase):
     id: uuid.UUID

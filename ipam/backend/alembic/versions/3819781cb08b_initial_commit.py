@@ -1,8 +1,8 @@
 """initial_commit
 
-Revision ID: a355f67622ef
+Revision ID: 3819781cb08b
 Revises: 
-Create Date: 2025-04-27 19:40:29.606301
+Create Date: 2025-04-27 20:53:20.864498
 
 """
 from alembic import op
@@ -21,7 +21,7 @@ from app.types import UUIDType
 from app.models.fields import IPNetworkType
 
 # revision identifiers, used by Alembic.
-revision = 'a355f67622ef'
+revision = '3819781cb08b'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -44,19 +44,6 @@ def upgrade() -> None:
     schema='ipam'
     )
     op.create_index(op.f('ix_ipam_credentials_name'), 'credentials', ['name'], unique=False, schema='ipam')
-    op.create_table('regions',
-    sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.Column('id', UUIDType(), nullable=False),
-    sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-    sa.Column('slug', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('parent_id', sa.Uuid(), nullable=True),
-    sa.ForeignKeyConstraint(['parent_id'], ['ipam.regions.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('name', name='uq_region_name'),
-    schema='ipam'
-    )
     op.create_table('route_targets',
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -97,6 +84,21 @@ def upgrade() -> None:
     op.create_index(op.f('ix_ni_platform_type_platform_type'), 'platform_type', ['platform_type'], unique=True, schema='ni')
     op.create_index(op.f('ix_ni_platform_type_slug'), 'platform_type', ['slug'], unique=False, schema='ni')
     op.create_index(op.f('ix_ni_platform_type_vendor'), 'platform_type', ['vendor'], unique=False, schema='ni')
+    op.create_table('regions',
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('id', UUIDType(), nullable=False),
+    sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('slug', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('parent_id', sa.Uuid(), nullable=True),
+    sa.Column('tenant_id', sa.Uuid(), nullable=False),
+    sa.ForeignKeyConstraint(['parent_id'], ['ipam.regions.id'], ),
+    sa.ForeignKeyConstraint(['tenant_id'], ['ipam.tenants.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name', name='uq_region_name'),
+    schema='ipam'
+    )
     op.create_table('rirs',
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -518,6 +520,7 @@ def downgrade() -> None:
     op.drop_table('site_groups', schema='ipam')
     op.drop_table('roles', schema='ipam')
     op.drop_table('rirs', schema='ipam')
+    op.drop_table('regions', schema='ipam')
     op.drop_index(op.f('ix_ni_platform_type_vendor'), table_name='platform_type', schema='ni')
     op.drop_index(op.f('ix_ni_platform_type_slug'), table_name='platform_type', schema='ni')
     op.drop_index(op.f('ix_ni_platform_type_platform_type'), table_name='platform_type', schema='ni')
@@ -525,7 +528,6 @@ def downgrade() -> None:
     op.drop_table('platform_type', schema='ni')
     op.drop_table('tenants', schema='ipam')
     op.drop_table('route_targets', schema='ipam')
-    op.drop_table('regions', schema='ipam')
     op.drop_index(op.f('ix_ipam_credentials_name'), table_name='credentials', schema='ipam')
     op.drop_table('credentials', schema='ipam')
     # ### end Alembic commands ###

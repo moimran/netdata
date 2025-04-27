@@ -15,6 +15,10 @@ Usage:
 Options:
     --no-drop    Skip dropping the database (only create schemas)
 
+===============================================
+alembic revision --autogenerate -m "initial_commit"
+alembic upgrade head
+===============================================
 
 Notes dont delete this
 
@@ -25,25 +29,18 @@ UUIDType()
 
 app.models.fields.IPNetworkType()
 IPNetworkType()
+
+remove
+from sqlalchemy.dialects import postgresql
 ==================================
-add this
-from app.models.fields import IPNetworkType
-
-
-# Import the UUIDType and IPNetworkType directly here to avoid import issues
-import sys
-import os
-# Add the backend directory to sys.path
-backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, backend_dir)
-# Now import the types
-from app.types import UUIDType
-from app.models.fields import IPNetworkType
-
 
 curl -X POST http://localhost:8000/api/v1/auth/register   -H "Content-Type: application/json"   -d '{"username": "moimran","email": "moimran@example.com","password": "moimran@123","is_active": true,"is_superuser": true}'
-alembic revision --autogenerate -m "initial_commit"
-alembic upgrade head
+
+To regenerate types
+
+npm run gen:types
+
+
 """
 
 

@@ -6,6 +6,7 @@ import sqlalchemy as sa
 
 if TYPE_CHECKING:
     from .site import Site
+    from .tenant import Tenant
 
 class Region(BaseModel, table=True):
     """
@@ -24,11 +25,13 @@ class Region(BaseModel, table=True):
     
     # Foreign Keys
     parent_id: Optional[uuid.UUID] = Field(default=None, foreign_key="ipam.regions.id")
+    tenant_id: uuid.UUID = Field(..., foreign_key="ipam.tenants.id", description="Tenant this region belongs to")
     
     # Relationships
     sites: List["Site"] = Relationship(back_populates="region")
     parent: Optional["Region"] = Relationship(back_populates="children", sa_relationship_kwargs={"remote_side": "Region.id"})
     children: List["Region"] = Relationship(back_populates="parent")
+    tenant: "Tenant" = Relationship(back_populates="regions")
     
     class Config:
         arbitrary_types_allowed = True

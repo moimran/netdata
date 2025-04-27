@@ -15,7 +15,8 @@ router = APIRouter()
 # Define reference mappings for dropdown options
 reference_mappings = {
     "regions": {
-        "parent_id": (Region, crud.region, "name")
+        "parent_id": (Region, crud.region, "name"),
+        "tenant_id": (Tenant, crud.tenant, "name")
     },
     "site_groups": {
         "parent_id": (SiteGroup, crud.site_group, "name")

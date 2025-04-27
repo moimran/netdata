@@ -21,23 +21,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/reference/{table_name}/{field_name}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Reference Options */
-        get: operations["get_reference_options_api_v1_reference__table_name___field_name__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/all-tables": {
         parameters: {
             query?: never;
@@ -964,6 +947,248 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/prefixes/hierarchy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Prefix Hierarchy
+         * @description Get prefixes in a hierarchical structure.
+         *
+         *     Args:
+         *         vrf_id: Optional VRF ID to filter by
+         *
+         *     Returns:
+         *         List of prefixes with hierarchical information
+         */
+        get: operations["get_prefix_hierarchy_api_v1_prefixes_hierarchy_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prefixes/{prefix_id}/utilization": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Prefix Utilization
+         * @description Get utilization data for a prefix.
+         *
+         *     Args:
+         *         prefix_id: Prefix ID
+         *
+         *     Returns:
+         *         Utilization data including percentage, used IPs, and total IPs
+         */
+        get: operations["get_prefix_utilization_api_v1_prefixes__prefix_id__utilization_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/find-prefix": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Find Prefix
+         * @description Find the longest matching prefix for an IP address.
+         *
+         *     Args:
+         *         request: PrefixLookupRequest containing IP address and optional VRF ID
+         *
+         *     Returns:
+         *         PrefixLookupResponse with prefix_id, prefix, and vrf_id
+         */
+        post: operations["find_prefix_api_v1_find_prefix_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/route-targets/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Route Targets
+         * @description Retrieve a list of Route Targets.
+         */
+        get: operations["read_route_targets_api_v1_route_targets__get"];
+        put?: never;
+        /**
+         * Create Route Target
+         * @description Create a new Route Target.
+         */
+        post: operations["create_route_target_api_v1_route_targets__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/route-targets/{rt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Route Target
+         * @description Retrieve a specific Route Target by ID.
+         */
+        get: operations["read_route_target_api_v1_route_targets__rt_id__get"];
+        /**
+         * Update Route Target
+         * @description Update a specific Route Target by ID.
+         */
+        put: operations["update_route_target_api_v1_route_targets__rt_id__put"];
+        post?: never;
+        /**
+         * Delete Route Target
+         * @description Delete a specific Route Target by ID.
+         */
+        delete: operations["delete_route_target_api_v1_route_targets__rt_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/vrfs/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Vrfs
+         * @description Retrieve a list of VRFs, including their import/export targets.
+         */
+        get: operations["read_vrfs_api_v1_vrfs__get"];
+        put?: never;
+        /**
+         * Create Vrf
+         * @description Create a new VRF, optionally associating Route Targets.
+         */
+        post: operations["create_vrf_api_v1_vrfs__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/vrfs/{vrf_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Vrf
+         * @description Retrieve a specific VRF by ID, including its import/export targets.
+         */
+        get: operations["read_vrf_api_v1_vrfs__vrf_id__get"];
+        /**
+         * Update Vrf
+         * @description Update a specific VRF by ID, including its Route Target associations.
+         */
+        put: operations["update_vrf_api_v1_vrfs__vrf_id__put"];
+        post?: never;
+        /**
+         * Delete Vrf
+         * @description Delete a specific VRF by ID.
+         */
+        delete: operations["delete_vrf_api_v1_vrfs__vrf_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/arp_table": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Arp Entries
+         * @description Retrieve ARP table entries with optional filtering by device ID.
+         */
+        get: operations["get_arp_entries_api_v1_arp_table_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/arp_table/{arp_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Arp Entry
+         * @description Retrieve a specific ARP table entry by ID.
+         */
+        get: operations["get_arp_entry_api_v1_arp_table__arp_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reference/{table_name}/{field_name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Reference Options
+         * @description Get reference options for dropdown fields in forms.
+         */
+        get: operations["get_reference_options_api_v1_reference__table_name___field_name__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/": {
         parameters: {
             query?: never;
@@ -985,6 +1210,62 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ARPRead */
+        ARPRead: {
+            /**
+             * Ipv4 Address
+             * @description IPv4 address of the ARP entry
+             */
+            ipv4_address: string;
+            /**
+             * Mac Address
+             * @description MAC address associated with the IP
+             */
+            mac_address: string;
+            /**
+             * Ip Arp Age
+             * @description Age of the ARP entry
+             */
+            ip_arp_age: string;
+            /**
+             * Interface Name
+             * @description Interface where the ARP entry was learned
+             */
+            interface_name: string;
+            /**
+             * Physical Interface
+             * @description Physical interface name
+             */
+            physical_interface?: string | null;
+            /**
+             * Interface Module
+             * @description Interface module information
+             */
+            interface_module?: string | null;
+            /**
+             * Arp State
+             * @description State of the ARP entry (e.g., REACHABLE, STALE)
+             */
+            arp_state?: string | null;
+            /**
+             * Ip Route Type
+             * @description Type of IP route associated with this entry
+             */
+            ip_route_type?: string | null;
+            /**
+             * Vrf Name
+             * @description VRF name if the ARP entry belongs to a specific VRF
+             */
+            vrf_name?: string | null;
+            /**
+             * Device Id
+             * Format: uuid
+             * @description Device where this ARP entry was found
+             */
+            device_id: string;
+            /** Id */
+            id: number;
+        };
         /**
          * ASNCreate
          * @example {
@@ -2858,6 +3139,22 @@ export interface components {
             /** Custom Fields */
             custom_fields?: Record<string, never> | null;
         };
+        /** PrefixLookupRequest */
+        PrefixLookupRequest: {
+            /** Ip */
+            ip: string;
+            /** Vrf Id */
+            vrf_id?: number | null;
+        };
+        /** PrefixLookupResponse */
+        PrefixLookupResponse: {
+            /** Prefix Id */
+            prefix_id: number;
+            /** Prefix */
+            prefix: string;
+            /** Vrf Id */
+            vrf_id?: number | null;
+        };
         /** PrefixRead */
         PrefixRead: {
             /** Prefix */
@@ -2981,7 +3278,8 @@ export interface components {
          * @example {
          *       "description": "North American Region",
          *       "name": "North America",
-         *       "slug": "north-america"
+         *       "slug": "north-america",
+         *       "tenant_id": "00000000-0000-0000-0000-000000000000"
          *     }
          */
         RegionCreate: {
@@ -2993,6 +3291,11 @@ export interface components {
             description?: string | null;
             /** Parent Id */
             parent_id?: string | null;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
         };
         /** RegionRead */
         RegionRead: {
@@ -3004,6 +3307,11 @@ export interface components {
             description?: string | null;
             /** Parent Id */
             parent_id?: string | null;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
             /**
              * Id
              * Format: uuid
@@ -3027,6 +3335,8 @@ export interface components {
             description?: string | null;
             /** Parent Id */
             parent_id?: string | null;
+            /** Tenant Id */
+            tenant_id?: string | null;
         };
         /**
          * RoleCreate
@@ -3637,6 +3947,24 @@ export interface components {
              */
             export_target_ids: number[] | null;
         };
+        /** VRFRead */
+        VRFRead: {
+            /** Name */
+            name: string;
+            /** Rd */
+            rd?: string | null;
+            /** Description */
+            description?: string | null;
+            /**
+             * Enforce Unique
+             * @default true
+             */
+            enforce_unique: boolean;
+            /** Tenant Id */
+            tenant_id?: number | null;
+            /** Id */
+            id: number;
+        };
         /** VRFReadWithTargets */
         VRFReadWithTargets: {
             /** Name */
@@ -3718,38 +4046,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_reference_options_api_v1_reference__table_name___field_name__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                table_name: string;
-                field_name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": Record<string, never>[];
                 };
             };
             /** @description Validation Error */
@@ -7658,6 +7954,525 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserRead"];
+                };
+            };
+        };
+    };
+    get_prefix_hierarchy_api_v1_prefixes_hierarchy_get: {
+        parameters: {
+            query?: {
+                vrf_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_prefix_utilization_api_v1_prefixes__prefix_id__utilization_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prefix_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    find_prefix_api_v1_find_prefix_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrefixLookupRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrefixLookupResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_route_targets_api_v1_route_targets__get: {
+        parameters: {
+            query?: {
+                /** @description Number of records to skip */
+                skip?: number;
+                /** @description Number of records to return */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteTargetRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_route_target_api_v1_route_targets__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RouteTargetCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteTargetRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_route_target_api_v1_route_targets__rt_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteTargetRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_route_target_api_v1_route_targets__rt_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RouteTargetUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteTargetRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_route_target_api_v1_route_targets__rt_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteTargetRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_vrfs_api_v1_vrfs__get: {
+        parameters: {
+            query?: {
+                /** @description Number of records to skip */
+                skip?: number;
+                /** @description Number of records to return */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VRFReadWithTargets"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_vrf_api_v1_vrfs__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VRFCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VRFReadWithTargets"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_vrf_api_v1_vrfs__vrf_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vrf_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VRFReadWithTargets"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_vrf_api_v1_vrfs__vrf_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vrf_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VRFUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VRFReadWithTargets"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_vrf_api_v1_vrfs__vrf_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vrf_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VRFRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_arp_entries_api_v1_arp_table_get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+                device_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ARPRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_arp_entry_api_v1_arp_table__arp_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                arp_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ARPRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_reference_options_api_v1_reference__table_name___field_name__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                table_name: string;
+                field_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from .rir import RIR
     from .asn import ASN, ASNRange
     from .role import Role
+    from .region import Region
 
 class Tenant(BaseModel, table=True):
     """
@@ -52,6 +53,7 @@ class Tenant(BaseModel, table=True):
     asns: List["ASN"] = Relationship(back_populates="tenant")
     asn_ranges: List["ASNRange"] = Relationship(back_populates="tenant")
     roles: List["Role"] = Relationship(back_populates="tenant")
+    regions: List["Region"] = Relationship(back_populates="tenant")
     
     class Config:
         arbitrary_types_allowed = True

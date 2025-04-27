@@ -56,8 +56,8 @@ export function MainNavigation() {
       title: 'Organization',
       items: [
         { icon: IconMap2, label: 'Regions', path: '/regions' },
-        { icon: IconBuildingSkyscraper, label: 'Site Groups', path: '/site-groups' },
         { icon: IconBuildingFactory2, label: 'Sites', path: '/sites' },
+        { icon: IconBuildingSkyscraper, label: 'Site Groups', path: '/site-groups' },
         { icon: IconServer, label: 'Locations', path: '/locations' }
       ]
     },
