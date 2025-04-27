@@ -12,7 +12,7 @@ from .models import (
     Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 
     Prefix, IPRange, IPAddress, Tenant, Interface, VLAN, VLANGroup,
     ASN, ASNRange, RouteTarget, VRFImportTargets, VRFExportTargets, Credential,
-    DeviceInventory
+    DeviceInventory, PlatformType
 )
 import logging
 from uuid import UUID
@@ -625,7 +625,38 @@ class PlatformTypeCRUD:
     """
     CRUD operations for PlatformTypes.
     """
-    pass
+    
+    def get_all(self, session: Session, skip: int = 0, limit: int = 100, **kwargs) -> list[PlatformType]:
+        """
+        Get all platform types with optional pagination and filtering.
+        """
+        try:
+            logger.debug(f"PlatformTypeCRUD get_all: skip={skip}, limit={limit}, kwargs={kwargs}")
+            
+            query = select(PlatformType)
+            
+            # Apply filters from kwargs
+            for key, value in kwargs.items():
+                if hasattr(PlatformType, key) and value is not None:
+                    logger.debug(f"Applying filter: {key}={value}")
+                    query = query.where(getattr(PlatformType, key) == value)
+                else:
+                    if not hasattr(PlatformType, key):
+                        logger.warning(f"Model PlatformType does not have attribute {key}")
+            
+            logger.debug(f"Executing query: {query}")
+            result = session.exec(query.offset(skip).limit(limit)).all()
+            logger.debug(f"Query returned {len(result)} results")
+            return result
+        except Exception as e:
+            logger.error(f"Error in PlatformTypeCRUD get_all: {str(e)}", exc_info=True)
+            raise
+    
+    def get_by_id(self, session: Session, id: UUID) -> Optional[PlatformType]:
+        """
+        Get a platform type by its ID.
+        """
+        return session.get(PlatformType, id)
 
 class NetJobCRUD:
     """

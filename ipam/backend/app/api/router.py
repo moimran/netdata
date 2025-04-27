@@ -12,7 +12,7 @@ from ..models import (
     Region, SiteGroup, Site, Location, VRF, RIR, Aggregate, Role, 
     Prefix, IPRange, IPAddress, Tenant, Interface, VLAN, VLANGroup,
     ASN, ASNRange, RouteTarget, VRFImportTargets, VRFExportTargets, Credential,
-    DeviceInventory, PlatformType, NetJob
+    DeviceInventory, PlatformType, NetJob, ARP
 )
 
 # Import schemas for API endpoints
@@ -62,7 +62,8 @@ model_mapping = {
     'credentials': Credential,
     'platform_types': PlatformType,
     'net_jobs': NetJob,
-    'device_inventory': DeviceInventory
+    'device_inventory': DeviceInventory,
+    'arp_table': ARP
 }
 
 reference_mappings = {
