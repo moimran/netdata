@@ -17,6 +17,7 @@ The frontend provides a user interface for managing various IPAM and network-rel
 -   **Axios:** HTTP client
 -   **React Router DOM:** Client-side routing
 -   **Zod:** Schema validation (primarily used in backend, potentially frontend forms)
+-   **OpenAPI Generator:** Generates TypeScript types from backend OpenAPI spec
 
 ## Table Implementation Design
 
@@ -24,6 +25,31 @@ The application employs a structured approach for displaying data tables:
 
 1.  **UnifiedTable Component:** The `UnifiedTable` component (`components/tables/UnifiedTable.tsx`) serves as the primary interface for displaying interactive data tables throughout the application.
 2.  **Underlying Engine:** `UnifiedTable` internally uses `IPAMTableMRT` (`components/IPAMTable/IPAMTableMRT.tsx`). This component leverages the `mantine-react-table` library, which integrates Mantine components with TanStack Table v8, providing features like sorting, filtering, pagination, and row actions.
+3.  **Table Schema Definition:** Table configurations are defined in `components/IPAMTable/schemas.ts`, which specify column definitions, field types, and reference relationships.
+
+## Form Implementation
+
+The application uses a standardized approach for forms:
+
+1. **IPAMModal Component:** The `IPAMModal` component (`components/IPAMModal/IPAMModal.tsx`) provides a consistent interface for creating and editing data.
+2. **Form Fields:** Various field types are supported in `components/IPAMModal/components/fields/`, including:
+   - **ReferenceField:** Handles dropdown selections for foreign key relationships
+   - **TextField:** Standard text input fields
+   - **NumberField:** Numeric input fields
+   - **DateField:** Date selection fields
+
+## API Integration
+
+1. **Type Generation:** TypeScript types are generated from the backend OpenAPI specification using the `gen:types` script, ensuring type safety between frontend and backend.
+2. **API Clients:** Generated API clients in `src/api/` provide type-safe methods for interacting with backend endpoints.
+3. **Reference Data:** The application uses a dedicated reference endpoint (`/api/v1/reference/{table_name}/{field_name}`) to populate dropdown options in forms.
+
+## UUID Handling
+
+The application properly handles UUID fields in both the backend and frontend:
+
+1. **Backend:** UUID fields are defined using Python's `uuid.UUID` type in SQLModel models.
+2. **Frontend:** The form components detect and preserve UUID values when sending data to the backend, preventing conversion to numbers.
 3.  **Styling:** Table appearance is primarily handled by the built-in styles from Mantine and `mantine-react-table`. Specific customizations or reusable style elements, like status indicators, are implemented using CSS (`components/IPAMTable/unified-table-styles.css`) and potentially dedicated components like `StatusBadge` (`components/tables/TableStyles.tsx`).
 4.  **Simple Tables:** For straightforward, non-interactive data presentation (e.g., in detail summaries), the standard Mantine `Table` component (`@mantine/core`) is utilized directly.
 
