@@ -59,7 +59,7 @@ class OptimizedFontAtlas {
     
     generateCommonUnicodeRanges() {
         const chars = [];
-        
+
         // Common symbols and punctuation
         const ranges = [
             [0x2000, 0x206F], // General Punctuation
@@ -72,7 +72,7 @@ class OptimizedFontAtlas {
             [0x2500, 0x257F], // Box Drawing
             [0x2580, 0x259F], // Block Elements
         ];
-        
+
         ranges.forEach(([start, end]) => {
             for (let i = start; i <= end; i++) {
                 try {
@@ -85,7 +85,17 @@ class OptimizedFontAtlas {
                 }
             }
         });
-        
+
+        // Add programming ligatures and special characters
+        const ligatureChars = [
+            '⩵', '≡', '≠', '≢', '≤', '≥', '→', '⇒', '←', '⇐', '↔', '⇉', '↞', '↠',
+            '∧', '∨', '¬', '⧺', '⸺', '✱', '⁄', '≫', '≪', '⊛', '⊕', '▷', '◁',
+            '…', '‥', '⋮', '∷', '⸵', '⁇', '⁈', '⁉', '⟦', '⟧', '⦃', '⦄',
+            '⟨', '⟩', 'ﬁ', 'ﬂ', 'ﬀ', 'ﬃ', 'ﬄ', 'ﬆ', 'ﬅ'
+        ];
+
+        chars.push(...ligatureChars);
+
         return chars;
     }
     

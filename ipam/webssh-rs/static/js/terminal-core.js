@@ -227,6 +227,31 @@ function handleSpecialCommands(data) {
         return true;
     }
 
+    if (command === 'ligatures-enable') {
+        enableLigatures();
+        return true;
+    }
+
+    if (command === 'ligatures-disable') {
+        disableLigatures();
+        return true;
+    }
+
+    if (command === 'ligatures-test') {
+        testLigatures();
+        return true;
+    }
+
+    if (command === 'ligatures-list') {
+        listLigatures();
+        return true;
+    }
+
+    if (command === 'text-shaping-stats') {
+        displayTextShapingStats();
+        return true;
+    }
+
     return false; // Command not handled
 }
 
@@ -762,6 +787,10 @@ function displayOptimizationStatus() {
     const fontAtlasStatus = window.globalFontAtlas ? '✅ Generated' : '❌ Not Generated';
     term.writeln(`\x1b[1;35m🎨 Font Atlas: ${fontAtlasStatus}\x1b[0m`);
 
+    // Text Shaping Status
+    const textShapingStatus = window.enhancedTextRenderer ? '✅ Active' : '❌ Inactive';
+    term.writeln(`\x1b[1;35m🎨 Text Shaping & Ligatures: ${textShapingStatus}\x1b[0m`);
+
     // Live Dashboard Status
     const dashboardStatus = window.liveDashboard ? '✅ Active' : '❌ Inactive';
     term.writeln(`\x1b[1;35m📊 Live Dashboard: ${dashboardStatus}\x1b[0m`);
@@ -770,8 +799,144 @@ function displayOptimizationStatus() {
     term.writeln('\x1b[1;32m💡 Available Commands:\x1b[0m');
     term.writeln('   virtual-scroll-enable/disable - Control virtual scrolling');
     term.writeln('   font-atlas-generate - Generate optimized font atlas');
+    term.writeln('   ligatures-enable/disable - Control font ligatures');
+    term.writeln('   ligatures-test - Test ligature rendering');
     term.writeln('   perf-stats - Show performance statistics');
     term.writeln('   optimization-status - Show this status');
+};
+
+// Text shaping and ligature control functions
+function enableLigatures() {
+    if (!term) return;
+
+    if (window.enhancedTextRenderer) {
+        window.enhancedTextRenderer.setTextShapingOptions({
+            enableLigatures: true,
+            enableTextShaping: true
+        });
+        term.writeln('\x1b[1;32m🎨 Font ligatures enabled\x1b[0m');
+        term.writeln('\x1b[1;33m💡 Programming symbols like == -> >= will now render as ligatures\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;31m❌ Enhanced text renderer not available\x1b[0m');
+    }
+}
+
+function disableLigatures() {
+    if (!term) return;
+
+    if (window.enhancedTextRenderer) {
+        window.enhancedTextRenderer.setTextShapingOptions({
+            enableLigatures: false
+        });
+        term.writeln('\x1b[1;33m🎨 Font ligatures disabled\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;31m❌ Enhanced text renderer not available\x1b[0m');
+    }
+}
+
+function testLigatures() {
+    if (!term) return;
+
+    if (window.enhancedTextRenderer) {
+        const testResults = window.enhancedTextRenderer.testTextShaping();
+
+        term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+        term.writeln('\x1b[1;36m🎨 Font Ligature Test Results\x1b[0m');
+        term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+
+        testResults.forEach((result, index) => {
+            term.writeln(`\x1b[1;33m${index + 1}. Original:\x1b[0m ${result.original}`);
+            if (result.hasLigatures) {
+                term.writeln(`   \x1b[1;32mShaped:\x1b[0m   ${result.shaped}`);
+                term.writeln(`   \x1b[1;35mLigatures:\x1b[0m ${result.ligatures.map(l => `${l.sequence}→${l.ligature}`).join(', ')}`);
+            } else {
+                term.writeln(`   \x1b[1;37mNo ligatures applied\x1b[0m`);
+            }
+            term.writeln('');
+        });
+
+        term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;31m❌ Enhanced text renderer not available\x1b[0m');
+    }
+}
+
+function listLigatures() {
+    if (!term) return;
+
+    if (window.enhancedTextRenderer) {
+        const ligatures = window.enhancedTextRenderer.getAvailableLigatures();
+
+        term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+        term.writeln('\x1b[1;36m🎨 Available Font Ligatures\x1b[0m');
+        term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+
+        // Group ligatures by category
+        const categories = {
+            'Equality & Comparison': ['==', '===', '!=', '!==', '<=', '>=', '<>'],
+            'Arrows & Pointers': ['->', '=>', '<-', '<=', '<->', '=>>', '<<-', '->>'],
+            'Logic Operators': ['&&', '||', '!'],
+            'Mathematical': ['++', '--', '**', '/*', '*/', '//'],
+            'Functional Programming': ['>>=', '=<<', '<$>', '<*>', '<|>', '|>', '<|'],
+            'Special Symbols': ['...', '..', ':::', '::', ';;', '??', '?:', '!?']
+        };
+
+        Object.entries(categories).forEach(([category, sequences]) => {
+            term.writeln(`\x1b[1;35m${category}:\x1b[0m`);
+            sequences.forEach(seq => {
+                const ligature = ligatures.find(l => l.sequence === seq);
+                if (ligature) {
+                    term.writeln(`   ${seq} → ${ligature.ligature} (U+${ligature.unicode})`);
+                }
+            });
+            term.writeln('');
+        });
+
+        term.writeln(`\x1b[1;32m📊 Total ligatures available: ${ligatures.length}\x1b[0m`);
+        term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;31m❌ Enhanced text renderer not available\x1b[0m');
+    }
+}
+
+function displayTextShapingStats() {
+    if (!term) return;
+
+    if (window.enhancedTextRenderer) {
+        const stats = window.enhancedTextRenderer.getStats();
+
+        term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+        term.writeln('\x1b[1;36m🎨 Text Shaping Statistics\x1b[0m');
+        term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+
+        term.writeln('\x1b[1;35m📊 Rendering Performance:\x1b[0m');
+        term.writeln(`   Lines Rendered: ${stats.linesRendered}`);
+        term.writeln(`   Characters Rendered: ${stats.charactersRendered}`);
+        term.writeln(`   Ligatures Rendered: ${stats.ligaturesRendered}`);
+        term.writeln(`   Average Render Time: ${stats.averageRenderTime.toFixed(2)}ms`);
+        term.writeln(`   Cache Hit Rate: ${(stats.cacheHitRate * 100).toFixed(1)}%`);
+        term.writeln(`   Cache Size: ${stats.cacheSize}/${stats.maxCacheSize}`);
+
+        if (stats.textShaping) {
+            term.writeln('\x1b[1;35m🎨 Text Shaping Engine:\x1b[0m');
+            term.writeln(`   Shaping Calls: ${stats.textShaping.totalShapingCalls}`);
+            term.writeln(`   Ligatures Applied: ${stats.textShaping.ligaturesApplied}`);
+            term.writeln(`   Cache Hit Rate: ${(stats.textShaping.cacheHitRate * 100).toFixed(1)}%`);
+            term.writeln(`   Available Ligatures: ${stats.textShaping.availableLigatures}`);
+            term.writeln(`   Average Shaping Time: ${stats.textShaping.averageShapingTime.toFixed(2)}ms`);
+        }
+
+        if (stats.fontAtlas) {
+            term.writeln('\x1b[1;35m🎨 Font Atlas:\x1b[0m');
+            term.writeln(`   Glyphs Generated: ${stats.fontAtlas.glyphsGenerated}`);
+            term.writeln(`   Atlas Utilization: ${(stats.fontAtlas.atlasUtilization * 100).toFixed(1)}%`);
+            term.writeln(`   Generation Time: ${stats.fontAtlas.generationTime.toFixed(2)}ms`);
+        }
+
+        term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;31m❌ Enhanced text renderer not available\x1b[0m');
+    }
 };
 
 // Update GPU status indicator in the UI
@@ -1294,6 +1459,28 @@ function initTerminal() {
         // Show performance optimization status
         term.writeln('\x1b[1;32m⚡ Performance optimizations active:\x1b[0m');
 
+        // Initialize enhanced text renderer
+        if (window.EnhancedTextRenderer) {
+            try {
+                window.enhancedTextRenderer = new window.EnhancedTextRenderer(term, {
+                    enableTextShaping: true,
+                    enableLigatures: true,
+                    fontFamily: 'monospace',
+                    fontSize: 16
+                });
+
+                // Initialize asynchronously
+                window.enhancedTextRenderer.initialize().then(() => {
+                    term.writeln('\x1b[1;32m🎨 Enhanced text renderer with ligatures ready\x1b[0m');
+                }).catch(e => {
+                    console.error('Enhanced text renderer initialization failed:', e);
+                });
+
+            } catch (e) {
+                console.error('Failed to create enhanced text renderer:', e);
+            }
+        }
+
         // Check which optimizations are available
         const optimizations = [];
         if (window.terminalLinePool) optimizations.push('📦 Object pooling');
@@ -1301,11 +1488,12 @@ function initTerminal() {
         if (window.performanceMonitor) optimizations.push('📊 Performance monitoring');
         if (window.VirtualTerminalBuffer) optimizations.push('📜 Virtual scrolling');
         if (window.OptimizedFontAtlas) optimizations.push('🎨 Font atlas optimization');
+        if (window.TextShapingEngine) optimizations.push('🎨 Text shaping & ligatures');
         if (window.liveDashboard) optimizations.push('📊 Live dashboard');
 
         if (optimizations.length > 0) {
             optimizations.forEach(opt => term.writeln(`   ${opt} enabled`));
-            term.writeln('\x1b[1;32m💡 Commands: perf-stats, optimization-status, virtual-scroll-enable\x1b[0m');
+            term.writeln('\x1b[1;32m💡 Commands: perf-stats, ligatures-test, optimization-status\x1b[0m');
         } else {
             term.writeln('\x1b[1;33m⚠️ Performance modules not loaded properly\x1b[0m');
         }

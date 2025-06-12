@@ -178,3 +178,52 @@ button:active {
         display: none; /* Hide on mobile to save space */
     }
 }
+
+/* Enhanced Typography for Ligatures */
+.xterm-screen {
+    font-feature-settings: "liga" 1, "calt" 1; /* Enable ligatures and contextual alternates */
+    font-variant-ligatures: common-ligatures contextual;
+    text-rendering: optimizeSpeed; /* Optimize for performance */
+}
+
+/* Programming Font Support */
+@font-face {
+    font-family: 'FiraCode';
+    src: url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
+    font-display: swap;
+}
+
+/* Fallback fonts with ligature support */
+.terminal-with-ligatures {
+    font-family: 'FiraCode', 'Cascadia Code', 'JetBrains Mono', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', 'Ubuntu Mono', monospace;
+    font-feature-settings: "liga" 1, "calt" 1, "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1;
+    font-variant-ligatures: common-ligatures contextual discretionary-ligatures;
+    -webkit-font-feature-settings: "liga" 1, "calt" 1;
+    -moz-font-feature-settings: "liga" 1, "calt" 1;
+}
+
+/* Smooth text rendering */
+.enhanced-text-rendering {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Ligature preview styles */
+.ligature-preview {
+    background: rgba(0, 255, 136, 0.1);
+    border-radius: 3px;
+    padding: 2px 4px;
+    margin: 0 2px;
+    font-weight: bold;
+}
+
+.ligature-sequence {
+    color: #ffaa00;
+    font-family: monospace;
+}
+
+.ligature-result {
+    color: #00ff88;
+    font-size: 1.1em;
+}
