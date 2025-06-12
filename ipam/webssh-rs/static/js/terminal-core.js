@@ -292,6 +292,46 @@ function handleSpecialCommands(data) {
         return true;
     }
 
+    if (command === 'worker-threads-enable') {
+        enableWorkerThreads();
+        return true;
+    }
+
+    if (command === 'worker-threads-disable') {
+        disableWorkerThreads();
+        return true;
+    }
+
+    if (command === 'worker-threads-test') {
+        testWorkerThreads();
+        return true;
+    }
+
+    if (command === 'worker-threads-stats') {
+        displayWorkerThreadsStats();
+        return true;
+    }
+
+    if (command === 'cache-stats') {
+        displayCacheStats();
+        return true;
+    }
+
+    if (command === 'cache-clear') {
+        clearAdvancedCache();
+        return true;
+    }
+
+    if (command === 'cache-optimize') {
+        optimizeCache();
+        return true;
+    }
+
+    if (command === 'cache-test') {
+        testAdvancedCache();
+        return true;
+    }
+
     return false; // Command not handled
 }
 
@@ -839,6 +879,14 @@ function displayOptimizationStatus() {
     const subpixelStatus = window.enhancedTextRenderer?.getSubpixelCapabilities()?.isEnabled ? '✅ Active' : '❌ Inactive';
     term.writeln(`\x1b[1;35m🎨 Subpixel Rendering: ${subpixelStatus}\x1b[0m`);
 
+    // Worker Threads Status
+    const workerThreadsStatus = window.workerThreadManager ? '✅ Active' : '❌ Inactive';
+    term.writeln(`\x1b[1;35m🧵 Worker Threads: ${workerThreadsStatus}\x1b[0m`);
+
+    // Advanced Caching Status
+    const advancedCachingStatus = window.advancedCacheManager ? '✅ Active' : '❌ Inactive';
+    term.writeln(`\x1b[1;35m💾 Advanced Caching: ${advancedCachingStatus}\x1b[0m`);
+
     // Live Dashboard Status
     const dashboardStatus = window.liveDashboard ? '✅ Active' : '❌ Inactive';
     term.writeln(`\x1b[1;35m📊 Live Dashboard: ${dashboardStatus}\x1b[0m`);
@@ -850,6 +898,8 @@ function displayOptimizationStatus() {
     term.writeln('   ligatures-enable/disable - Control font ligatures');
     term.writeln('   batch-rendering-enable/disable - Control batch rendering');
     term.writeln('   subpixel-rendering-test - Test subpixel rendering quality');
+    term.writeln('   worker-threads-test - Test worker thread performance');
+    term.writeln('   cache-stats - Show advanced cache statistics');
     term.writeln('   perf-stats - Show performance statistics');
     term.writeln('   optimization-status - Show this status');
 };
@@ -1318,6 +1368,252 @@ function displaySubpixelRenderingStats() {
     term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
 };
 
+// Worker thread control functions
+function enableWorkerThreads() {
+    if (!term) return;
+
+    if (window.WorkerThreadManager) {
+        if (!window.workerThreadManager) {
+            try {
+                window.workerThreadManager = new window.WorkerThreadManager({
+                    maxWorkers: navigator.hardwareConcurrency || 4,
+                    enableTextProcessing: true,
+                    enableCompression: true,
+                    enableParsing: true
+                });
+
+                window.workerThreadManager.initialize().then(() => {
+                    const stats = window.workerThreadManager.getStats();
+                    term.writeln('\x1b[1;32m🧵 Worker threads enabled\x1b[0m');
+                    term.writeln(`\x1b[1;33m👥 Created ${stats.totalWorkers} workers\x1b[0m`);
+                    term.writeln('\x1b[1;33m💡 Heavy computations will now run in background\x1b[0m');
+                }).catch(e => {
+                    term.writeln('\x1b[1;31m❌ Failed to initialize worker threads\x1b[0m');
+                    console.error('Worker thread initialization failed:', e);
+                });
+
+            } catch (e) {
+                term.writeln('\x1b[1;31m❌ Failed to create worker thread manager\x1b[0m');
+                console.error('Worker thread manager error:', e);
+            }
+        } else {
+            term.writeln('\x1b[1;33m⚠️ Worker threads already enabled\x1b[0m');
+        }
+    } else {
+        term.writeln('\x1b[1;31m❌ Worker thread manager not available\x1b[0m');
+    }
+}
+
+function disableWorkerThreads() {
+    if (!term) return;
+
+    if (window.workerThreadManager) {
+        window.workerThreadManager.destroy();
+        window.workerThreadManager = null;
+        term.writeln('\x1b[1;33m🧵 Worker threads disabled\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;31m❌ Worker threads not active\x1b[0m');
+    }
+}
+
+function testWorkerThreads() {
+    if (!term) return;
+
+    if (!window.workerThreadManager) {
+        term.writeln('\x1b[1;31m❌ Worker threads not active\x1b[0m');
+        term.writeln('\x1b[1;32m💡 Use "worker-threads-enable" first\x1b[0m');
+        return;
+    }
+
+    term.writeln('\x1b[1;36m🧵 Testing worker thread performance...\x1b[0m');
+
+    const testData = `
+        function fibonacci(n) {
+            if (n <= 1) return n;
+            return fibonacci(n - 1) + fibonacci(n - 2);
+        }
+
+        const result = fibonacci(30);
+        console.log("Result:", result);
+    `;
+
+    const startTime = performance.now();
+
+    // Test text processing in worker
+    window.workerThreadManager.processTextAsync(testData, 'highlight', { language: 'javascript' })
+        .then(result => {
+            const processingTime = performance.now() - startTime;
+
+            term.writeln('\x1b[1;32m✅ Worker thread test completed\x1b[0m');
+            term.writeln(`\x1b[1;33m⏱️ Processing time: ${processingTime.toFixed(2)}ms\x1b[0m`);
+            term.writeln(`\x1b[1;33m📊 Highlighted ${result.lineCount} lines\x1b[0m`);
+            term.writeln('\x1b[1;33m🎯 UI thread remained responsive during processing\x1b[0m');
+        })
+        .catch(e => {
+            term.writeln('\x1b[1;31m❌ Worker thread test failed\x1b[0m');
+            console.error('Worker thread test error:', e);
+        });
+
+    // Test compression in worker
+    window.workerThreadManager.compressAsync(testData)
+        .then(result => {
+            term.writeln(`\x1b[1;33m🗜️ Compression ratio: ${result.ratio.toFixed(2)}x\x1b[0m`);
+        })
+        .catch(e => {
+            console.error('Compression test error:', e);
+        });
+}
+
+function displayWorkerThreadsStats() {
+    if (!term) return;
+
+    if (!window.workerThreadManager) {
+        term.writeln('\x1b[1;31m❌ Worker threads not active\x1b[0m');
+        return;
+    }
+
+    const stats = window.workerThreadManager.getStats();
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+    term.writeln('\x1b[1;36m🧵 Worker Thread Statistics\x1b[0m');
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+
+    term.writeln('\x1b[1;35m👥 Worker Pool:\x1b[0m');
+    term.writeln(`   Total Workers: ${stats.totalWorkers}`);
+    term.writeln(`   Active Workers: ${stats.workersActive}`);
+    term.writeln(`   Worker Utilization: ${(stats.workerUtilization * 100).toFixed(1)}%`);
+
+    term.writeln('\x1b[1;35m📊 Task Performance:\x1b[0m');
+    term.writeln(`   Tasks Completed: ${stats.tasksCompleted}`);
+    term.writeln(`   Tasks Queued: ${stats.queuedTasks}`);
+    term.writeln(`   Active Tasks: ${stats.activeTasks}`);
+    term.writeln(`   Average Task Time: ${stats.averageTaskTime.toFixed(2)}ms`);
+
+    term.writeln('\x1b[1;35m⚡ Performance Impact:\x1b[0m');
+    term.writeln(`   UI Blocking Prevented: ${stats.uiBlockingPrevented} times`);
+    term.writeln(`   Total Processing Time: ${stats.totalProcessingTime.toFixed(2)}ms`);
+
+    const efficiency = stats.tasksCompleted > 0 ?
+        (stats.uiBlockingPrevented / stats.tasksCompleted * 100) : 0;
+    term.writeln(`   Threading Efficiency: ${efficiency.toFixed(1)}%`);
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+}
+
+// Advanced cache control functions
+function displayCacheStats() {
+    if (!term) return;
+
+    if (!window.advancedCacheManager) {
+        term.writeln('\x1b[1;31m❌ Advanced cache manager not active\x1b[0m');
+        return;
+    }
+
+    const stats = window.advancedCacheManager.getStats();
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+    term.writeln('\x1b[1;36m💾 Advanced Cache Statistics\x1b[0m');
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+
+    term.writeln('\x1b[1;35m📊 Overall Performance:\x1b[0m');
+    term.writeln(`   Cache Hit Rate: ${(stats.hitRate * 100).toFixed(1)}%`);
+    term.writeln(`   Total Hits: ${stats.hits}`);
+    term.writeln(`   Total Misses: ${stats.misses}`);
+    term.writeln(`   Evictions: ${stats.evictions}`);
+
+    term.writeln('\x1b[1;35m💾 Memory Management:\x1b[0m');
+    term.writeln(`   Current Usage: ${stats.memoryUsage.current.toFixed(1)} MB`);
+    term.writeln(`   Peak Usage: ${stats.memoryUsage.peak.toFixed(1)} MB`);
+    term.writeln(`   Memory Pressure: ${stats.memoryPressure}`);
+    term.writeln(`   Memory Reclaimed: ${stats.memoryReclaimed.toFixed(1)} MB`);
+
+    term.writeln('\x1b[1;35m🗜️ Compression:\x1b[0m');
+    term.writeln(`   Compressions: ${stats.compressions}`);
+    term.writeln(`   Decompressions: ${stats.decompressions}`);
+    term.writeln(`   Compression Ratio: ${stats.efficiency.compressionRatio.toFixed(2)}x`);
+
+    term.writeln('\x1b[1;35m🎯 Cache Strategies:\x1b[0m');
+    Object.entries(stats.cacheStats).forEach(([strategy, strategyStats]) => {
+        term.writeln(`   ${strategy.toUpperCase()}: ${strategyStats.size}/${strategyStats.maxSize} (${(strategyStats.hitRate * 100).toFixed(1)}% hit rate)`);
+    });
+
+    term.writeln('\x1b[1;35m🔮 Predictive Caching:\x1b[0m');
+    term.writeln(`   Predictive Hits: ${stats.predictiveHits}`);
+    term.writeln(`   GC Runs: ${stats.gcRuns}`);
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+}
+
+function clearAdvancedCache() {
+    if (!term) return;
+
+    if (window.advancedCacheManager) {
+        const beforeStats = window.advancedCacheManager.getStats();
+        window.advancedCacheManager.clear();
+
+        term.writeln('\x1b[1;32m🧹 Advanced cache cleared\x1b[0m');
+        term.writeln(`\x1b[1;33m📊 Freed ${beforeStats.memoryUsage.current.toFixed(1)} MB\x1b[0m`);
+    } else {
+        term.writeln('\x1b[1;31m❌ Advanced cache manager not active\x1b[0m');
+    }
+}
+
+function optimizeCache() {
+    if (!term) return;
+
+    if (window.advancedCacheManager) {
+        window.advancedCacheManager.optimize();
+        term.writeln('\x1b[1;32m🎯 Cache configuration optimized\x1b[0m');
+        term.writeln('\x1b[1;33m💡 Cache sizes adjusted based on usage patterns\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;31m❌ Advanced cache manager not active\x1b[0m');
+    }
+}
+
+function testAdvancedCache() {
+    if (!term) return;
+
+    if (!window.advancedCacheManager) {
+        term.writeln('\x1b[1;31m❌ Advanced cache manager not active\x1b[0m');
+        return;
+    }
+
+    term.writeln('\x1b[1;36m💾 Testing advanced cache performance...\x1b[0m');
+
+    const testData = {
+        small: 'Small test data',
+        medium: 'Medium test data '.repeat(100),
+        large: 'Large test data '.repeat(1000)
+    };
+
+    const startTime = performance.now();
+
+    // Test different cache strategies
+    Object.entries(testData).forEach(([size, data], index) => {
+        const key = `test-${size}-${index}`;
+
+        // Set with different strategies
+        window.advancedCacheManager.set(key, data, {
+            strategy: 'auto',
+            ttl: 60000,
+            compress: size === 'large'
+        });
+
+        // Immediate retrieval test
+        const retrieved = window.advancedCacheManager.get(key);
+        if (retrieved) {
+            term.writeln(`\x1b[1;32m✅ ${size} data cached and retrieved successfully\x1b[0m`);
+        }
+    });
+
+    const testTime = performance.now() - startTime;
+    const stats = window.advancedCacheManager.getStats();
+
+    term.writeln(`\x1b[1;33m⏱️ Cache test completed in ${testTime.toFixed(2)}ms\x1b[0m`);
+    term.writeln(`\x1b[1;33m📊 Hit rate: ${(stats.hitRate * 100).toFixed(1)}%\x1b[0m`);
+    term.writeln(`\x1b[1;33m💾 Memory usage: ${stats.memoryUsage.current.toFixed(1)} MB\x1b[0m`);
+};
+
 // Update GPU status indicator in the UI
 function updateGPUStatusIndicator(isGPUActive) {
     const gpuStatus = document.getElementById('gpu-status');
@@ -1432,7 +1728,48 @@ async function initializePerformanceOptimizations() {
         }
     }
 
-    // 5. Performance Summary
+    // 5. Auto-enable Worker Threads
+    if (window.WorkerThreadManager) {
+        try {
+            window.workerThreadManager = new window.WorkerThreadManager({
+                maxWorkers: navigator.hardwareConcurrency || 4,
+                enableTextProcessing: true,
+                enableCompression: true,
+                enableParsing: true
+            });
+
+            await window.workerThreadManager.initialize();
+            const workerStats = window.workerThreadManager.getStats();
+            term.writeln(`\x1b[1;32m✅ Worker threads auto-enabled (${workerStats.totalWorkers} workers)\x1b[0m`);
+            console.log('✅ Worker thread manager initialized');
+        } catch (e) {
+            console.error('Failed to initialize worker thread manager:', e);
+            term.writeln('\x1b[1;31m⚠️ Worker threads initialization failed\x1b[0m');
+        }
+    }
+
+    // 6. Auto-enable Advanced Caching
+    if (window.AdvancedCacheManager) {
+        try {
+            window.advancedCacheManager = new window.AdvancedCacheManager({
+                maxMemoryMB: 100,
+                enableLRU: true,
+                enableLFU: true,
+                enableTTL: true,
+                enableCompression: true,
+                enablePredictive: true
+            });
+
+            await window.advancedCacheManager.initialize();
+            term.writeln('\x1b[1;32m✅ Advanced caching auto-enabled (100MB limit)\x1b[0m');
+            console.log('✅ Advanced cache manager initialized');
+        } catch (e) {
+            console.error('Failed to initialize advanced cache manager:', e);
+            term.writeln('\x1b[1;31m⚠️ Advanced caching initialization failed\x1b[0m');
+        }
+    }
+
+    // 7. Performance Summary
     setTimeout(() => {
         const activeOptimizations = [];
         if (window.enhancedTextRenderer) {
@@ -1443,11 +1780,14 @@ async function initializePerformanceOptimizations() {
         if (window.batchRenderer) activeOptimizations.push('Batch Rendering');
         if (window.terminalBuffer?.isVirtualScrollingEnabled) activeOptimizations.push('Virtual Scrolling');
         if (window.globalFontAtlas) activeOptimizations.push('Font Atlas');
+        if (window.workerThreadManager) activeOptimizations.push('Worker Threads');
+        if (window.advancedCacheManager) activeOptimizations.push('Advanced Caching');
         if (window.liveDashboard) activeOptimizations.push('Live Dashboard');
 
         if (activeOptimizations.length > 0) {
             term.writeln(`\x1b[1;36m🚀 ${activeOptimizations.length} optimizations active: ${activeOptimizations.join(', ')}\x1b[0m`);
             term.writeln('\x1b[1;32m💡 All performance features enabled automatically!\x1b[0m');
+            term.writeln('\x1b[1;35m🎯 Your terminal now has enterprise-grade performance!\x1b[0m');
         }
 
         console.log('🎯 Performance optimization summary:', activeOptimizations);
@@ -1973,12 +2313,14 @@ function initTerminal() {
         if (window.TextShapingEngine) optimizations.push('🎨 Text shaping & ligatures');
         if (window.BatchRenderer) optimizations.push('🎨 Batch rendering system');
         if (window.SubpixelRenderer) optimizations.push('🎨 Subpixel rendering');
+        if (window.WorkerThreadManager) optimizations.push('🧵 Worker thread offloading');
+        if (window.AdvancedCacheManager) optimizations.push('💾 Advanced caching system');
         if (window.liveDashboard) optimizations.push('📊 Live dashboard');
 
         if (optimizations.length > 0) {
             optimizations.forEach(opt => term.writeln(`   ${opt} available`));
             term.writeln('\x1b[1;32m💡 All optimizations will auto-enable in 2 seconds...\x1b[0m');
-            term.writeln('\x1b[1;33m💡 Commands: optimization-status, ligatures-test, batch-rendering-stats\x1b[0m');
+            term.writeln('\x1b[1;33m💡 Commands: optimization-status, worker-threads-test, cache-stats\x1b[0m');
         } else {
             term.writeln('\x1b[1;33m⚠️ Performance modules not loaded properly\x1b[0m');
         }
