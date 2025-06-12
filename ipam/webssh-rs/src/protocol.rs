@@ -38,6 +38,7 @@ pub enum BinaryMessage {
 
 impl BinaryMessage {
     /// Serialize message to binary format with optional compression
+    #[allow(dead_code)]
     pub fn to_binary(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let serialized = bincode::serialize(self)?;
         
@@ -62,6 +63,7 @@ impl BinaryMessage {
     }
     
     /// Deserialize message from binary format with decompression
+    #[allow(dead_code)]
     pub fn from_binary(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {
         if data.is_empty() {
             return Err("Empty data".into());
@@ -84,6 +86,7 @@ impl BinaryMessage {
     }
     
     /// Create terminal output message with automatic compression
+    #[allow(dead_code)]
     pub fn terminal_output(data: Bytes) -> Self {
         let data_vec = data.to_vec(); // Convert Bytes to Vec<u8>
         let compressed = data_vec.len() > 512; // Auto-compress if >512 bytes
@@ -91,21 +94,25 @@ impl BinaryMessage {
     }
     
     /// Create terminal input message
+    #[allow(dead_code)]
     pub fn terminal_input(data: String) -> Self {
         BinaryMessage::TerminalInput { data }
     }
     
     /// Create resize message
+    #[allow(dead_code)]
     pub fn resize(cols: u16, rows: u16) -> Self {
         BinaryMessage::Resize { cols, rows }
     }
     
     /// Create session info message
+    #[allow(dead_code)]
     pub fn session_info(session_id: String, message: String) -> Self {
         BinaryMessage::SessionInfo { session_id, message }
     }
     
     /// Create error message
+    #[allow(dead_code)]
     pub fn error(code: String, message: String) -> Self {
         BinaryMessage::Error { code, message }
     }
@@ -136,6 +143,7 @@ impl Default for PerformanceStats {
 }
 
 impl PerformanceStats {
+    #[allow(dead_code)]
     pub fn record_sent(&mut self, original_size: usize, compressed_size: usize) {
         self.messages_sent += 1;
         self.bytes_sent += compressed_size as u64;
@@ -145,16 +153,19 @@ impl PerformanceStats {
         self.compression_ratio = (self.compression_ratio * 0.9) + (new_ratio * 0.1);
     }
     
+    #[allow(dead_code)]
     pub fn record_received(&mut self, size: usize) {
         self.messages_received += 1;
         self.bytes_received += size as u64;
     }
     
+    #[allow(dead_code)]
     pub fn record_latency(&mut self, latency_ms: f32) {
         // Rolling average of latency
         self.average_latency_ms = (self.average_latency_ms * 0.9) + (latency_ms * 0.1);
     }
     
+    #[allow(dead_code)]
     pub fn get_throughput_mbps(&self) -> f32 {
         // Calculate throughput in Mbps (rough estimate)
         (self.bytes_sent + self.bytes_received) as f32 / (1024.0 * 1024.0 / 8.0)

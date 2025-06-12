@@ -9,7 +9,7 @@ pub enum SSHError {
     
     /// Errors from the SSH2 library
     #[error("SSH error: {0}")]
-    SSH(#[from] ssh2::Error),
+    Ssh(#[from] ssh2::Error),
     
     /// Authentication-specific errors
     #[error("SSH authentication error: {0}")]

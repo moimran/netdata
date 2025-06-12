@@ -9,7 +9,7 @@ function connectWebSocket(sessionId) {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws/${sessionId}`;
     
-    term.writeln(`\x1b[1;34mConnecting to WebSocket: ${wsUrl}\x1b[0m`);
+    // Connecting to WebSocket silently
     
     ws = new WebSocket(wsUrl);
     
@@ -17,7 +17,7 @@ function connectWebSocket(sessionId) {
     ws.binaryType = 'arraybuffer';
     
     ws.onopen = () => {
-        term.writeln('\x1b[1;32mWebSocket connection established\x1b[0m');
+        // WebSocket connection established silently
         
         // Send terminal size
         const dimensions = { 
@@ -160,16 +160,8 @@ function connectWebSocket(sessionId) {
         // Initialize terminal with proper settings for escape sequences
         // We'll do this only once before the connection is established
         function initializeTerminal() {
-            // Only clear and reset the terminal BEFORE connection, not after
-            if (!ws || ws.readyState !== WebSocket.OPEN) {
-                // Clear the terminal first to remove any artifacts
-                term.clear();
-                
-                // Send sequences to reset terminal state
-                term.write('\u001bc'); // Full terminal reset (RIS - Reset to Initial State)
-                term.write('\u001b[0m'); // Reset all attributes
-                term.write('\u001b[?25h'); // Show cursor
-            }
+            // Don't clear the terminal - preserve any existing content
+            // Just ensure proper terminal state without clearing
             
             // Focus the terminal
             term.focus();
@@ -305,16 +297,8 @@ function connectWebSocket(sessionId) {
     };
     
     ws.onclose = () => {
-        term.writeln('\x1b[1;31mWebSocket connection closed\x1b[0m');
-        
-        // Update UI elements
-        document.getElementById('device-hostname').textContent = 'Not connected';
-        document.getElementById('connection-username').textContent = 'Not connected';
-        document.getElementById('session-id').textContent = 'Not connected';
-        
-        // Clear terminal
-        term.clear();
-        term.writeln('Connection closed');
+        // Connection closed - show minimal message
+        term.writeln('\r\n\x1b[1;31mConnection closed\x1b[0m');
         
         ws = null;
         currentSessionId = null;
@@ -340,7 +324,7 @@ function connectWebSocket(sessionId) {
 
 // Check session status and connect
 function checkSessionAndConnect(sessionId) {
-    term.writeln(`\x1b[1;34mChecking session status for: ${sessionId}\x1b[0m`);
+    // Checking session status silently
     
     fetch(`/api/session/${sessionId}/status`)
         .then(response => response.json())

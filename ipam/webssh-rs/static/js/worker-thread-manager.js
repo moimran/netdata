@@ -47,7 +47,7 @@ class WorkerThreadManager {
         
         this.isInitialized = false;
         
-        console.log('🧵 Worker thread manager initialized');
+        // Worker thread manager initialized
     }
     
     async initialize() {
@@ -62,7 +62,7 @@ class WorkerThreadManager {
         this.setupMessageHandlers();
         
         this.isInitialized = true;
-        console.log(`✅ Worker thread manager ready with ${this.getTotalWorkers()} workers`);
+        // Worker thread manager ready
     }
     
     async createWorkerPools() {
@@ -142,12 +142,8 @@ class WorkerThreadManager {
                 
                 lines.forEach((line, lineIndex) => {
                     let searchRegex;
-                    if (regex) {
-                        searchRegex = new RegExp(query, caseSensitive ? 'g' : 'gi');
-                    } else {
-                        const escapedQuery = query.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');
-                        searchRegex = new RegExp(escapedQuery, caseSensitive ? 'g' : 'gi');
-                    }
+                    // Create search regex
+                    searchRegex = new RegExp(query, caseSensitive ? 'g' : 'gi');
                     
                     let match;
                     while ((match = searchRegex.exec(line)) !== null) {
@@ -280,7 +276,7 @@ class WorkerThreadManager {
                 const { taskId, success, result, error, processingTime, ready } = e.data;
                 
                 if (ready) {
-                    console.log(`✅ ${worker.type} worker ready`);
+                    // Worker ready
                     return;
                 }
                 
@@ -444,11 +440,11 @@ class WorkerThreadManager {
         this.activeTasks.clear();
         Object.values(this.taskQueues).forEach(queue => queue.length = 0);
         
-        console.log('🧹 Worker thread manager destroyed');
+        // Worker thread manager destroyed
     }
 }
 
 // Export class
 window.WorkerThreadManager = WorkerThreadManager;
 
-console.log('🧵 Worker thread manager module loaded');
+// Worker thread manager module loaded

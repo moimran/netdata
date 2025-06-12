@@ -71,13 +71,13 @@ impl SessionRegistry {
         // Add to portal user sessions map
         self.portal_user_sessions
             .entry(portal_user_id.to_string())
-            .or_insert_with(HashSet::new)
+            .or_default()
             .insert(session_id.clone());
         
         // Add to device sessions map
         self.device_sessions
             .entry(device_id.to_string())
-            .or_insert_with(HashSet::new)
+            .or_default()
             .insert(session_id.clone());
         
         // Add to composite key map
@@ -111,6 +111,7 @@ impl SessionRegistry {
     }
     
     /// Gets a session by composite key (portal_user_id, device_id, ssh_username)
+    #[allow(dead_code)]
     pub fn get_session_by_composite_key(
         &mut self,
         portal_user_id: &str,
@@ -144,6 +145,7 @@ impl SessionRegistry {
     }
     
     /// Gets all sessions for a device
+    #[allow(dead_code)]
     pub fn get_device_sessions(&self, device_id: &str) -> Vec<String> {
         if let Some(session_ids) = self.device_sessions.get(device_id) {
             session_ids.iter().cloned().collect()

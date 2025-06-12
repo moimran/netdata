@@ -63,19 +63,19 @@ class EnhancedTextRenderer {
         
         this.isInitialized = false;
         
-        console.log('🎨 Enhanced text renderer initialized');
+        // Enhanced text renderer initialized
     }
     
     async initialize() {
         if (this.isInitialized) return;
         
-        console.log('🚀 Initializing enhanced text renderer...');
+        // Initializing enhanced text renderer
         
         // Generate font atlas with ligature support
         if (this.fontAtlas) {
             try {
                 await this.fontAtlas.generateAtlas('unicode'); // Include ligature characters
-                console.log('✅ Font atlas generated with ligature support');
+                // Font atlas generated
             } catch (e) {
                 console.warn('⚠️ Font atlas generation failed:', e);
             }

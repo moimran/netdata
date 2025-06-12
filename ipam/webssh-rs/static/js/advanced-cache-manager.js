@@ -19,10 +19,10 @@ class AdvancedCacheManager {
         
         // Multiple cache strategies
         this.caches = {
-            lru: new LRUCache(10000), // Least Recently Used
-            lfu: new LFUCache(5000),  // Least Frequently Used
-            ttl: new TTLCache(5000),  // Time To Live
-            predictive: new PredictiveCache(2000) // Predictive caching
+            lru: new AdvancedLRUCache(10000), // Least Recently Used
+            lfu: new AdvancedLFUCache(5000),  // Least Frequently Used
+            ttl: new AdvancedTTLCache(5000),  // Time To Live
+            predictive: new AdvancedPredictiveCache(2000) // Predictive caching
         };
         
         // Memory tracking
@@ -53,7 +53,7 @@ class AdvancedCacheManager {
         
         this.isInitialized = false;
         
-        console.log('💾 Advanced cache manager initialized');
+        // Advanced cache manager initialized
     }
     
     async initialize() {
@@ -71,7 +71,7 @@ class AdvancedCacheManager {
         this.setupPerformanceObserver();
         
         this.isInitialized = true;
-        console.log('✅ Advanced cache manager ready');
+        // Advanced cache manager ready
     }
     
     setupMemoryMonitoring() {
@@ -467,7 +467,7 @@ class AdvancedCacheManager {
 // Base cache classes would be implemented here
 // For brevity, showing simplified versions
 
-class LRUCache {
+class AdvancedLRUCache {
     constructor(maxSize) {
         this.maxSize = maxSize;
         this.cache = new Map();
@@ -502,7 +502,7 @@ class LRUCache {
     getStats() { return { ...this.stats, size: this.cache.size, maxSize: this.maxSize, hitRate: this.stats.hits / (this.stats.hits + this.stats.misses) }; }
 }
 
-class LFUCache {
+class AdvancedLFUCache {
     constructor(maxSize) {
         this.maxSize = maxSize;
         this.cache = new Map();
@@ -550,7 +550,7 @@ class LFUCache {
     getStats() { return { ...this.stats, size: this.cache.size, maxSize: this.maxSize, hitRate: this.stats.hits / (this.stats.hits + this.stats.misses) }; }
 }
 
-class TTLCache {
+class AdvancedTTLCache {
     constructor(maxSize) {
         this.maxSize = maxSize;
         this.cache = new Map();
@@ -607,7 +607,7 @@ class TTLCache {
     getStats() { return { ...this.stats, size: this.cache.size, maxSize: this.maxSize, hitRate: this.stats.hits / (this.stats.hits + this.stats.misses) }; }
 }
 
-class PredictiveCache {
+class AdvancedPredictiveCache {
     constructor(maxSize) {
         this.maxSize = maxSize;
         this.cache = new Map();
@@ -650,9 +650,9 @@ class PredictiveCache {
 
 // Export classes
 window.AdvancedCacheManager = AdvancedCacheManager;
-window.LRUCache = LRUCache;
-window.LFUCache = LFUCache;
-window.TTLCache = TTLCache;
-window.PredictiveCache = PredictiveCache;
+window.AdvancedLRUCache = AdvancedLRUCache;
+window.AdvancedLFUCache = AdvancedLFUCache;
+window.AdvancedTTLCache = AdvancedTTLCache;
+window.AdvancedPredictiveCache = AdvancedPredictiveCache;
 
-console.log('💾 Advanced cache manager module loaded');
+// Advanced cache manager module loaded

@@ -64,14 +64,20 @@ struct AppState {
 
 #[tokio::main]
 async fn main() {
-    // Initialize logging
-    let _ = FmtSubscriber::builder()
-        .with_max_level(Level::DEBUG)
-        .with_level(true)
-        .with_thread_ids(true)
-        .with_target(true)
-        .with_file(true)
-        .with_line_number(true)
+    // Initialize logging with production-ready configuration
+    let log_level = std::env::var("RUST_LOG")
+        .unwrap_or_else(|_| "info".to_string())
+        .parse::<Level>()
+        .unwrap_or(Level::INFO);
+
+    FmtSubscriber::builder()
+        .with_max_level(log_level)
+        .with_level(false)  // Hide log levels in production
+        .with_thread_ids(false)  // Hide thread IDs in production
+        .with_target(false)  // Hide targets in production
+        .with_file(false)  // Hide file names in production
+        .with_line_number(false)  // Hide line numbers in production
+        .compact()  // Use compact format for production
         .init();
 
     // Load settings

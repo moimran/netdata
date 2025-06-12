@@ -1614,10 +1614,10 @@ function testAdvancedCache() {
     term.writeln(`\x1b[1;33m💾 Memory usage: ${stats.memoryUsage.current.toFixed(1)} MB\x1b[0m`);
 };
 
-// Update GPU status indicator in the UI
+// Update GPU status indicator in the UI (production interface has no status indicators)
 function updateGPUStatusIndicator(isGPUActive) {
-    const gpuStatus = document.getElementById('gpu-status');
-    if (!gpuStatus) return;
+    // GPU status indicator removed for production interface
+    return;
 
     if (isGPUActive) {
         if (gpuInfo.isWebGL2) {
@@ -1642,10 +1642,9 @@ window.updateGPUStatusIndicator = updateGPUStatusIndicator;
 
 // Auto-initialize all performance optimizations
 async function initializePerformanceOptimizations() {
-    console.log('🚀 Auto-initializing performance optimizations...');
+    // Initialize optimizations silently
 
-    // Show loading indicator
-    term.writeln('\x1b[1;33m⏳ Initializing performance optimizations...\x1b[0m');
+    // Initialize optimizations silently
 
     // 1. Initialize Enhanced Text Renderer with Ligatures
     if (window.EnhancedTextRenderer) {
@@ -1659,11 +1658,8 @@ async function initializePerformanceOptimizations() {
             });
 
             await window.enhancedTextRenderer.initialize();
-            term.writeln('\x1b[1;32m✅ Text shaping, ligatures & subpixel rendering auto-enabled\x1b[0m');
-            console.log('✅ Enhanced text renderer initialized');
         } catch (e) {
             console.error('Failed to initialize enhanced text renderer:', e);
-            term.writeln('\x1b[1;31m⚠️ Text shaping initialization failed\x1b[0m');
         }
     }
 
@@ -1680,32 +1676,15 @@ async function initializePerformanceOptimizations() {
                     });
 
                     await window.batchRenderer.initialize();
-                    term.writeln('\x1b[1;32m✅ Batch rendering auto-enabled (2048 chars/batch)\x1b[0m');
-                    console.log('✅ Batch renderer initialized');
-                } else {
-                    console.log('⚠️ WebGL context not available for batch rendering');
                 }
             }
         } catch (e) {
             console.error('Failed to initialize batch renderer:', e);
-            term.writeln('\x1b[1;31m⚠️ Batch rendering initialization failed\x1b[0m');
         }
     }
 
-    // 3. Auto-enable Virtual Scrolling
-    if (window.terminalBuffer && window.terminalBuffer.enableVirtualScrolling) {
-        try {
-            window.terminalBuffer.enableVirtualScrolling(term, {
-                visibleLines: 50,
-                overscan: 10
-            });
-            term.writeln('\x1b[1;32m✅ Virtual scrolling auto-enabled (100K line buffer)\x1b[0m');
-            console.log('✅ Virtual scrolling enabled');
-        } catch (e) {
-            console.error('Failed to enable virtual scrolling:', e);
-            term.writeln('\x1b[1;31m⚠️ Virtual scrolling initialization failed\x1b[0m');
-        }
-    }
+    // 3. Virtual Scrolling (disabled for production - can cause layout issues)
+    // Virtual scrolling disabled to prevent layout problems
 
     // 4. Auto-generate Font Atlas with Ligatures
     if (window.OptimizedFontAtlas && !window.globalFontAtlas) {
@@ -1720,11 +1699,8 @@ async function initializePerformanceOptimizations() {
             window.globalFontAtlas = fontAtlas;
 
             const stats = fontAtlas.getStats();
-            term.writeln(`\x1b[1;32m✅ Font atlas auto-generated (${stats.glyphsGenerated} glyphs)\x1b[0m`);
-            console.log('✅ Font atlas generated with', stats.glyphsGenerated, 'glyphs');
         } catch (e) {
             console.error('Failed to generate font atlas:', e);
-            term.writeln('\x1b[1;31m⚠️ Font atlas generation failed\x1b[0m');
         }
     }
 
@@ -1740,11 +1716,8 @@ async function initializePerformanceOptimizations() {
 
             await window.workerThreadManager.initialize();
             const workerStats = window.workerThreadManager.getStats();
-            term.writeln(`\x1b[1;32m✅ Worker threads auto-enabled (${workerStats.totalWorkers} workers)\x1b[0m`);
-            console.log('✅ Worker thread manager initialized');
         } catch (e) {
             console.error('Failed to initialize worker thread manager:', e);
-            term.writeln('\x1b[1;31m⚠️ Worker threads initialization failed\x1b[0m');
         }
     }
 
@@ -1761,11 +1734,8 @@ async function initializePerformanceOptimizations() {
             });
 
             await window.advancedCacheManager.initialize();
-            term.writeln('\x1b[1;32m✅ Advanced caching auto-enabled (100MB limit)\x1b[0m');
-            console.log('✅ Advanced cache manager initialized');
         } catch (e) {
             console.error('Failed to initialize advanced cache manager:', e);
-            term.writeln('\x1b[1;31m⚠️ Advanced caching initialization failed\x1b[0m');
         }
     }
 
@@ -1784,20 +1754,15 @@ async function initializePerformanceOptimizations() {
         if (window.advancedCacheManager) activeOptimizations.push('Advanced Caching');
         if (window.liveDashboard) activeOptimizations.push('Live Dashboard');
 
-        if (activeOptimizations.length > 0) {
-            term.writeln(`\x1b[1;36m🚀 ${activeOptimizations.length} optimizations active: ${activeOptimizations.join(', ')}\x1b[0m`);
-            term.writeln('\x1b[1;32m💡 All performance features enabled automatically!\x1b[0m');
-            term.writeln('\x1b[1;35m🎯 Your terminal now has enterprise-grade performance!\x1b[0m');
-        }
+        // All optimizations initialized silently
 
-        console.log('🎯 Performance optimization summary:', activeOptimizations);
+        // All optimizations initialized
     }, 1000);
 }
 
 // Initialize terminal
 function initTerminal() {
-    console.log('🚀 initTerminal() called - starting terminal initialization');
-    console.log('🔍 Checking WebGL addon availability:', typeof WebglAddon !== 'undefined');
+    // Initialize terminal silently
 
     // Initialize terminal with improved settings for command output
     const xtermjsTheme = {
@@ -1824,19 +1789,17 @@ function initTerminal() {
       };
     // Enhanced WebGL detection with comprehensive diagnostics
     function detectOptimalRenderer() {
-        console.log('🔍 Starting WebGL detection process...');
+        // Detect optimal renderer silently
 
         // Step 1: Check if WebGL is disabled by browser settings
         const webglDisabled = checkWebGLDisabled();
         if (webglDisabled) {
-            console.log('❌ WebGL is disabled in browser settings');
             displayWebGLDiagnostics('disabled', 'WebGL is disabled in browser settings');
             return 'canvas';
         }
 
         try {
             const canvas = document.createElement('canvas');
-            console.log('📋 Testing WebGL context creation...');
 
             // Step 2: Test WebGL 2.0
             let gl = canvas.getContext('webgl2');
@@ -1845,47 +1808,34 @@ function initTerminal() {
             if (gl) {
                 isWebGL2 = true;
                 gpuInfo.isWebGL2 = true;
-                console.log('🚀 WebGL 2.0 context created successfully');
 
                 // Test if WebGL 2.0 is actually functional
                 if (testWebGLFunctionality(gl)) {
-                    console.log('✅ WebGL 2.0 is fully functional');
                     collectGPUInfo(gl);
                     displayWebGLDiagnostics('webgl2', 'WebGL 2.0 active');
                     return 'webgl';
-                } else {
-                    console.log('⚠️ WebGL 2.0 context created but not functional');
                 }
-            } else {
-                console.log('❌ WebGL 2.0 not available, testing WebGL 1.0...');
             }
 
             // Step 3: Test WebGL 1.0
             gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
             if (gl) {
-                console.log('⚡ WebGL 1.0 context created successfully');
-
                 // Test if WebGL 1.0 is actually functional
                 if (testWebGLFunctionality(gl)) {
-                    console.log('✅ WebGL 1.0 is fully functional');
                     collectGPUInfo(gl);
                     displayWebGLDiagnostics('webgl1', 'WebGL 1.0 active');
                     return 'webgl';
                 } else {
-                    console.log('⚠️ WebGL 1.0 context created but not functional');
                     displayWebGLDiagnostics('context_lost', 'WebGL context created but not functional');
                 }
             } else {
-                console.log('❌ WebGL 1.0 not available');
                 displayWebGLDiagnostics('not_supported', 'WebGL not supported by browser/hardware');
             }
 
         } catch (e) {
-            console.log('❌ WebGL detection error:', e.message);
             displayWebGLDiagnostics('error', `WebGL detection failed: ${e.message}`);
         }
 
-        console.log('📱 Falling back to Canvas renderer');
         displayWebGLDiagnostics('canvas', 'Using Canvas renderer (CPU-based)');
         return 'canvas';
     }
@@ -1910,14 +1860,12 @@ function initTerminal() {
 
             // Check for context loss
             if (gl.isContextLost()) {
-                console.log('⚠️ WebGL context is lost');
                 return false;
             }
 
             // Test shader compilation (basic test)
             const vertexShader = gl.createShader(gl.VERTEX_SHADER);
             if (!vertexShader) {
-                console.log('⚠️ Cannot create vertex shader');
                 return false;
             }
 
@@ -1930,17 +1878,14 @@ function initTerminal() {
             gl.compileShader(vertexShader);
 
             if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-                console.log('⚠️ Vertex shader compilation failed');
                 gl.deleteShader(vertexShader);
                 return false;
             }
 
             gl.deleteShader(vertexShader);
-            console.log('✅ WebGL functionality test passed');
             return true;
 
         } catch (e) {
-            console.log('⚠️ WebGL functionality test failed:', e.message);
             return false;
         }
     }
@@ -1948,7 +1893,6 @@ function initTerminal() {
     // Collect detailed GPU and WebGL information with diagnostics
     function collectGPUInfo(gl) {
         try {
-            console.log('📊 Collecting GPU information...');
 
             // Basic WebGL info
             gpuInfo.version = gl.getParameter(gl.VERSION);
@@ -1959,11 +1903,9 @@ function initTerminal() {
             if (debugInfo) {
                 gpuInfo.renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
                 gpuInfo.vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-                console.log('🔓 Unmasked GPU info available');
             } else {
                 gpuInfo.renderer = gl.getParameter(gl.RENDERER);
                 gpuInfo.vendor = gl.getParameter(gl.VENDOR);
-                console.log('🔒 GPU info masked for privacy (normal behavior)');
             }
 
             // WebGL capabilities
@@ -1991,20 +1933,7 @@ function initTerminal() {
                 gpuInfo.hasImportantExtensions[ext] = gpuInfo.extensions.includes(ext);
             });
 
-            // Log comprehensive GPU information
-            console.log('🎮 GPU Information Collected:');
-            console.log(`   🏷️  Renderer: ${gpuInfo.renderer}`);
-            console.log(`   🏢 Vendor: ${gpuInfo.vendor}`);
-            console.log(`   📋 WebGL Version: ${gpuInfo.version}`);
-            console.log(`   🔧 GLSL Version: ${gpuInfo.shadingLanguageVersion}`);
-            console.log(`   🖼️  Max Texture Size: ${gpuInfo.maxTextureSize}px`);
-            console.log(`   📐 Max Viewport: ${gpuInfo.maxViewportDims[0]}x${gpuInfo.maxViewportDims[1]}`);
-            console.log(`   🔢 Max Vertex Attributes: ${gpuInfo.maxVertexAttribs}`);
-            console.log(`   🎨 Max Texture Units: ${gpuInfo.maxTextureImageUnits}`);
-            console.log(`   📏 Max Renderbuffer Size: ${gpuInfo.maxRenderbufferSize}px`);
-            console.log(`   🆕 WebGL 2.0: ${gpuInfo.isWebGL2 ? 'Yes' : 'No'}`);
-            console.log(`   🔌 Extensions: ${gpuInfo.extensions.length} available`);
-            console.log(`   ⭐ Important Extensions:`, gpuInfo.hasImportantExtensions);
+            // GPU information collected silently
 
         } catch (e) {
             console.warn('⚠️ Could not collect complete GPU information:', e.message);
@@ -2031,7 +1960,7 @@ function initTerminal() {
         // Store diagnostics globally for access
         window.webglDiagnostics = diagnostics;
 
-        console.log('🔍 WebGL Diagnostics:', diagnostics);
+        // WebGL diagnostics collected
 
         // Display in terminal when it's ready
         if (window.displayWebGLDiagnosticsInTerminal) {
@@ -2039,19 +1968,8 @@ function initTerminal() {
         }
     }
 
-    console.log('🔍 About to call detectOptimalRenderer()...');
     const optimalRenderer = detectOptimalRenderer();
     rendererType = optimalRenderer; // Store globally for reference
-
-    // Debug: Log what renderer we're actually using
-    console.log('🎯 Selected renderer:', optimalRenderer);
-    console.log('🔧 Terminal will be created with renderer:', optimalRenderer);
-    console.log('🔧 rendererType global variable set to:', rendererType);
-
-    console.log('🔧 Creating Terminal with configuration:');
-    console.log('   rendererType:', optimalRenderer);
-    console.log('   scrollback:', 2000);
-    console.log('   WebGL optimizations:', optimalRenderer === 'webgl');
 
     term = new Terminal({
         cursorBlink: true,
@@ -2075,8 +1993,7 @@ function initTerminal() {
         })
     });
 
-    console.log('✅ Terminal created successfully');
-    console.log('🔍 Checking actual terminal renderer...');
+    // Terminal created
     
     // Create and load basic addons
     fitAddon = new FitAddon.FitAddon();
@@ -2090,19 +2007,13 @@ function initTerminal() {
             // Get context with willReadFrequently for better performance
             try {
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                if (ctx) {
-                    console.log('✅ Canvas context optimized with willReadFrequently');
-                }
+                // Canvas context optimized
             } catch (e) {
-                console.log('⚠️ Could not optimize canvas context:', e.message);
+                // Canvas optimization failed silently
             }
         });
 
-        // Also check if we're actually using the expected renderer
-        console.log('🔍 Current renderer type:', rendererType);
-        if (rendererType === 'webgl') {
-            console.log('✅ Expected WebGL but got Canvas warnings - investigating...');
-        }
+        // Renderer configured
     }, 100);
     
     // Add web links addon
@@ -2116,57 +2027,29 @@ function initTerminal() {
         return;
     }
 
-    console.log('🔧 Opening terminal...');
     term.open(terminalElement);
-    console.log('✅ Terminal opened successfully');
 
     // Add CSS classes for enhanced typography
     setTimeout(() => {
         const terminalScreen = document.querySelector('.xterm-screen');
         if (terminalScreen) {
             terminalScreen.classList.add('terminal-with-ligatures', 'enhanced-text-rendering');
-            console.log('✅ Enhanced typography CSS classes applied');
         }
     }, 100);
 
     // Load WebGL addon AFTER terminal is opened (correct pattern from examples)
     if (optimalRenderer === 'webgl') {
-        console.log('🚀 Loading WebGL addon after terminal open...');
         try {
             if (typeof WebglAddon !== 'undefined') {
                 const webglAddon = new WebglAddon.WebglAddon();
                 term.loadAddon(webglAddon);
-                console.log('✅ WebGL addon loaded successfully');
-            } else {
-                console.log('❌ WebglAddon not available - check if script is loaded');
             }
         } catch (e) {
-            console.log('❌ Failed to load WebGL addon:', e.message);
-            console.log('⚠️ Falling back to canvas rendering');
+            // WebGL addon failed, fallback to canvas
         }
     }
 
-    // Debug: Check what renderer is actually being used
-    setTimeout(() => {
-        console.log('🔍 Terminal opened, checking actual renderer...');
-        if (term._core && term._core._renderService && term._core._renderService._renderer) {
-            const actualRenderer = term._core._renderService._renderer.constructor.name;
-            console.log('🎯 Actual renderer being used:', actualRenderer);
-
-            if (actualRenderer.includes('Canvas')) {
-                console.log('⚠️ Using Canvas renderer');
-                if (optimalRenderer === 'webgl') {
-                    console.log('💡 WebGL was detected but Canvas is being used - addon may have failed');
-                }
-            } else if (actualRenderer.includes('WebGL') || actualRenderer.includes('Webgl')) {
-                console.log('✅ Successfully using WebGL renderer');
-            } else {
-                console.log('❓ Unknown renderer type:', actualRenderer);
-            }
-        } else {
-            console.log('❌ Could not access terminal renderer information');
-        }
-    }, 500);
+    // Renderer detection completed silently
     
     // Set terminal options for better compatibility
     term.options.cursorBlink = true;
@@ -2189,7 +2072,6 @@ function initTerminal() {
     // Apply fit to ensure terminal size is correct initially
     setTimeout(() => {
         fitAddon.fit();
-        console.log(`Initial terminal size: ${term.cols}x${term.rows}`);
         
         // Add a mutation observer to detect changes to the terminal container
         // This helps with dynamic layouts and ensures the terminal always fits correctly
@@ -2199,7 +2081,6 @@ function initTerminal() {
                 if (fitAddon) {
                     fitAddon.fit();
                     if (ws && ws.readyState === WebSocket.OPEN) {
-                        console.log(`Container resize: sending new size ${term.cols}x${term.rows}`);
                         ws.send(JSON.stringify({
                             type: 'resize',
                             cols: term.cols,
@@ -2227,7 +2108,6 @@ function initTerminal() {
                 
                 // Send updated terminal size to server
                 if (ws && ws.readyState === WebSocket.OPEN) {
-                    console.log(`Window resize: sending new size ${term.cols}x${term.rows}`);
                     ws.send(JSON.stringify({
                         type: 'resize',
                         cols: term.cols,
@@ -2247,50 +2127,33 @@ function initTerminal() {
         fitAddon.fit();
         // Send terminal size to server
         if (ws && ws.readyState === WebSocket.OPEN) {
-            console.log(`Sending resize: ${term.cols}x${term.rows}`);
             ws.send(JSON.stringify({
                 type: 'resize',
                 cols: term.cols,
                 rows: term.rows
             }));
         }
-        term.writeln('\x1b[1;32mWelcome to IPAM Terminal\x1b[0m');
-        term.writeln(`Terminal initialized with ${optimalRenderer.toUpperCase()} renderer`);
+        // Terminal ready for SSH connection
         // Initialize optimized terminal buffer with virtual scrolling support
         if (window.VirtualTerminalBuffer) {
             try {
                 window.terminalBuffer = new window.VirtualTerminalBuffer(100000); // 100K lines
-                term.writeln('\x1b[1;32m📜 Virtual terminal buffer initialized (100K lines)\x1b[0m');
-
-                // Virtual scrolling available but not auto-enabled (can cause input issues)
-                term.writeln('\x1b[1;33m💡 Use "virtual-scroll-enable" to enable virtual scrolling\x1b[0m');
 
             } catch (e) {
                 console.error('Failed to initialize virtual buffer:', e);
-                term.writeln('\x1b[1;31m⚠️ Failed to initialize virtual buffer, using default\x1b[0m');
             }
         } else if (window.OptimizedTerminalBuffer) {
             try {
                 window.terminalBuffer = new window.OptimizedTerminalBuffer(20000); // 20K lines
-                term.writeln('\x1b[1;32m📜 Optimized terminal buffer initialized (20K lines)\x1b[0m');
             } catch (e) {
                 console.error('Failed to initialize optimized buffer:', e);
-                term.writeln('\x1b[1;31m⚠️ Failed to initialize optimized buffer, using default\x1b[0m');
             }
-        } else {
-            term.writeln('\x1b[1;33m⚠️ Advanced buffers not available, using default\x1b[0m');
         }
 
+        // GPU acceleration configured silently
         if (optimalRenderer === 'webgl') {
-            term.writeln('\x1b[1;36m🚀 GPU acceleration enabled for optimal performance\x1b[0m');
-            term.writeln(`\x1b[1;33m🎮 GPU: ${gpuInfo.renderer}\x1b[0m`);
-            term.writeln(`\x1b[1;33m📊 WebGL ${gpuInfo.isWebGL2 ? '2.0' : '1.0'} | Max Texture: ${gpuInfo.maxTextureSize}px\x1b[0m`);
-            term.writeln('\x1b[1;32m💡 GPU Commands: gpu-info, gpu-test, webgl-debug\x1b[0m');
             updateGPUStatusIndicator(true);
         } else {
-            term.writeln('\x1b[1;31m⚠️  GPU acceleration not available - using CPU rendering\x1b[0m');
-            term.writeln('\x1b[1;33m🔍 Type "webgl-debug" to diagnose WebGL issues\x1b[0m');
-            term.writeln('\x1b[1;33m🔄 Type "webgl-retest" to retest WebGL support\x1b[0m');
             updateGPUStatusIndicator(false);
         }
 
@@ -2371,10 +2234,7 @@ function initTerminal() {
             term.writeln('\x1b[1;34mConnecting to session: ' + sessionId + '\x1b[0m');
             isApiConnection = true;
             
-            // Update UI with available information
-            if (hostname) document.getElementById('device-hostname').textContent = hostname;
-            if (username) document.getElementById('connection-username').textContent = username;
-            document.getElementById('session-id').textContent = sessionId;
+            // UI elements removed for production interface
             
             // Connect directly to WebSocket without checking status
             connectWebSocket(sessionId);

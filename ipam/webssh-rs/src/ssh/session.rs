@@ -362,7 +362,7 @@ impl SSHSession {
         
         // Get device type hint if provided
         let device_type_hint = device_type_hint.map(|hint| hint.to_lowercase());
-        let is_cisco_hint = device_type_hint.as_ref().map_or(false, |hint| 
+        let is_cisco_hint = device_type_hint.as_ref().is_some_and(|hint|
             hint == "cisco" || hint == "router" || hint == "switch");
         
         // Set up the channel based on device type with fallback mechanism
@@ -420,7 +420,7 @@ impl SSHSession {
             username: username.to_string(),
             password: password.map(String::from),
             private_key: private_key.map(String::from),
-            device_type: device_type_hint.map(String::from),
+            device_type: device_type_hint,
         })
     }
 
@@ -477,11 +477,11 @@ impl SSHSession {
     /// * `output_tx` - A sender for data to the WebSocket
     ///
     /// # Returns
-    /// * `Result<(), SSHError>` - Success or an error
     /// Gets a clone of the shutdown flag for use in other threads
     ///
     /// # Returns
     /// * `Arc<AtomicBool>` - A clone of the shutdown flag
+    #[allow(dead_code)]
     pub fn get_shutdown_flag(&self) -> Arc<AtomicBool> {
         self.shutdown_flag.clone()
     }
