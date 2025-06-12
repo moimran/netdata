@@ -34,6 +34,17 @@ class EnhancedTextRenderer {
                 atlasSize: 4096 // Larger atlas for ligatures
             });
         }
+
+        // Initialize subpixel renderer
+        this.subpixelRenderer = null;
+        if (this.options.enableSubpixelRendering && window.SubpixelRenderer) {
+            this.subpixelRenderer = new window.SubpixelRenderer({
+                enableSubpixelPositioning: true,
+                enableRGBSubpixels: true,
+                enableClearType: true,
+                devicePixelRatio: window.devicePixelRatio || 1
+            });
+        }
         
         // Rendering cache for shaped text
         this.renderCache = new Map();
@@ -69,7 +80,17 @@ class EnhancedTextRenderer {
                 console.warn('⚠️ Font atlas generation failed:', e);
             }
         }
-        
+
+        // Initialize subpixel renderer
+        if (this.subpixelRenderer) {
+            try {
+                await this.subpixelRenderer.initialize();
+                console.log('✅ Subpixel renderer initialized');
+            } catch (e) {
+                console.warn('⚠️ Subpixel renderer initialization failed:', e);
+            }
+        }
+
         this.isInitialized = true;
         console.log('✅ Enhanced text renderer ready');
     }
@@ -138,6 +159,11 @@ class EnhancedTextRenderer {
         const renderedChars = [];
         let currentX = x;
 
+        // Check if we have subpixel rendering available
+        if (this.subpixelRenderer && this.options.enableSubpixelRendering) {
+            return this.performSubpixelRender(text, x, y, style);
+        }
+
         // Check if we have batch renderer available
         if (window.batchRenderer && this.fontAtlas && this.fontAtlas.getAtlasTexture()) {
             return this.performBatchRender(text, x, y, style);
@@ -169,6 +195,42 @@ class EnhancedTextRenderer {
             totalWidth: currentX - x,
             lineHeight: this.options.fontSize * this.options.lineHeight,
             renderMethod: 'individual'
+        };
+    }
+
+    performSubpixelRender(text, x, y, style) {
+        // Use subpixel renderer for crystal-clear text
+        const subpixelChars = this.subpixelRenderer.renderTextSubpixel(text, x, y, {
+            fontSize: this.options.fontSize,
+            fontFamily: this.options.fontFamily,
+            fontWeight: style.fontWeight || 'normal',
+            ...style
+        });
+
+        const renderedChars = [];
+        let totalWidth = 0;
+
+        for (const subpixelChar of subpixelChars) {
+            const charResult = {
+                character: subpixelChar.character,
+                position: subpixelChar.position,
+                subpixelPosition: subpixelChar.subpixelPosition,
+                glyphData: subpixelChar.glyphData,
+                style: style,
+                width: subpixelChar.glyphData.width,
+                isSubpixelRendered: true
+            };
+
+            renderedChars.push(charResult);
+            totalWidth += charResult.width;
+        }
+
+        return {
+            characters: renderedChars,
+            totalWidth: totalWidth,
+            lineHeight: this.options.fontSize * this.options.lineHeight,
+            renderMethod: 'subpixel',
+            subpixelOptimized: true
         };
     }
 
@@ -441,6 +503,52 @@ class EnhancedTextRenderer {
         
         this.clearCache(); // Clear cache when settings change
     }
+
+    /**
+     * Enable/disable subpixel rendering features
+     * @param {Object} options - Subpixel options
+     */
+    setSubpixelRenderingOptions(options) {
+        if (options.enableSubpixelRendering !== undefined) {
+            this.options.enableSubpixelRendering = options.enableSubpixelRendering;
+        }
+
+        if (this.subpixelRenderer && options.subpixelOptions) {
+            this.subpixelRenderer.setSubpixelOptions(options.subpixelOptions);
+        }
+
+        this.clearCache(); // Clear cache when settings change
+    }
+
+    /**
+     * Test subpixel rendering quality
+     * @returns {Object} Quality test results
+     */
+    testSubpixelQuality() {
+        if (!this.subpixelRenderer) {
+            return { error: 'Subpixel renderer not available' };
+        }
+
+        return this.subpixelRenderer.testSubpixelQuality();
+    }
+
+    /**
+     * Get subpixel rendering capabilities
+     * @returns {Object} Capability information
+     */
+    getSubpixelCapabilities() {
+        return {
+            isAvailable: !!this.subpixelRenderer,
+            isEnabled: this.options.enableSubpixelRendering,
+            devicePixelRatio: window.devicePixelRatio || 1,
+            isHighDPI: (window.devicePixelRatio || 1) > 1,
+            supportedFeatures: {
+                subpixelPositioning: true,
+                rgbSubpixels: true,
+                clearType: true
+            }
+        };
+    }
     
     /**
      * Clear render cache
@@ -477,7 +585,12 @@ class EnhancedTextRenderer {
         if (this.fontAtlas) {
             stats.fontAtlas = this.fontAtlas.getStats();
         }
-        
+
+        // Add subpixel rendering stats if available
+        if (this.subpixelRenderer) {
+            stats.subpixelRendering = this.subpixelRenderer.getStats();
+        }
+
         return stats;
     }
     

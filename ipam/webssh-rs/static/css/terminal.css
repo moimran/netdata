@@ -202,11 +202,29 @@ button:active {
     -moz-font-feature-settings: "liga" 1, "calt" 1;
 }
 
-/* Smooth text rendering */
+/* Enhanced text rendering with subpixel optimization */
 .enhanced-text-rendering {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: subpixel-antialiased; /* Enable subpixel antialiasing */
+    -moz-osx-font-smoothing: auto; /* Let browser choose best smoothing */
     text-rendering: optimizeLegibility;
+    font-optical-sizing: auto; /* Optimize font for current size */
+    font-synthesis: none; /* Prevent synthetic bold/italic */
+}
+
+/* High-DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .enhanced-text-rendering {
+        -webkit-font-smoothing: antialiased; /* Use antialiasing on high-DPI */
+        text-rendering: optimizeSpeed; /* Prioritize performance on high-DPI */
+    }
+}
+
+/* Subpixel rendering specific styles */
+.subpixel-optimized {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    backface-visibility: hidden; /* Improve rendering performance */
+    transform: translateZ(0); /* Force hardware acceleration */
 }
 
 /* Ligature preview styles */

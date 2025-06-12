@@ -272,6 +272,26 @@ function handleSpecialCommands(data) {
         return true;
     }
 
+    if (command === 'subpixel-rendering-enable') {
+        enableSubpixelRendering();
+        return true;
+    }
+
+    if (command === 'subpixel-rendering-disable') {
+        disableSubpixelRendering();
+        return true;
+    }
+
+    if (command === 'subpixel-rendering-test') {
+        testSubpixelRendering();
+        return true;
+    }
+
+    if (command === 'subpixel-rendering-stats') {
+        displaySubpixelRenderingStats();
+        return true;
+    }
+
     return false; // Command not handled
 }
 
@@ -815,6 +835,10 @@ function displayOptimizationStatus() {
     const batchRenderingStatus = window.batchRenderer ? '✅ Active' : '❌ Inactive';
     term.writeln(`\x1b[1;35m🎨 Batch Rendering: ${batchRenderingStatus}\x1b[0m`);
 
+    // Subpixel Rendering Status
+    const subpixelStatus = window.enhancedTextRenderer?.getSubpixelCapabilities()?.isEnabled ? '✅ Active' : '❌ Inactive';
+    term.writeln(`\x1b[1;35m🎨 Subpixel Rendering: ${subpixelStatus}\x1b[0m`);
+
     // Live Dashboard Status
     const dashboardStatus = window.liveDashboard ? '✅ Active' : '❌ Inactive';
     term.writeln(`\x1b[1;35m📊 Live Dashboard: ${dashboardStatus}\x1b[0m`);
@@ -825,7 +849,7 @@ function displayOptimizationStatus() {
     term.writeln('   font-atlas-generate - Generate optimized font atlas');
     term.writeln('   ligatures-enable/disable - Control font ligatures');
     term.writeln('   batch-rendering-enable/disable - Control batch rendering');
-    term.writeln('   batch-rendering-test - Test batch rendering performance');
+    term.writeln('   subpixel-rendering-test - Test subpixel rendering quality');
     term.writeln('   perf-stats - Show performance statistics');
     term.writeln('   optimization-status - Show this status');
 };
@@ -1139,6 +1163,161 @@ function testBatchRendering() {
     }
 };
 
+// Subpixel rendering control functions
+function enableSubpixelRendering() {
+    if (!term) return;
+
+    if (window.enhancedTextRenderer) {
+        const capabilities = window.enhancedTextRenderer.getSubpixelCapabilities();
+
+        if (!capabilities.isAvailable) {
+            term.writeln('\x1b[1;31m❌ Subpixel renderer not available\x1b[0m');
+            return;
+        }
+
+        window.enhancedTextRenderer.setSubpixelRenderingOptions({
+            enableSubpixelRendering: true,
+            subpixelOptions: {
+                enableSubpixelPositioning: true,
+                enableRGBSubpixels: true,
+                enableClearType: true
+            }
+        });
+
+        term.writeln('\x1b[1;32m🎨 Subpixel rendering enabled\x1b[0m');
+        term.writeln(`\x1b[1;33m📱 Device pixel ratio: ${capabilities.devicePixelRatio}x\x1b[0m`);
+        term.writeln(`\x1b[1;33m📊 Display type: ${capabilities.isHighDPI ? 'High-DPI' : 'Standard'}\x1b[0m`);
+        term.writeln('\x1b[1;33m💡 Text should now appear significantly sharper\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;31m❌ Enhanced text renderer not available\x1b[0m');
+    }
+}
+
+function disableSubpixelRendering() {
+    if (!term) return;
+
+    if (window.enhancedTextRenderer) {
+        window.enhancedTextRenderer.setSubpixelRenderingOptions({
+            enableSubpixelRendering: false
+        });
+        term.writeln('\x1b[1;33m🎨 Subpixel rendering disabled\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;31m❌ Enhanced text renderer not available\x1b[0m');
+    }
+}
+
+function testSubpixelRendering() {
+    if (!term) return;
+
+    if (!window.enhancedTextRenderer) {
+        term.writeln('\x1b[1;31m❌ Enhanced text renderer not available\x1b[0m');
+        return;
+    }
+
+    const capabilities = window.enhancedTextRenderer.getSubpixelCapabilities();
+
+    if (!capabilities.isAvailable) {
+        term.writeln('\x1b[1;31m❌ Subpixel renderer not available\x1b[0m');
+        return;
+    }
+
+    term.writeln('\x1b[1;36m🎨 Testing subpixel rendering quality...\x1b[0m');
+
+    try {
+        const qualityResults = window.enhancedTextRenderer.testSubpixelQuality();
+
+        if (qualityResults.error) {
+            term.writeln(`\x1b[1;31m❌ Test failed: ${qualityResults.error}\x1b[0m`);
+            return;
+        }
+
+        term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+        term.writeln('\x1b[1;36m🎨 Subpixel Rendering Quality Test\x1b[0m');
+        term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+
+        let totalImprovement = 0;
+        let testCount = 0;
+
+        qualityResults.forEach((result, index) => {
+            const improvementColor = result.improvement > 20 ? '\x1b[1;32m' :
+                                   result.improvement > 10 ? '\x1b[1;33m' : '\x1b[1;31m';
+
+            term.writeln(`\x1b[1;35m${index + 1}. Character '${result.character}':\x1b[0m`);
+            term.writeln(`   Regular sharpness: ${result.regularSharpness.toFixed(0)}`);
+            term.writeln(`   Subpixel sharpness: ${result.subpixelSharpness.toFixed(0)}`);
+            term.writeln(`   ${improvementColor}Improvement: ${result.improvement.toFixed(1)}%\x1b[0m`);
+            term.writeln('');
+
+            totalImprovement += result.improvement;
+            testCount++;
+        });
+
+        const avgImprovement = totalImprovement / testCount;
+        const overallColor = avgImprovement > 20 ? '\x1b[1;32m' :
+                           avgImprovement > 10 ? '\x1b[1;33m' : '\x1b[1;31m';
+
+        term.writeln(`${overallColor}📊 Average sharpness improvement: ${avgImprovement.toFixed(1)}%\x1b[0m`);
+
+        if (avgImprovement > 20) {
+            term.writeln('\x1b[1;32m🚀 Excellent subpixel rendering quality!\x1b[0m');
+        } else if (avgImprovement > 10) {
+            term.writeln('\x1b[1;33m👍 Good subpixel rendering improvement\x1b[0m');
+        } else {
+            term.writeln('\x1b[1;31m⚠️ Limited subpixel rendering benefit\x1b[0m');
+        }
+
+        term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+
+    } catch (e) {
+        term.writeln('\x1b[1;31m❌ Subpixel rendering test failed\x1b[0m');
+        console.error('Subpixel rendering test error:', e);
+    }
+}
+
+function displaySubpixelRenderingStats() {
+    if (!term) return;
+
+    if (!window.enhancedTextRenderer) {
+        term.writeln('\x1b[1;31m❌ Enhanced text renderer not available\x1b[0m');
+        return;
+    }
+
+    const stats = window.enhancedTextRenderer.getStats();
+    const capabilities = window.enhancedTextRenderer.getSubpixelCapabilities();
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+    term.writeln('\x1b[1;36m🎨 Subpixel Rendering Statistics\x1b[0m');
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+
+    term.writeln('\x1b[1;35m📱 Display Information:\x1b[0m');
+    term.writeln(`   Device Pixel Ratio: ${capabilities.devicePixelRatio}x`);
+    term.writeln(`   Display Type: ${capabilities.isHighDPI ? 'High-DPI' : 'Standard'}`);
+    term.writeln(`   Subpixel Rendering: ${capabilities.isEnabled ? 'Enabled' : 'Disabled'}`);
+
+    if (stats.subpixelRendering) {
+        const subStats = stats.subpixelRendering;
+
+        term.writeln('\x1b[1;35m📊 Rendering Performance:\x1b[0m');
+        term.writeln(`   Glyphs Rendered: ${subStats.glyphsRendered}`);
+        term.writeln(`   Cache Hit Rate: ${(subStats.cacheHitRate * 100).toFixed(1)}%`);
+        term.writeln(`   Cache Size: ${subStats.cacheSize}`);
+        term.writeln(`   Average Render Time: ${subStats.averageRenderTime.toFixed(2)}ms`);
+        term.writeln(`   Subpixel Precision: ${subStats.subpixelPrecision}x`);
+
+        term.writeln('\x1b[1;35m🎨 Quality Features:\x1b[0m');
+        term.writeln(`   RGB Optimization: ${subStats.rgbOptimizationEnabled ? 'Enabled' : 'Disabled'}`);
+        term.writeln(`   ClearType: ${subStats.clearTypeEnabled ? 'Enabled' : 'Disabled'}`);
+
+        if (subStats.sharpnessImprovement > 0) {
+            term.writeln(`   Sharpness Improvement: ${subStats.sharpnessImprovement.toFixed(1)}%`);
+        }
+    } else {
+        term.writeln('\x1b[1;33m⚠️ Subpixel rendering not active\x1b[0m');
+    }
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+};
+
 // Update GPU status indicator in the UI
 function updateGPUStatusIndicator(isGPUActive) {
     const gpuStatus = document.getElementById('gpu-status');
@@ -1178,12 +1357,13 @@ async function initializePerformanceOptimizations() {
             window.enhancedTextRenderer = new window.EnhancedTextRenderer(term, {
                 enableTextShaping: true,
                 enableLigatures: true,
+                enableSubpixelRendering: true, // Auto-enable subpixel rendering
                 fontFamily: 'monospace',
                 fontSize: 16
             });
 
             await window.enhancedTextRenderer.initialize();
-            term.writeln('\x1b[1;32m✅ Text shaping & ligatures auto-enabled\x1b[0m');
+            term.writeln('\x1b[1;32m✅ Text shaping, ligatures & subpixel rendering auto-enabled\x1b[0m');
             console.log('✅ Enhanced text renderer initialized');
         } catch (e) {
             console.error('Failed to initialize enhanced text renderer:', e);
@@ -1255,7 +1435,11 @@ async function initializePerformanceOptimizations() {
     // 5. Performance Summary
     setTimeout(() => {
         const activeOptimizations = [];
-        if (window.enhancedTextRenderer) activeOptimizations.push('Text Shaping');
+        if (window.enhancedTextRenderer) {
+            activeOptimizations.push('Text Shaping');
+            const capabilities = window.enhancedTextRenderer.getSubpixelCapabilities();
+            if (capabilities?.isEnabled) activeOptimizations.push('Subpixel Rendering');
+        }
         if (window.batchRenderer) activeOptimizations.push('Batch Rendering');
         if (window.terminalBuffer?.isVirtualScrollingEnabled) activeOptimizations.push('Virtual Scrolling');
         if (window.globalFontAtlas) activeOptimizations.push('Font Atlas');
@@ -1788,6 +1972,7 @@ function initTerminal() {
         if (window.OptimizedFontAtlas) optimizations.push('🎨 Font atlas optimization');
         if (window.TextShapingEngine) optimizations.push('🎨 Text shaping & ligatures');
         if (window.BatchRenderer) optimizations.push('🎨 Batch rendering system');
+        if (window.SubpixelRenderer) optimizations.push('🎨 Subpixel rendering');
         if (window.liveDashboard) optimizations.push('📊 Live dashboard');
 
         if (optimizations.length > 0) {
