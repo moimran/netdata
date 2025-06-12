@@ -134,20 +134,23 @@ class EnhancedTextRenderer {
     }
     
     performRender(text, x, y, style) {
-        // This would integrate with the terminal's actual rendering system
-        // For now, we'll simulate the rendering process
-        
         const characters = Array.from(text);
         const renderedChars = [];
         let currentX = x;
-        
+
+        // Check if we have batch renderer available
+        if (window.batchRenderer && this.fontAtlas && this.fontAtlas.getAtlasTexture()) {
+            return this.performBatchRender(text, x, y, style);
+        }
+
+        // Fallback to individual character rendering
         for (const char of characters) {
             // Get glyph info from font atlas
             let glyph = null;
             if (this.fontAtlas) {
                 glyph = this.fontAtlas.getGlyph(char);
             }
-            
+
             // Render character
             const charResult = {
                 character: char,
@@ -156,16 +159,114 @@ class EnhancedTextRenderer {
                 style: style,
                 width: glyph ? glyph.charWidth : this.getCharacterWidth(char)
             };
-            
+
             renderedChars.push(charResult);
             currentX += charResult.width;
         }
-        
+
         return {
             characters: renderedChars,
             totalWidth: currentX - x,
-            lineHeight: this.options.fontSize * this.options.lineHeight
+            lineHeight: this.options.fontSize * this.options.lineHeight,
+            renderMethod: 'individual'
         };
+    }
+
+    performBatchRender(text, x, y, style) {
+        const characters = Array.from(text);
+        const batchChars = [];
+        let currentX = x;
+
+        // Prepare characters for batch rendering
+        for (const char of characters) {
+            const glyph = this.fontAtlas.getGlyph(char);
+            if (!glyph) {
+                currentX += this.getCharacterWidth(char);
+                continue;
+            }
+
+            // Convert style color to array format
+            const color = this.styleToColor(style);
+
+            // Create batch character data
+            const batchChar = {
+                x: currentX,
+                y: y,
+                width: glyph.charWidth,
+                height: glyph.charHeight,
+                texX: glyph.textureX,
+                texY: glyph.textureY,
+                texW: glyph.textureWidth,
+                texH: glyph.textureHeight,
+                color: color,
+                character: char,
+                glyph: glyph
+            };
+
+            batchChars.push(batchChar);
+            currentX += glyph.charWidth;
+        }
+
+        // Add to batch renderer
+        if (batchChars.length > 0) {
+            // Begin batch if not already started
+            if (!window.batchRenderer.currentBatch) {
+                window.batchRenderer.beginBatch(this.fontAtlas.getAtlasTexture(), style.opacity || 1.0);
+            }
+
+            // Add characters to batch
+            window.batchRenderer.addCharacters(batchChars);
+        }
+
+        return {
+            characters: batchChars,
+            totalWidth: currentX - x,
+            lineHeight: this.options.fontSize * this.options.lineHeight,
+            renderMethod: 'batch',
+            batchSize: batchChars.length
+        };
+    }
+
+    styleToColor(style) {
+        // Convert CSS color or style to RGBA array
+        if (style.color) {
+            if (Array.isArray(style.color)) {
+                return style.color;
+            }
+
+            // Parse CSS color (simplified)
+            if (typeof style.color === 'string') {
+                if (style.color.startsWith('#')) {
+                    return this.hexToRgba(style.color);
+                }
+                if (style.color.startsWith('rgb')) {
+                    return this.rgbStringToArray(style.color);
+                }
+            }
+        }
+
+        // Default white color
+        return [1.0, 1.0, 1.0, style.opacity || 1.0];
+    }
+
+    hexToRgba(hex) {
+        const r = parseInt(hex.slice(1, 3), 16) / 255;
+        const g = parseInt(hex.slice(3, 5), 16) / 255;
+        const b = parseInt(hex.slice(5, 7), 16) / 255;
+        return [r, g, b, 1.0];
+    }
+
+    rgbStringToArray(rgbString) {
+        const matches = rgbString.match(/\d+/g);
+        if (matches && matches.length >= 3) {
+            return [
+                parseInt(matches[0]) / 255,
+                parseInt(matches[1]) / 255,
+                parseInt(matches[2]) / 255,
+                matches[3] ? parseInt(matches[3]) / 255 : 1.0
+            ];
+        }
+        return [1.0, 1.0, 1.0, 1.0];
     }
     
     getCharacterWidth(char) {
@@ -196,19 +297,96 @@ class EnhancedTextRenderer {
     }
     
     /**
-     * Render multiple lines efficiently
+     * Render multiple lines efficiently with batch rendering
      * @param {Array} lines - Array of line objects {text, x, y, style}
      * @returns {Array} Array of render results
      */
     renderLines(lines) {
         const results = [];
-        
+
+        // Use batch rendering if available
+        if (window.batchRenderer && this.fontAtlas && this.fontAtlas.getAtlasTexture()) {
+            return this.renderLinesBatch(lines);
+        }
+
+        // Fallback to individual line rendering
         for (const line of lines) {
             const result = this.renderLine(line.text, line.x, line.y, line.style);
             results.push(result);
         }
-        
+
         return results;
+    }
+
+    /**
+     * Render multiple lines using batch rendering
+     * @param {Array} lines - Array of line objects
+     * @returns {Array} Array of render results
+     */
+    renderLinesBatch(lines) {
+        const results = [];
+        const startTime = performance.now();
+
+        // Begin batch
+        window.batchRenderer.beginBatch(this.fontAtlas.getAtlasTexture(), 1.0);
+
+        // Process all lines
+        for (const line of lines) {
+            const result = this.renderLine(line.text, line.x, line.y, line.style);
+            results.push(result);
+        }
+
+        // Flush batch
+        window.batchRenderer.flushCurrentBatch();
+
+        // Update stats
+        const renderTime = performance.now() - startTime;
+        this.stats.totalRenderTime += renderTime;
+
+        console.log(`🎨 Batch rendered ${lines.length} lines in ${renderTime.toFixed(2)}ms`);
+
+        return results;
+    }
+
+    /**
+     * Start a new rendering frame
+     */
+    beginFrame() {
+        if (window.batchRenderer) {
+            // Clear any previous batches
+            window.batchRenderer.flushAll();
+        }
+    }
+
+    /**
+     * End current rendering frame
+     */
+    endFrame() {
+        if (window.batchRenderer) {
+            // Flush all pending batches
+            window.batchRenderer.flushAll();
+        }
+    }
+
+    /**
+     * Render text with automatic batching
+     * @param {string} text - Text to render
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     * @param {Object} style - Style options
+     * @returns {Object} Render result
+     */
+    renderTextBatch(text, x, y, style = {}) {
+        if (!window.batchRenderer || !this.fontAtlas) {
+            return this.renderLine(text, x, y, style);
+        }
+
+        // Ensure batch is started
+        if (!window.batchRenderer.currentBatch) {
+            window.batchRenderer.beginBatch(this.fontAtlas.getAtlasTexture(), style.opacity || 1.0);
+        }
+
+        return this.renderLine(text, x, y, style);
     }
     
     /**
