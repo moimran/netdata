@@ -1,7 +1,7 @@
 use crate::ssh::SSHSession;
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
-use tracing::{debug, error, info};
+use tracing::{error, info};
 use uuid::Uuid;
 
 /// Represents a session in the registry

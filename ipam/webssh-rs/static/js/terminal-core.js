@@ -4,6 +4,26 @@ let ws = null;
 let fitAddon = null;
 let currentSessionId = null;
 let isApiConnection = false;
+let rendererType = 'canvas'; // Track current renderer type
+
+// Performance monitoring for WebGL
+let performanceStats = {
+    frameCount: 0,
+    lastFrameTime: 0,
+    avgFPS: 0
+};
+
+// GPU information storage
+let gpuInfo = {
+    renderer: 'Unknown',
+    vendor: 'Unknown',
+    version: 'Unknown',
+    shadingLanguageVersion: 'Unknown',
+    maxTextureSize: 0,
+    maxViewportDims: [0, 0],
+    isWebGL2: false,
+    extensions: []
+};
 
 // Show error message
 function showError(message) {
@@ -11,8 +31,504 @@ function showError(message) {
     console.error('Error:', message);
 }
 
+// Performance monitoring function (useful for WebGL optimization)
+function monitorPerformance() {
+    if (rendererType === 'webgl') {
+        const now = performance.now();
+        performanceStats.frameCount++;
+
+        if (performanceStats.lastFrameTime) {
+            const deltaTime = now - performanceStats.lastFrameTime;
+            const fps = 1000 / deltaTime;
+            performanceStats.avgFPS = (performanceStats.avgFPS * 0.9) + (fps * 0.1);
+        }
+
+        performanceStats.lastFrameTime = now;
+
+        // Log performance stats every 5 seconds
+        if (performanceStats.frameCount % 300 === 0) {
+            console.log(`WebGL Performance: ${performanceStats.avgFPS.toFixed(1)} FPS average`);
+        }
+    }
+}
+
+// Enhanced terminal refresh with performance monitoring
+function refreshTerminal() {
+    if (term && document.hasFocus()) {
+        monitorPerformance();
+        term.refresh(0, term.rows - 1);
+    }
+}
+
+// Display comprehensive GPU information with diagnostics
+function displayGPUInfo() {
+    if (!term) return;
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+    term.writeln('\x1b[1;36m🎮 GPU & WebGL Information with Diagnostics\x1b[0m');
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+
+    if (rendererType === 'webgl') {
+        term.writeln(`\x1b[1;32m✅ Status: GPU Acceleration ACTIVE\x1b[0m`);
+        term.writeln(`\x1b[1;33m🏷️  Renderer: ${gpuInfo.renderer}\x1b[0m`);
+        term.writeln(`\x1b[1;33m🏢 Vendor: ${gpuInfo.vendor}\x1b[0m`);
+        term.writeln(`\x1b[1;33m📋 WebGL Version: ${gpuInfo.version}\x1b[0m`);
+        term.writeln(`\x1b[1;33m🔧 GLSL Version: ${gpuInfo.shadingLanguageVersion}\x1b[0m`);
+        term.writeln(`\x1b[1;33m🖼️  Max Texture Size: ${gpuInfo.maxTextureSize}px\x1b[0m`);
+        term.writeln(`\x1b[1;33m📐 Max Viewport: ${gpuInfo.maxViewportDims[0]}x${gpuInfo.maxViewportDims[1]}\x1b[0m`);
+        term.writeln(`\x1b[1;33m🔢 Max Vertex Attributes: ${gpuInfo.maxVertexAttribs}\x1b[0m`);
+        term.writeln(`\x1b[1;33m🎨 Max Texture Units: ${gpuInfo.maxTextureImageUnits}\x1b[0m`);
+        term.writeln(`\x1b[1;33m🆕 WebGL 2.0 Support: ${gpuInfo.isWebGL2 ? 'Yes' : 'No'}\x1b[0m`);
+        term.writeln(`\x1b[1;33m🔌 Extensions: ${gpuInfo.extensions.length} available\x1b[0m`);
+
+        // Show important extensions
+        if (gpuInfo.hasImportantExtensions) {
+            term.writeln('\x1b[1;35m⭐ Important Extensions:\x1b[0m');
+            Object.entries(gpuInfo.hasImportantExtensions).forEach(([ext, available]) => {
+                const status = available ? '\x1b[1;32m✅' : '\x1b[1;31m❌';
+                term.writeln(`   ${status} ${ext}\x1b[0m`);
+            });
+        }
+
+        if (performanceStats.avgFPS > 0) {
+            term.writeln(`\x1b[1;32m⚡ Average FPS: ${performanceStats.avgFPS.toFixed(1)}\x1b[0m`);
+        }
+
+        // Memory info (if available)
+        if (performance.memory) {
+            const memInfo = performance.memory;
+            term.writeln(`\x1b[1;34m💾 JS Heap Used: ${(memInfo.usedJSHeapSize / 1024 / 1024).toFixed(1)} MB\x1b[0m`);
+            term.writeln(`\x1b[1;34m💾 JS Heap Total: ${(memInfo.totalJSHeapSize / 1024 / 1024).toFixed(1)} MB\x1b[0m`);
+            term.writeln(`\x1b[1;34m💾 JS Heap Limit: ${(memInfo.jsHeapSizeLimit / 1024 / 1024).toFixed(1)} MB\x1b[0m`);
+        }
+
+    } else {
+        term.writeln(`\x1b[1;31m❌ Status: GPU Acceleration NOT AVAILABLE\x1b[0m`);
+        term.writeln(`\x1b[1;31m🖥️  Using: CPU Canvas Rendering\x1b[0m`);
+
+        // Show diagnostics if available
+        if (window.webglDiagnostics) {
+            const diag = window.webglDiagnostics;
+            term.writeln(`\x1b[1;33m💡 Reason: ${diag.message}\x1b[0m`);
+            term.writeln(`\x1b[1;33m🕒 Detected: ${new Date(diag.timestamp).toLocaleTimeString()}\x1b[0m`);
+            term.writeln(`\x1b[1;33m🖥️  Platform: ${diag.platform}\x1b[0m`);
+            term.writeln(`\x1b[1;33m🧠 CPU Cores: ${diag.hardwareConcurrency}\x1b[0m`);
+            if (diag.deviceMemory !== 'Unknown') {
+                term.writeln(`\x1b[1;33m💾 Device Memory: ${diag.deviceMemory} GB\x1b[0m`);
+            }
+        } else {
+            term.writeln(`\x1b[1;33m💡 Reason: WebGL not supported or disabled\x1b[0m`);
+        }
+
+        // Provide troubleshooting tips
+        term.writeln('\x1b[1;36m🔧 Troubleshooting Tips:\x1b[0m');
+        term.writeln('   1. Check browser settings for hardware acceleration');
+        term.writeln('   2. Update graphics drivers');
+        term.writeln('   3. Try a different browser');
+        term.writeln('   4. Check if running in VM or remote desktop');
+        term.writeln('   5. Visit chrome://gpu/ or about:support for more info');
+    }
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+    term.writeln('\x1b[1;32m💡 Commands: gpu-test (benchmark), webgl-debug (detailed diagnostics)\x1b[0m');
+}
+
+// Check if user typed a special command
+function handleSpecialCommands(data) {
+    const command = data.trim().toLowerCase();
+
+    if (command === 'gpu-info') {
+        displayGPUInfo();
+        return true; // Command handled
+    }
+
+    if (command === 'gpu-test') {
+        runGPUPerformanceTest();
+        return true;
+    }
+
+    if (command === 'webgl-debug') {
+        displayWebGLDebugInfo();
+        return true;
+    }
+
+    if (command === 'webgl-retest') {
+        retestWebGLSupport();
+        return true;
+    }
+
+    if (command === 'renderer-info') {
+        displayRendererInfo();
+        return true;
+    }
+
+    if (command === 'perf-stats') {
+        displayPerformanceStats();
+        return true;
+    }
+
+    if (command === 'memory-stats') {
+        displayMemoryStats();
+        return true;
+    }
+
+    if (command === 'pool-stats') {
+        displayPoolStats();
+        return true;
+    }
+
+    if (command === 'clear-pools') {
+        clearObjectPools();
+        return true;
+    }
+
+    return false; // Command not handled
+}
+
+// Simple GPU performance test
+function runGPUPerformanceTest() {
+    if (!term) return;
+
+    term.writeln('\x1b[1;36m🧪 Running GPU Performance Test...\x1b[0m');
+
+    if (rendererType !== 'webgl') {
+        term.writeln('\x1b[1;31m❌ GPU acceleration not available for testing\x1b[0m');
+        return;
+    }
+
+    const startTime = performance.now();
+    let frameCount = 0;
+    const testDuration = 3000; // 3 seconds
+
+    const testInterval = setInterval(() => {
+        frameCount++;
+        term.refresh(0, term.rows - 1);
+
+        if (performance.now() - startTime >= testDuration) {
+            clearInterval(testInterval);
+            const fps = frameCount / (testDuration / 1000);
+            term.writeln(`\x1b[1;32m✅ Test Complete: ${fps.toFixed(1)} FPS average\x1b[0m`);
+
+            if (fps > 30) {
+                term.writeln('\x1b[1;32m🚀 Excellent GPU performance!\x1b[0m');
+            } else if (fps > 15) {
+                term.writeln('\x1b[1;33m⚡ Good GPU performance\x1b[0m');
+            } else {
+                term.writeln('\x1b[1;31m⚠️  GPU performance may be limited\x1b[0m');
+            }
+        }
+    }, 16); // ~60 FPS target
+}
+
+// Display detailed WebGL debug information
+function displayWebGLDebugInfo() {
+    if (!term) return;
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+    term.writeln('\x1b[1;36m🔍 WebGL Debug Information\x1b[0m');
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+
+    // Browser information
+    term.writeln('\x1b[1;35m🌐 Browser Environment:\x1b[0m');
+    term.writeln(`   User Agent: ${navigator.userAgent}`);
+    term.writeln(`   Platform: ${navigator.platform}`);
+    term.writeln(`   Language: ${navigator.language}`);
+    term.writeln(`   CPU Cores: ${navigator.hardwareConcurrency}`);
+    if (navigator.deviceMemory) {
+        term.writeln(`   Device Memory: ${navigator.deviceMemory} GB`);
+    }
+
+    // WebGL diagnostics
+    if (window.webglDiagnostics) {
+        const diag = window.webglDiagnostics;
+        term.writeln('\x1b[1;35m🔍 WebGL Detection Results:\x1b[0m');
+        term.writeln(`   Status: ${diag.status}`);
+        term.writeln(`   Message: ${diag.message}`);
+        term.writeln(`   Timestamp: ${new Date(diag.timestamp).toLocaleString()}`);
+    }
+
+    // Test WebGL availability right now
+    term.writeln('\x1b[1;35m🧪 Live WebGL Test:\x1b[0m');
+    try {
+        const canvas = document.createElement('canvas');
+        const gl2 = canvas.getContext('webgl2');
+        const gl1 = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+
+        if (gl2) {
+            term.writeln('   ✅ WebGL 2.0: Available');
+            term.writeln(`   🎮 Renderer: ${gl2.getParameter(gl2.RENDERER)}`);
+            term.writeln(`   🏢 Vendor: ${gl2.getParameter(gl2.VENDOR)}`);
+        } else if (gl1) {
+            term.writeln('   ⚡ WebGL 1.0: Available');
+            term.writeln(`   🎮 Renderer: ${gl1.getParameter(gl1.RENDERER)}`);
+            term.writeln(`   🏢 Vendor: ${gl1.getParameter(gl1.VENDOR)}`);
+        } else {
+            term.writeln('   ❌ WebGL: Not Available');
+        }
+    } catch (e) {
+        term.writeln(`   ❌ WebGL Test Error: ${e.message}`);
+    }
+
+    // Current terminal renderer
+    term.writeln('\x1b[1;35m🖥️  Current Terminal Renderer:\x1b[0m');
+    term.writeln(`   Selected: ${rendererType}`);
+    if (term._core && term._core._renderService) {
+        const actualRenderer = term._core._renderService._renderer.constructor.name;
+        term.writeln(`   Actual: ${actualRenderer}`);
+    }
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+}
+
+// Retest WebGL support
+function retestWebGLSupport() {
+    if (!term) return;
+
+    term.writeln('\x1b[1;33m🔄 Retesting WebGL support...\x1b[0m');
+
+    // Clear previous diagnostics
+    window.webglDiagnostics = null;
+
+    // Re-run detection
+    const newRenderer = detectOptimalRenderer();
+
+    term.writeln(`\x1b[1;32m✅ Retest complete. Detected renderer: ${newRenderer}\x1b[0m`);
+
+    if (newRenderer !== rendererType) {
+        term.writeln('\x1b[1;31m⚠️  Detected renderer differs from current renderer!\x1b[0m');
+        term.writeln(`   Current: ${rendererType}`);
+        term.writeln(`   Detected: ${newRenderer}`);
+        term.writeln('\x1b[1;33m💡 Consider refreshing the page to use the new renderer\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;32m✅ Renderer detection is consistent\x1b[0m');
+    }
+}
+
+// Display current renderer information
+function displayRendererInfo() {
+    if (!term) return;
+
+    term.writeln('\x1b[1;36m' + '='.repeat(50) + '\x1b[0m');
+    term.writeln('\x1b[1;36m🖥️  Current Renderer Information\x1b[0m');
+    term.writeln('\x1b[1;36m' + '='.repeat(50) + '\x1b[0m');
+
+    term.writeln(`\x1b[1;33m📋 Selected Renderer: ${rendererType}\x1b[0m`);
+
+    if (term._core && term._core._renderService && term._core._renderService._renderer) {
+        const renderer = term._core._renderService._renderer;
+        term.writeln(`\x1b[1;33m🔧 Actual Renderer: ${renderer.constructor.name}\x1b[0m`);
+
+        // Try to get more renderer details
+        if (renderer._gl) {
+            term.writeln('\x1b[1;32m✅ WebGL Context Active\x1b[0m');
+            term.writeln(`   Context Type: ${renderer._gl.constructor.name}`);
+        } else if (renderer._ctx) {
+            term.writeln('\x1b[1;31m🖥️  Canvas 2D Context Active\x1b[0m');
+            term.writeln(`   Context Type: ${renderer._ctx.constructor.name}`);
+        }
+    }
+
+    // Performance info
+    if (performanceStats.avgFPS > 0) {
+        term.writeln(`\x1b[1;32m⚡ Current FPS: ${performanceStats.avgFPS.toFixed(1)}\x1b[0m`);
+    }
+
+    term.writeln('\x1b[1;36m' + '='.repeat(50) + '\x1b[0m');
+}
+
+// Function to display diagnostics in terminal (called from displayWebGLDiagnostics)
+window.displayWebGLDiagnosticsInTerminal = function(diagnostics) {
+    if (!term) return;
+
+    // Only show this once when terminal is first initialized
+    if (window.diagnosticsShown) return;
+    window.diagnosticsShown = true;
+
+    setTimeout(() => {
+        term.writeln('\x1b[1;34m🔍 WebGL Detection Summary:\x1b[0m');
+        term.writeln(`   Status: ${diagnostics.status}`);
+        term.writeln(`   ${diagnostics.message}`);
+        if (diagnostics.status === 'canvas') {
+            term.writeln('\x1b[1;33m💡 Type "webgl-debug" for detailed diagnostics\x1b[0m');
+        }
+    }, 1000);
+};
+
+// Display comprehensive performance statistics
+function displayPerformanceStats() {
+    if (!term) return;
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+    term.writeln('\x1b[1;36m📊 Performance Statistics\x1b[0m');
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+
+    // Get performance metrics
+    if (window.performanceMonitor) {
+        const metrics = window.performanceMonitor.getMetrics();
+
+        term.writeln('\x1b[1;35m🎮 Rendering Performance:\x1b[0m');
+        term.writeln(`   FPS: ${metrics.fps.toFixed(1)}`);
+        term.writeln(`   Frame Time: ${metrics.frameTime.toFixed(2)}ms`);
+        term.writeln(`   Memory Usage: ${metrics.memoryUsage.toFixed(1)} MB`);
+        term.writeln(`   GC Count: ${metrics.gcCount}`);
+
+        if (performanceStats.avgFPS > 0) {
+            term.writeln(`   WebGL FPS: ${performanceStats.avgFPS.toFixed(1)}`);
+        }
+    }
+
+    // WebSocket performance
+    if (window.ws && window.ws.getStats) {
+        const wsStats = window.ws.getStats();
+        term.writeln('\x1b[1;35m🌐 Network Performance:\x1b[0m');
+        term.writeln(`   Messages Sent: ${wsStats.messagesSent}`);
+        term.writeln(`   Messages Received: ${wsStats.messagesReceived}`);
+        term.writeln(`   Bytes Sent: ${(wsStats.bytesSent / 1024).toFixed(1)} KB`);
+        term.writeln(`   Bytes Received: ${(wsStats.bytesReceived / 1024).toFixed(1)} KB`);
+        term.writeln(`   Compression Ratio: ${wsStats.compressionRatio.toFixed(2)}x`);
+        term.writeln(`   Average Latency: ${wsStats.averageLatency.toFixed(1)}ms`);
+        term.writeln(`   Throughput: ${wsStats.throughputMbps.toFixed(2)} Mbps`);
+    }
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+}
+
+// Display memory statistics
+function displayMemoryStats() {
+    if (!term) return;
+
+    term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+    term.writeln('\x1b[1;36m💾 Memory Statistics\x1b[0m');
+    term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+
+    if (performance.memory) {
+        const memory = performance.memory;
+        term.writeln('\x1b[1;35m🧠 JavaScript Heap:\x1b[0m');
+        term.writeln(`   Used: ${(memory.usedJSHeapSize / 1024 / 1024).toFixed(1)} MB`);
+        term.writeln(`   Total: ${(memory.totalJSHeapSize / 1024 / 1024).toFixed(1)} MB`);
+        term.writeln(`   Limit: ${(memory.jsHeapSizeLimit / 1024 / 1024).toFixed(1)} MB`);
+        term.writeln(`   Usage: ${((memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100).toFixed(1)}%`);
+    }
+
+    // Navigator memory info
+    if (navigator.deviceMemory) {
+        term.writeln('\x1b[1;35m🖥️  Device Memory:\x1b[0m');
+        term.writeln(`   Total RAM: ${navigator.deviceMemory} GB`);
+    }
+
+    if (navigator.hardwareConcurrency) {
+        term.writeln(`   CPU Cores: ${navigator.hardwareConcurrency}`);
+    }
+
+    term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+}
+
+// Display object pool statistics
+function displayPoolStats() {
+    if (!term) return;
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+    term.writeln('\x1b[1;36m📦 Object Pool Statistics\x1b[0m');
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+
+    if (window.performanceMonitor && window.performanceMonitor.metrics.poolStats) {
+        const poolStats = window.performanceMonitor.metrics.poolStats;
+
+        Object.entries(poolStats).forEach(([poolName, stats]) => {
+            term.writeln(`\x1b[1;35m📦 ${poolName} Pool:\x1b[0m`);
+            term.writeln(`   Pool Size: ${stats.poolSize}`);
+            term.writeln(`   Created: ${stats.created}`);
+            term.writeln(`   Acquired: ${stats.acquired}`);
+            term.writeln(`   Released: ${stats.released}`);
+            term.writeln(`   Hit Rate: ${(stats.hitRate * 100).toFixed(1)}%`);
+            term.writeln(`   Efficiency: ${(stats.efficiency * 100).toFixed(1)}%`);
+            term.writeln('');
+        });
+    }
+
+    // Terminal buffer stats
+    if (window.terminalBuffer && window.terminalBuffer.getStats) {
+        const bufferStats = window.terminalBuffer.getStats();
+        term.writeln('\x1b[1;35m📜 Terminal Buffer:\x1b[0m');
+        term.writeln(`   Size: ${bufferStats.size}`);
+        term.writeln(`   Count: ${bufferStats.count}`);
+        term.writeln(`   Utilization: ${(bufferStats.utilization * 100).toFixed(1)}%`);
+        term.writeln(`   Pushes: ${bufferStats.pushes}`);
+        term.writeln(`   Overwrites: ${bufferStats.overwrites}`);
+    }
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+}
+
+// Clear object pools to free memory
+function clearObjectPools() {
+    if (!term) return;
+
+    term.writeln('\x1b[1;33m🧹 Clearing object pools...\x1b[0m');
+
+    let cleared = 0;
+
+    if (window.terminalLinePool) {
+        window.terminalLinePool.clear();
+        cleared++;
+    }
+
+    if (window.messagePool) {
+        window.messagePool.clear();
+        cleared++;
+    }
+
+    if (window.bufferPool) {
+        window.bufferPool.clear();
+        cleared++;
+    }
+
+    if (window.uint8ArrayPool) {
+        window.uint8ArrayPool.clear();
+        cleared++;
+    }
+
+    // Force garbage collection if available
+    if (window.gc) {
+        window.gc();
+        term.writeln('\x1b[1;32m♻️  Forced garbage collection\x1b[0m');
+    }
+
+    term.writeln(`\x1b[1;32m✅ Cleared ${cleared} object pools\x1b[0m`);
+    term.writeln('\x1b[1;33m💡 Memory should be freed shortly\x1b[0m');
+};
+
+// Update GPU status indicator in the UI
+function updateGPUStatusIndicator(isGPUActive) {
+    const gpuStatus = document.getElementById('gpu-status');
+    if (!gpuStatus) return;
+
+    if (isGPUActive) {
+        if (gpuInfo.isWebGL2) {
+            gpuStatus.textContent = '🚀 WebGL 2.0';
+            gpuStatus.className = 'gpu-status gpu-webgl2';
+            gpuStatus.title = `GPU: ${gpuInfo.renderer} | WebGL 2.0 | Max Texture: ${gpuInfo.maxTextureSize}px`;
+        } else {
+            gpuStatus.textContent = '⚡ WebGL 1.0';
+            gpuStatus.className = 'gpu-status gpu-active';
+            gpuStatus.title = `GPU: ${gpuInfo.renderer} | WebGL 1.0 | Max Texture: ${gpuInfo.maxTextureSize}px`;
+        }
+    } else {
+        gpuStatus.textContent = '🖥️ CPU';
+        gpuStatus.className = 'gpu-status gpu-inactive';
+        gpuStatus.title = 'GPU acceleration not available - using CPU canvas rendering';
+    }
+}
+
+// Make functions globally available
+window.displayGPUInfo = displayGPUInfo;
+window.updateGPUStatusIndicator = updateGPUStatusIndicator;
+
 // Initialize terminal
 function initTerminal() {
+    console.log('🚀 initTerminal() called - starting terminal initialization');
+    console.log('🔍 Checking WebGL addon availability:', typeof WebglAddon !== 'undefined');
+
     // Initialize terminal with improved settings for command output
     const xtermjsTheme = {
         foreground: '#F8F8F8',
@@ -36,9 +552,240 @@ function initTerminal() {
         white: '#F8F8F8',
         brightWhite: '#FFFFFF'
       };
+    // Enhanced WebGL detection with comprehensive diagnostics
+    function detectOptimalRenderer() {
+        console.log('🔍 Starting WebGL detection process...');
+
+        // Step 1: Check if WebGL is disabled by browser settings
+        const webglDisabled = checkWebGLDisabled();
+        if (webglDisabled) {
+            console.log('❌ WebGL is disabled in browser settings');
+            displayWebGLDiagnostics('disabled', 'WebGL is disabled in browser settings');
+            return 'canvas';
+        }
+
+        try {
+            const canvas = document.createElement('canvas');
+            console.log('📋 Testing WebGL context creation...');
+
+            // Step 2: Test WebGL 2.0
+            let gl = canvas.getContext('webgl2');
+            let isWebGL2 = false;
+
+            if (gl) {
+                isWebGL2 = true;
+                gpuInfo.isWebGL2 = true;
+                console.log('🚀 WebGL 2.0 context created successfully');
+
+                // Test if WebGL 2.0 is actually functional
+                if (testWebGLFunctionality(gl)) {
+                    console.log('✅ WebGL 2.0 is fully functional');
+                    collectGPUInfo(gl);
+                    displayWebGLDiagnostics('webgl2', 'WebGL 2.0 active');
+                    return 'webgl';
+                } else {
+                    console.log('⚠️ WebGL 2.0 context created but not functional');
+                }
+            } else {
+                console.log('❌ WebGL 2.0 not available, testing WebGL 1.0...');
+            }
+
+            // Step 3: Test WebGL 1.0
+            gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (gl) {
+                console.log('⚡ WebGL 1.0 context created successfully');
+
+                // Test if WebGL 1.0 is actually functional
+                if (testWebGLFunctionality(gl)) {
+                    console.log('✅ WebGL 1.0 is fully functional');
+                    collectGPUInfo(gl);
+                    displayWebGLDiagnostics('webgl1', 'WebGL 1.0 active');
+                    return 'webgl';
+                } else {
+                    console.log('⚠️ WebGL 1.0 context created but not functional');
+                    displayWebGLDiagnostics('context_lost', 'WebGL context created but not functional');
+                }
+            } else {
+                console.log('❌ WebGL 1.0 not available');
+                displayWebGLDiagnostics('not_supported', 'WebGL not supported by browser/hardware');
+            }
+
+        } catch (e) {
+            console.log('❌ WebGL detection error:', e.message);
+            displayWebGLDiagnostics('error', `WebGL detection failed: ${e.message}`);
+        }
+
+        console.log('📱 Falling back to Canvas renderer');
+        displayWebGLDiagnostics('canvas', 'Using Canvas renderer (CPU-based)');
+        return 'canvas';
+    }
+
+    // Check if WebGL is disabled in browser
+    function checkWebGLDisabled() {
+        try {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            return !gl;
+        } catch (e) {
+            return true;
+        }
+    }
+
+    // Test if WebGL context is actually functional
+    function testWebGLFunctionality(gl) {
+        try {
+            // Test basic WebGL operations
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // Check for context loss
+            if (gl.isContextLost()) {
+                console.log('⚠️ WebGL context is lost');
+                return false;
+            }
+
+            // Test shader compilation (basic test)
+            const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+            if (!vertexShader) {
+                console.log('⚠️ Cannot create vertex shader');
+                return false;
+            }
+
+            gl.shaderSource(vertexShader, `
+                attribute vec2 position;
+                void main() {
+                    gl_Position = vec4(position, 0.0, 1.0);
+                }
+            `);
+            gl.compileShader(vertexShader);
+
+            if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+                console.log('⚠️ Vertex shader compilation failed');
+                gl.deleteShader(vertexShader);
+                return false;
+            }
+
+            gl.deleteShader(vertexShader);
+            console.log('✅ WebGL functionality test passed');
+            return true;
+
+        } catch (e) {
+            console.log('⚠️ WebGL functionality test failed:', e.message);
+            return false;
+        }
+    }
+
+    // Collect detailed GPU and WebGL information with diagnostics
+    function collectGPUInfo(gl) {
+        try {
+            console.log('📊 Collecting GPU information...');
+
+            // Basic WebGL info
+            gpuInfo.version = gl.getParameter(gl.VERSION);
+            gpuInfo.shadingLanguageVersion = gl.getParameter(gl.SHADING_LANGUAGE_VERSION);
+
+            // Try to get GPU renderer info (may be blocked for privacy)
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+                gpuInfo.renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                gpuInfo.vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                console.log('🔓 Unmasked GPU info available');
+            } else {
+                gpuInfo.renderer = gl.getParameter(gl.RENDERER);
+                gpuInfo.vendor = gl.getParameter(gl.VENDOR);
+                console.log('🔒 GPU info masked for privacy (normal behavior)');
+            }
+
+            // WebGL capabilities
+            gpuInfo.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+            gpuInfo.maxViewportDims = gl.getParameter(gl.MAX_VIEWPORT_DIMS);
+
+            // Additional diagnostic info
+            gpuInfo.maxVertexAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+            gpuInfo.maxTextureImageUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+            gpuInfo.maxRenderbufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
+
+            // Available extensions
+            gpuInfo.extensions = gl.getSupportedExtensions() || [];
+
+            // Check for important extensions
+            const importantExtensions = [
+                'WEBGL_debug_renderer_info',
+                'OES_texture_float',
+                'WEBGL_lose_context',
+                'ANGLE_instanced_arrays'
+            ];
+
+            gpuInfo.hasImportantExtensions = {};
+            importantExtensions.forEach(ext => {
+                gpuInfo.hasImportantExtensions[ext] = gpuInfo.extensions.includes(ext);
+            });
+
+            // Log comprehensive GPU information
+            console.log('🎮 GPU Information Collected:');
+            console.log(`   🏷️  Renderer: ${gpuInfo.renderer}`);
+            console.log(`   🏢 Vendor: ${gpuInfo.vendor}`);
+            console.log(`   📋 WebGL Version: ${gpuInfo.version}`);
+            console.log(`   🔧 GLSL Version: ${gpuInfo.shadingLanguageVersion}`);
+            console.log(`   🖼️  Max Texture Size: ${gpuInfo.maxTextureSize}px`);
+            console.log(`   📐 Max Viewport: ${gpuInfo.maxViewportDims[0]}x${gpuInfo.maxViewportDims[1]}`);
+            console.log(`   🔢 Max Vertex Attributes: ${gpuInfo.maxVertexAttribs}`);
+            console.log(`   🎨 Max Texture Units: ${gpuInfo.maxTextureImageUnits}`);
+            console.log(`   📏 Max Renderbuffer Size: ${gpuInfo.maxRenderbufferSize}px`);
+            console.log(`   🆕 WebGL 2.0: ${gpuInfo.isWebGL2 ? 'Yes' : 'No'}`);
+            console.log(`   🔌 Extensions: ${gpuInfo.extensions.length} available`);
+            console.log(`   ⭐ Important Extensions:`, gpuInfo.hasImportantExtensions);
+
+        } catch (e) {
+            console.warn('⚠️ Could not collect complete GPU information:', e.message);
+            gpuInfo.error = e.message;
+        }
+    }
+
+    // Display WebGL diagnostics in terminal and UI
+    function displayWebGLDiagnostics(status, message) {
+        const diagnostics = {
+            timestamp: new Date().toISOString(),
+            status: status,
+            message: message,
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            hardwareConcurrency: navigator.hardwareConcurrency,
+            deviceMemory: navigator.deviceMemory || 'Unknown',
+            connection: navigator.connection ? {
+                effectiveType: navigator.connection.effectiveType,
+                downlink: navigator.connection.downlink
+            } : 'Unknown'
+        };
+
+        // Store diagnostics globally for access
+        window.webglDiagnostics = diagnostics;
+
+        console.log('🔍 WebGL Diagnostics:', diagnostics);
+
+        // Display in terminal when it's ready
+        if (window.displayWebGLDiagnosticsInTerminal) {
+            window.displayWebGLDiagnosticsInTerminal(diagnostics);
+        }
+    }
+
+    console.log('🔍 About to call detectOptimalRenderer()...');
+    const optimalRenderer = detectOptimalRenderer();
+    rendererType = optimalRenderer; // Store globally for reference
+
+    // Debug: Log what renderer we're actually using
+    console.log('🎯 Selected renderer:', optimalRenderer);
+    console.log('🔧 Terminal will be created with renderer:', optimalRenderer);
+    console.log('🔧 rendererType global variable set to:', rendererType);
+
+    console.log('🔧 Creating Terminal with configuration:');
+    console.log('   rendererType:', optimalRenderer);
+    console.log('   scrollback:', 2000);
+    console.log('   WebGL optimizations:', optimalRenderer === 'webgl');
+
     term = new Terminal({
         cursorBlink: true,
-        scrollback: 1000,
+        scrollback: 2000, // Increased for better WebGL utilization
         tabStopWidth: 8,
         bellStyle: 'sound',
         fontFamily: 'monospace',
@@ -48,11 +795,20 @@ function initTerminal() {
         disableStdin: false,
         cursorStyle: 'block',
         convertEol: true,
-        rendererType: 'canvas',
-        allowProposedApi: true
+        // Note: rendererType removed - we use addons instead
+        allowProposedApi: true,
+        // WebGL-specific optimizations
+        ...(optimalRenderer === 'webgl' && {
+            smoothScrollDuration: 120, // Smoother scrolling with WebGL
+            fastScrollModifier: 'alt',  // Alt+scroll for fast scrolling
+            fastScrollSensitivity: 5
+        })
     });
+
+    console.log('✅ Terminal created successfully');
+    console.log('🔍 Checking actual terminal renderer...');
     
-    // Create and load addons
+    // Create and load basic addons
     fitAddon = new FitAddon.FitAddon();
     term.loadAddon(fitAddon);
     
@@ -61,8 +817,22 @@ function initTerminal() {
     setTimeout(() => {
         const canvasElements = document.querySelectorAll('canvas');
         canvasElements.forEach(canvas => {
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            // Get context with willReadFrequently for better performance
+            try {
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                if (ctx) {
+                    console.log('✅ Canvas context optimized with willReadFrequently');
+                }
+            } catch (e) {
+                console.log('⚠️ Could not optimize canvas context:', e.message);
+            }
         });
+
+        // Also check if we're actually using the expected renderer
+        console.log('🔍 Current renderer type:', rendererType);
+        if (rendererType === 'webgl') {
+            console.log('✅ Expected WebGL but got Canvas warnings - investigating...');
+        }
     }, 100);
     
     // Add web links addon
@@ -71,6 +841,45 @@ function initTerminal() {
     
     // Open terminal
     term.open(document.getElementById('terminal'));
+
+    // Load WebGL addon AFTER terminal is opened (correct pattern from examples)
+    if (optimalRenderer === 'webgl') {
+        console.log('🚀 Loading WebGL addon after terminal open...');
+        try {
+            if (typeof WebglAddon !== 'undefined') {
+                const webglAddon = new WebglAddon.WebglAddon();
+                term.loadAddon(webglAddon);
+                console.log('✅ WebGL addon loaded successfully');
+            } else {
+                console.log('❌ WebglAddon not available - check if script is loaded');
+            }
+        } catch (e) {
+            console.log('❌ Failed to load WebGL addon:', e.message);
+            console.log('⚠️ Falling back to canvas rendering');
+        }
+    }
+
+    // Debug: Check what renderer is actually being used
+    setTimeout(() => {
+        console.log('🔍 Terminal opened, checking actual renderer...');
+        if (term._core && term._core._renderService && term._core._renderService._renderer) {
+            const actualRenderer = term._core._renderService._renderer.constructor.name;
+            console.log('🎯 Actual renderer being used:', actualRenderer);
+
+            if (actualRenderer.includes('Canvas')) {
+                console.log('⚠️ Using Canvas renderer');
+                if (optimalRenderer === 'webgl') {
+                    console.log('💡 WebGL was detected but Canvas is being used - addon may have failed');
+                }
+            } else if (actualRenderer.includes('WebGL') || actualRenderer.includes('Webgl')) {
+                console.log('✅ Successfully using WebGL renderer');
+            } else {
+                console.log('❓ Unknown renderer type:', actualRenderer);
+            }
+        } else {
+            console.log('❌ Could not access terminal renderer information');
+        }
+    }, 500);
     
     // Set terminal options for better compatibility
     term.options.cursorBlink = true;
@@ -159,16 +968,57 @@ function initTerminal() {
             }));
         }
         term.writeln('\x1b[1;32mWelcome to IPAM Terminal\x1b[0m');
-        term.writeln('Terminal initialized and ready for use');
+        term.writeln(`Terminal initialized with ${optimalRenderer.toUpperCase()} renderer`);
+        // Initialize optimized terminal buffer
+        if (window.OptimizedTerminalBuffer) {
+            try {
+                window.terminalBuffer = new window.OptimizedTerminalBuffer(20000); // 20K lines
+                term.writeln('\x1b[1;32m📜 Optimized terminal buffer initialized (20K lines)\x1b[0m');
+            } catch (e) {
+                console.error('Failed to initialize optimized buffer:', e);
+                term.writeln('\x1b[1;31m⚠️ Failed to initialize optimized buffer, using default\x1b[0m');
+            }
+        } else {
+            term.writeln('\x1b[1;33m⚠️ Optimized buffer not available, using default\x1b[0m');
+        }
+
+        if (optimalRenderer === 'webgl') {
+            term.writeln('\x1b[1;36m🚀 GPU acceleration enabled for optimal performance\x1b[0m');
+            term.writeln(`\x1b[1;33m🎮 GPU: ${gpuInfo.renderer}\x1b[0m`);
+            term.writeln(`\x1b[1;33m📊 WebGL ${gpuInfo.isWebGL2 ? '2.0' : '1.0'} | Max Texture: ${gpuInfo.maxTextureSize}px\x1b[0m`);
+            term.writeln('\x1b[1;32m💡 GPU Commands: gpu-info, gpu-test, webgl-debug\x1b[0m');
+            updateGPUStatusIndicator(true);
+        } else {
+            term.writeln('\x1b[1;31m⚠️  GPU acceleration not available - using CPU rendering\x1b[0m');
+            term.writeln('\x1b[1;33m🔍 Type "webgl-debug" to diagnose WebGL issues\x1b[0m');
+            term.writeln('\x1b[1;33m🔄 Type "webgl-retest" to retest WebGL support\x1b[0m');
+            updateGPUStatusIndicator(false);
+        }
+
+        // Show performance optimization status
+        term.writeln('\x1b[1;32m⚡ Performance optimizations active:\x1b[0m');
+
+        // Check which optimizations are available
+        const optimizations = [];
+        if (window.terminalLinePool) optimizations.push('📦 Object pooling');
+        if (window.BinaryProtocol) optimizations.push('📡 Binary protocol');
+        if (window.performanceMonitor) optimizations.push('📊 Performance monitoring');
+        if (window.OptimizedTerminalBuffer) optimizations.push('💾 Optimized buffers');
+
+        if (optimizations.length > 0) {
+            optimizations.forEach(opt => term.writeln(`   ${opt} enabled`));
+            term.writeln('\x1b[1;32m💡 Performance Commands: perf-stats, memory-stats, pool-stats\x1b[0m');
+        } else {
+            term.writeln('\x1b[1;33m⚠️ Performance modules not loaded properly\x1b[0m');
+        }
         
         // Set up a periodic refresh for the terminal
         // This helps with commands like 'top' that need regular updates
+        // WebGL renderer benefits from more frequent updates
+        const refreshRate = rendererType === 'webgl' ? 1000 : 2000; // 1s for WebGL, 2s for canvas
         const refreshInterval = setInterval(() => {
-            if (term && document.hasFocus()) {
-                // Only refresh if the page has focus to save resources
-                term.refresh(0, term.rows - 1);
-            }
-        }, 2000); // Refresh every 2 seconds
+            refreshTerminal(); // Use enhanced refresh function
+        }, refreshRate);
         
         // Clean up the interval when the page is unloaded
         window.addEventListener('beforeunload', () => {

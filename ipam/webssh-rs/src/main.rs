@@ -7,6 +7,7 @@ mod ssh;
 mod websocket;
 mod settings;
 mod session;
+mod protocol;
 
 use axum::{
     extract::{
@@ -16,14 +17,14 @@ use axum::{
     response::{Html, IntoResponse, Response},
     routing::{get, post},
     Json, Router,
-    http::{HeaderValue, Method},
+    http::Method,
 };
 use tower_http::cors::{CorsLayer, Any};
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use std::collections::{HashMap, HashSet};
-use std::time::{Duration, Instant};
+// Collections removed - not used in current implementation
+use std::time::Duration;
 use tokio::sync::{mpsc, Mutex};
 use tower_http::services::ServeDir;
 use tracing::{error, info, debug, Level};
@@ -566,7 +567,7 @@ async fn session_status_single_handler(
     } else {
         // Check if the session ID contains connection information
         // Format: portal-{portal_user_id}-device-{device_id}-ssh-{ssh_username}-{uuid}
-        let parts: Vec<&str> = clean_session_id.split('-').collect();
+        let _parts: Vec<&str> = clean_session_id.split('-').collect();
         
         // Log all available sessions for debugging
         let sessions = registry.get_all_sessions();

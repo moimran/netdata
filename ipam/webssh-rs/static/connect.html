@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSSH-RS Connect</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e1e1;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .auth-toggle {
+            display: flex;
+            background: #f5f5f5;
+            border-radius: 6px;
+            padding: 4px;
+            margin-bottom: 15px;
+        }
+
+        .auth-toggle button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-toggle button.active {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .connect-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .connect-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .private-key-section {
+            display: none;
+        }
+
+        .private-key-section textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 2px solid #e1e1e1;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .private-key-section textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .help-text {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .gpu-info {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .gpu-active {
+            border-color: #28a745;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .gpu-inactive {
+            border-color: #6c757d;
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 WebSSH Connect</h1>
+            <p>Connect to your SSH server through the web terminal</p>
+        </div>
+
+        <form id="connectForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="hostname">Hostname/IP Address</label>
+                    <input type="text" id="hostname" name="hostname" required placeholder="192.168.1.100">
+                </div>
+                <div class="form-group">
+                    <label for="port">Port</label>
+                    <input type="number" id="port" name="port" value="22" min="1" max="65535" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required placeholder="admin">
+            </div>
+
+            <div class="form-group">
+                <label>Authentication Method</label>
+                <div class="auth-toggle">
+                    <button type="button" id="passwordAuth" class="active">Password</button>
+                    <button type="button" id="keyAuth">Private Key</button>
+                </div>
+            </div>
+
+            <div class="password-section">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password">
+                    <div class="help-text">Leave empty if no password is required</div>
+                </div>
+            </div>
+
+            <div class="private-key-section">
+                <div class="form-group">
+                    <label for="privateKey">Private Key</label>
+                    <textarea id="privateKey" name="privateKey" placeholder="-----BEGIN PRIVATE KEY-----
+...
+-----END PRIVATE KEY-----"></textarea>
+                    <div class="help-text">Paste your private key in PEM format</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="deviceType">Device Type (Optional)</label>
+                <select id="deviceType" name="deviceType">
+                    <option value="">Auto-detect</option>
+                    <option value="linux">Linux Server</option>
+                    <option value="cisco">Cisco Device</option>
+                    <option value="juniper">Juniper Device</option>
+                    <option value="router">Generic Router</option>
+                    <option value="switch">Network Switch</option>
+                </select>
+            </div>
+
+            <button type="submit" class="connect-btn" id="connectBtn">
+                🚀 Connect to SSH
+            </button>
+
+            <button type="button" onclick="showDetailedDiagnostics()" style="width: 100%; margin-top: 10px; background: #6c757d;">
+                🔍 Show Detailed WebGL Diagnostics
+            </button>
+        </form>
+
+        <div id="status" class="status"></div>
+
+        <div id="gpu-info" class="gpu-info">
+            <strong>🎮 Terminal Renderer:</strong> <span id="renderer-type">Detecting...</span>
+            <div id="diagnostic-details" style="margin-top: 10px; font-size: 12px; color: #666;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Authentication method toggle
+        const passwordAuth = document.getElementById('passwordAuth');
+        const keyAuth = document.getElementById('keyAuth');
+        const passwordSection = document.querySelector('.password-section');
+        const privateKeySection = document.querySelector('.private-key-section');
+
+        passwordAuth.addEventListener('click', () => {
+            passwordAuth.classList.add('active');
+            keyAuth.classList.remove('active');
+            passwordSection.style.display = 'block';
+            privateKeySection.style.display = 'none';
+        });
+
+        keyAuth.addEventListener('click', () => {
+            keyAuth.classList.add('active');
+            passwordAuth.classList.remove('active');
+            passwordSection.style.display = 'none';
+            privateKeySection.style.display = 'block';
+        });
+
+        // Form submission
+        document.getElementById('connectForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const connectBtn = document.getElementById('connectBtn');
+            const status = document.getElementById('status');
+            
+            // Disable button and show loading
+            connectBtn.disabled = true;
+            connectBtn.textContent = '🔄 Connecting...';
+            showStatus('Establishing SSH connection...', 'loading');
+            
+            // Prepare connection data
+            const authType = passwordAuth.classList.contains('active') ? 'password' : 'private-key';
+            const connectionData = {
+                hostname: formData.get('hostname'),
+                port: parseInt(formData.get('port')),
+                username: formData.get('username'),
+                auth_type: authType,
+                device_type: formData.get('deviceType') || undefined
+            };
+            
+            if (authType === 'password') {
+                connectionData.password = formData.get('password') || '';
+            } else {
+                connectionData.private_key = formData.get('privateKey');
+            }
+            
+            try {
+                const response = await fetch('/api/connect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(connectionData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('✅ Connection successful! Redirecting to terminal...', 'success');
+                    
+                    // Redirect to terminal with session info
+                    setTimeout(() => {
+                        const params = new URLSearchParams({
+                            session_id: result.session_id,
+                            hostname: connectionData.hostname,
+                            username: connectionData.username,
+                            device_name: connectionData.hostname
+                        });
+                        window.location.href = `/index.html?${params.toString()}`;
+                    }, 1500);
+                } else {
+                    showStatus(`❌ Connection failed: ${result.message}`, 'error');
+                    connectBtn.disabled = false;
+                    connectBtn.textContent = '🚀 Connect to SSH';
+                }
+            } catch (error) {
+                showStatus(`❌ Network error: ${error.message}`, 'error');
+                connectBtn.disabled = false;
+                connectBtn.textContent = '🚀 Connect to SSH';
+            }
+        });
+        
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+
+        // Comprehensive WebGL detection with detailed diagnostics
+        function detectGPUCapabilities() {
+            const gpuInfoDiv = document.getElementById('gpu-info');
+            const rendererSpan = document.getElementById('renderer-type');
+
+            console.log('🔍 Starting comprehensive WebGL detection...');
+
+            // Step 1: Check if WebGL is disabled
+            const webglDisabled = checkWebGLDisabled();
+            if (webglDisabled) {
+                console.log('❌ WebGL is disabled in browser settings');
+                rendererSpan.innerHTML = '❌ <strong>WebGL Disabled</strong><br><small>Check browser settings</small>';
+                gpuInfoDiv.className = 'gpu-info gpu-inactive';
+                addDiagnosticInfo('WebGL is disabled in browser settings');
+                return;
+            }
+
+            try {
+                const canvas = document.createElement('canvas');
+                console.log('📋 Testing WebGL context creation...');
+
+                // Step 2: Test WebGL 2.0
+                let gl = canvas.getContext('webgl2');
+                let isWebGL2 = false;
+
+                if (gl) {
+                    isWebGL2 = true;
+                    console.log('🚀 WebGL 2.0 context created successfully');
+
+                    // Test functionality
+                    if (testWebGLFunctionality(gl)) {
+                        console.log('✅ WebGL 2.0 is fully functional');
+                        const gpuInfo = collectGPUInfo(gl);
+                        rendererSpan.innerHTML = `🚀 <strong>WebGL 2.0</strong> (GPU Accelerated)<br><small>${gpuInfo.renderer}</small>`;
+                        gpuInfoDiv.className = 'gpu-info gpu-active';
+                        addDiagnosticInfo(`WebGL 2.0 active with ${gpuInfo.renderer}`);
+                        return;
+                    } else {
+                        console.log('⚠️ WebGL 2.0 context created but not functional');
+                    }
+                } else {
+                    console.log('❌ WebGL 2.0 not available, testing WebGL 1.0...');
+                }
+
+                // Step 3: Test WebGL 1.0
+                gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    console.log('⚡ WebGL 1.0 context created successfully');
+
+                    if (testWebGLFunctionality(gl)) {
+                        console.log('✅ WebGL 1.0 is fully functional');
+                        const gpuInfo = collectGPUInfo(gl);
+                        rendererSpan.innerHTML = `⚡ <strong>WebGL 1.0</strong> (GPU Accelerated)<br><small>${gpuInfo.renderer}</small>`;
+                        gpuInfoDiv.className = 'gpu-info gpu-active';
+                        addDiagnosticInfo(`WebGL 1.0 active with ${gpuInfo.renderer}`);
+                        return;
+                    } else {
+                        console.log('⚠️ WebGL 1.0 context created but not functional');
+                        rendererSpan.innerHTML = '⚠️ <strong>WebGL Context Lost</strong><br><small>Context created but not functional</small>';
+                        gpuInfoDiv.className = 'gpu-info gpu-inactive';
+                        addDiagnosticInfo('WebGL context created but not functional');
+                        return;
+                    }
+                } else {
+                    console.log('❌ WebGL 1.0 not available');
+                    rendererSpan.innerHTML = '🖥️ <strong>Canvas</strong> (CPU Rendering)<br><small>WebGL not supported</small>';
+                    gpuInfoDiv.className = 'gpu-info gpu-inactive';
+                    addDiagnosticInfo('WebGL not supported by browser/hardware');
+                }
+
+            } catch (e) {
+                console.log('❌ WebGL detection error:', e.message);
+                rendererSpan.innerHTML = '❌ <strong>Detection Failed</strong><br><small>Error during detection</small>';
+                gpuInfoDiv.className = 'gpu-info gpu-inactive';
+                addDiagnosticInfo(`Detection failed: ${e.message}`);
+            }
+        }
+
+        // Check if WebGL is disabled
+        function checkWebGLDisabled() {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                return !gl;
+            } catch (e) {
+                return true;
+            }
+        }
+
+        // Test WebGL functionality
+        function testWebGLFunctionality(gl) {
+            try {
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+
+                if (gl.isContextLost()) {
+                    console.log('⚠️ WebGL context is lost');
+                    return false;
+                }
+
+                // Test basic shader compilation
+                const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+                if (!vertexShader) {
+                    console.log('⚠️ Cannot create vertex shader');
+                    return false;
+                }
+
+                gl.shaderSource(vertexShader, `
+                    attribute vec2 position;
+                    void main() {
+                        gl_Position = vec4(position, 0.0, 1.0);
+                    }
+                `);
+                gl.compileShader(vertexShader);
+
+                if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+                    console.log('⚠️ Vertex shader compilation failed');
+                    gl.deleteShader(vertexShader);
+                    return false;
+                }
+
+                gl.deleteShader(vertexShader);
+                console.log('✅ WebGL functionality test passed');
+                return true;
+
+            } catch (e) {
+                console.log('⚠️ WebGL functionality test failed:', e.message);
+                return false;
+            }
+        }
+
+        // Collect GPU information
+        function collectGPUInfo(gl) {
+            const gpuInfo = {
+                renderer: 'Unknown',
+                vendor: 'Unknown',
+                version: 'Unknown',
+                maxTextureSize: 0,
+                extensions: []
+            };
+
+            try {
+                gpuInfo.version = gl.getParameter(gl.VERSION);
+
+                // Try to get unmasked renderer info
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                if (debugInfo) {
+                    gpuInfo.renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                    gpuInfo.vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                    console.log('🔓 Unmasked GPU info available');
+                } else {
+                    gpuInfo.renderer = gl.getParameter(gl.RENDERER);
+                    gpuInfo.vendor = gl.getParameter(gl.VENDOR);
+                    console.log('🔒 GPU info masked for privacy');
+                }
+
+                gpuInfo.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+                gpuInfo.extensions = gl.getSupportedExtensions() || [];
+
+                console.log('🎮 GPU Information:');
+                console.log(`   Renderer: ${gpuInfo.renderer}`);
+                console.log(`   Vendor: ${gpuInfo.vendor}`);
+                console.log(`   Version: ${gpuInfo.version}`);
+                console.log(`   Max Texture: ${gpuInfo.maxTextureSize}px`);
+                console.log(`   Extensions: ${gpuInfo.extensions.length}`);
+
+            } catch (e) {
+                console.warn('Could not collect GPU information:', e.message);
+            }
+
+            return gpuInfo;
+        }
+
+        // Add diagnostic information to the page
+        function addDiagnosticInfo(message) {
+            const diagnosticDiv = document.getElementById('diagnostic-details');
+            if (diagnosticDiv) {
+                diagnosticDiv.innerHTML = `
+                    <strong>🔍 Diagnostic Details:</strong><br>
+                    ${message}<br>
+                    <small>Platform: ${navigator.platform} | Cores: ${navigator.hardwareConcurrency}</small>
+                `;
+            }
+        }
+
+        // Show detailed WebGL diagnostics
+        function showDetailedDiagnostics() {
+            const diagnosticDiv = document.getElementById('diagnostic-details');
+
+            let diagnosticHTML = '<strong>🔍 Detailed WebGL Diagnostics:</strong><br><br>';
+
+            // Browser information
+            diagnosticHTML += `<strong>🌐 Browser Environment:</strong><br>`;
+            diagnosticHTML += `User Agent: ${navigator.userAgent}<br>`;
+            diagnosticHTML += `Platform: ${navigator.platform}<br>`;
+            diagnosticHTML += `Language: ${navigator.language}<br>`;
+            diagnosticHTML += `CPU Cores: ${navigator.hardwareConcurrency}<br>`;
+            if (navigator.deviceMemory) {
+                diagnosticHTML += `Device Memory: ${navigator.deviceMemory} GB<br>`;
+            }
+            diagnosticHTML += '<br>';
+
+            // WebGL test results
+            diagnosticHTML += `<strong>🧪 WebGL Test Results:</strong><br>`;
+
+            try {
+                const canvas = document.createElement('canvas');
+                const gl2 = canvas.getContext('webgl2');
+                const gl1 = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+
+                if (gl2) {
+                    diagnosticHTML += `✅ WebGL 2.0: Available<br>`;
+                    diagnosticHTML += `🎮 Renderer: ${gl2.getParameter(gl2.RENDERER)}<br>`;
+                    diagnosticHTML += `🏢 Vendor: ${gl2.getParameter(gl2.VENDOR)}<br>`;
+                    diagnosticHTML += `📋 Version: ${gl2.getParameter(gl2.VERSION)}<br>`;
+                    diagnosticHTML += `🖼️ Max Texture: ${gl2.getParameter(gl2.MAX_TEXTURE_SIZE)}px<br>`;
+                } else if (gl1) {
+                    diagnosticHTML += `⚡ WebGL 1.0: Available<br>`;
+                    diagnosticHTML += `🎮 Renderer: ${gl1.getParameter(gl1.RENDERER)}<br>`;
+                    diagnosticHTML += `🏢 Vendor: ${gl1.getParameter(gl1.VENDOR)}<br>`;
+                    diagnosticHTML += `📋 Version: ${gl1.getParameter(gl1.VERSION)}<br>`;
+                    diagnosticHTML += `🖼️ Max Texture: ${gl1.getParameter(gl1.MAX_TEXTURE_SIZE)}px<br>`;
+                } else {
+                    diagnosticHTML += `❌ WebGL: Not Available<br>`;
+                }
+            } catch (e) {
+                diagnosticHTML += `❌ WebGL Test Error: ${e.message}<br>`;
+            }
+
+            diagnosticHTML += '<br>';
+
+            // Troubleshooting tips
+            diagnosticHTML += `<strong>🔧 Troubleshooting Tips:</strong><br>`;
+            diagnosticHTML += `1. Check browser settings for hardware acceleration<br>`;
+            diagnosticHTML += `2. Update graphics drivers<br>`;
+            diagnosticHTML += `3. Try a different browser<br>`;
+            diagnosticHTML += `4. Check if running in VM or remote desktop<br>`;
+            diagnosticHTML += `5. Visit chrome://gpu/ or about:support for more info<br>`;
+
+            diagnosticDiv.innerHTML = diagnosticHTML;
+
+            // Scroll to diagnostics
+            diagnosticDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Run GPU detection when page loads
+        document.addEventListener('DOMContentLoaded', detectGPUCapabilities);
+    </script>
+</body>
+</html>

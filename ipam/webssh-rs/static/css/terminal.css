@@ -49,3 +49,49 @@ body {
 .xterm-screen {
     image-rendering: pixelated;
 }
+
+/* GPU Status Indicator */
+.gpu-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.gpu-status.gpu-active {
+    background-color: #28a745;
+    color: white;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
+}
+
+.gpu-status.gpu-inactive {
+    background-color: #6c757d;
+    color: white;
+}
+
+.gpu-status.gpu-webgl2 {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+}
+
+/* Button styling */
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:active {
+    background-color: #004085;
+}

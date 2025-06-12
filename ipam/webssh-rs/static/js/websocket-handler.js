@@ -58,10 +58,21 @@ function connectWebSocket(sessionId) {
         
         term.onData(data => {
             if (ws && ws.readyState === WebSocket.OPEN) {
+                // Check for special local commands first
+                if (data === '\r' && inputQueue.length > 0) {
+                    // User pressed Enter, check if it's a special command
+                    const fullCommand = inputQueue.join('');
+                    if (handleSpecialCommands && handleSpecialCommands(fullCommand)) {
+                        // Command was handled locally, clear the queue and don't send to server
+                        inputQueue = [];
+                        return;
+                    }
+                }
+
                 // Add the data to the queue
                 inputQueue.push(data);
                 console.log('Input queued:', data);
-                
+
                 // Process the queue if not already processing
                 if (!processingInput) {
                     processingInput = true;
