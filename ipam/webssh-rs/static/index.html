@@ -20,6 +20,30 @@
             <button onclick="sendEnterKey()">Send Enter</button>
             <button onclick="displayGPUInfo()">GPU Info</button>
         </div>
+
+        <!-- Live Performance Dashboard -->
+        <div class="performance-dashboard">
+            <div class="perf-metric">
+                <span class="perf-label">🎮 FPS:</span>
+                <span id="fps-counter" class="perf-value">--</span>
+            </div>
+            <div class="perf-metric">
+                <span class="perf-label">💾 Memory:</span>
+                <span id="memory-usage" class="perf-value">-- MB</span>
+            </div>
+            <div class="perf-metric">
+                <span class="perf-label">🌐 Latency:</span>
+                <span id="network-latency" class="perf-value">-- ms</span>
+            </div>
+            <div class="perf-metric">
+                <span class="perf-label">📊 Pool Hit:</span>
+                <span id="pool-efficiency" class="perf-value">--%</span>
+            </div>
+            <div class="perf-metric">
+                <span class="perf-label">🗜️ Compression:</span>
+                <span id="compression-ratio" class="perf-value">--x</span>
+            </div>
+        </div>
     </div>
     
     <div class="terminal-area">
@@ -34,6 +58,9 @@
     <!-- Load high-performance modules first -->
     <script src="js/object-pool.js?v=2024-perf"></script>
     <script src="js/binary-protocol.js?v=2024-perf"></script>
+    <script src="js/virtual-scrolling.js?v=2024-perf"></script>
+    <script src="js/font-atlas.js?v=2024-perf"></script>
+    <script src="js/live-dashboard.js?v=2024-perf-fixed"></script>
 
     <!-- Load application scripts with cache busting -->
     <script src="js/terminal-core.js?v=2024-perf"></script>

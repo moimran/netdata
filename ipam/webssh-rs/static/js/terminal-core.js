@@ -182,6 +182,51 @@ function handleSpecialCommands(data) {
         return true;
     }
 
+    if (command === 'dashboard-toggle') {
+        toggleLiveDashboard();
+        return true;
+    }
+
+    if (command === 'dashboard-show') {
+        showLiveDashboard();
+        return true;
+    }
+
+    if (command === 'dashboard-hide') {
+        hideLiveDashboard();
+        return true;
+    }
+
+    if (command === 'virtual-scroll-enable') {
+        enableVirtualScrolling();
+        return true;
+    }
+
+    if (command === 'virtual-scroll-disable') {
+        disableVirtualScrolling();
+        return true;
+    }
+
+    if (command === 'virtual-scroll-stats') {
+        displayVirtualScrollStats();
+        return true;
+    }
+
+    if (command === 'font-atlas-generate') {
+        generateFontAtlas();
+        return true;
+    }
+
+    if (command === 'font-atlas-stats') {
+        displayFontAtlasStats();
+        return true;
+    }
+
+    if (command === 'optimization-status') {
+        displayOptimizationStatus();
+        return true;
+    }
+
     return false; // Command not handled
 }
 
@@ -496,6 +541,237 @@ function clearObjectPools() {
 
     term.writeln(`\x1b[1;32m✅ Cleared ${cleared} object pools\x1b[0m`);
     term.writeln('\x1b[1;33m💡 Memory should be freed shortly\x1b[0m');
+};
+
+// Live dashboard control functions
+function toggleLiveDashboard() {
+    if (!term) return;
+
+    if (window.liveDashboard) {
+        window.liveDashboard.toggle();
+        const dashboard = document.querySelector('.performance-dashboard');
+        const isVisible = dashboard && dashboard.style.display !== 'none';
+
+        if (isVisible) {
+            term.writeln('\x1b[1;32m📊 Live dashboard shown\x1b[0m');
+        } else {
+            term.writeln('\x1b[1;33m📊 Live dashboard hidden\x1b[0m');
+        }
+    } else {
+        term.writeln('\x1b[1;31m❌ Live dashboard not available\x1b[0m');
+    }
+}
+
+function showLiveDashboard() {
+    if (!term) return;
+
+    if (window.liveDashboard) {
+        window.liveDashboard.show();
+        term.writeln('\x1b[1;32m📊 Live dashboard shown\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;31m❌ Live dashboard not available\x1b[0m');
+    }
+}
+
+function hideLiveDashboard() {
+    if (!term) return;
+
+    if (window.liveDashboard) {
+        window.liveDashboard.hide();
+        term.writeln('\x1b[1;33m📊 Live dashboard hidden\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;31m❌ Live dashboard not available\x1b[0m');
+    }
+}
+
+// Display current dashboard metrics
+function displayDashboardMetrics() {
+    if (!term) return;
+
+    if (window.liveDashboard) {
+        const metrics = window.liveDashboard.getCurrentMetrics();
+
+        term.writeln('\x1b[1;36m' + '='.repeat(50) + '\x1b[0m');
+        term.writeln('\x1b[1;36m📊 Live Dashboard Metrics\x1b[0m');
+        term.writeln('\x1b[1;36m' + '='.repeat(50) + '\x1b[0m');
+
+        term.writeln(`\x1b[1;32m🎮 FPS: ${metrics.fps.toFixed(1)}\x1b[0m`);
+        term.writeln(`\x1b[1;32m💾 Memory: ${metrics.memory.toFixed(1)} MB\x1b[0m`);
+        term.writeln(`\x1b[1;32m🌐 Latency: ${metrics.latency.toFixed(1)} ms\x1b[0m`);
+        term.writeln(`\x1b[1;32m📊 Pool Hit Rate: ${metrics.poolHitRate.toFixed(1)}%\x1b[0m`);
+        term.writeln(`\x1b[1;32m🗜️ Compression: ${metrics.compressionRatio.toFixed(2)}x\x1b[0m`);
+
+        term.writeln('\x1b[1;36m' + '='.repeat(50) + '\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;31m❌ Live dashboard not available\x1b[0m');
+    }
+};
+
+// Virtual scrolling control functions
+function enableVirtualScrolling() {
+    if (!term) return;
+
+    if (window.terminalBuffer && window.terminalBuffer.enableVirtualScrolling) {
+        try {
+            window.terminalBuffer.enableVirtualScrolling(term, {
+                visibleLines: 50,
+                bufferSize: 100000,
+                overscan: 10
+            });
+            term.writeln('\x1b[1;32m📜 Virtual scrolling enabled\x1b[0m');
+            term.writeln('\x1b[1;33m💡 Can now handle 100K+ lines efficiently\x1b[0m');
+        } catch (e) {
+            term.writeln('\x1b[1;31m❌ Failed to enable virtual scrolling\x1b[0m');
+            console.error('Virtual scrolling error:', e);
+        }
+    } else {
+        term.writeln('\x1b[1;31m❌ Virtual scrolling not available\x1b[0m');
+    }
+}
+
+function disableVirtualScrolling() {
+    if (!term) return;
+
+    if (window.terminalBuffer && window.terminalBuffer.disableVirtualScrolling) {
+        window.terminalBuffer.disableVirtualScrolling();
+        term.writeln('\x1b[1;33m📜 Virtual scrolling disabled\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;31m❌ Virtual scrolling not available\x1b[0m');
+    }
+}
+
+function displayVirtualScrollStats() {
+    if (!term) return;
+
+    if (window.terminalBuffer && window.terminalBuffer.getVirtualScrollingStats) {
+        const stats = window.terminalBuffer.getVirtualScrollingStats();
+
+        if (stats) {
+            term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+            term.writeln('\x1b[1;36m📜 Virtual Scrolling Statistics\x1b[0m');
+            term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+
+            term.writeln(`\x1b[1;32m📊 Total Lines: ${stats.totalLines}\x1b[0m`);
+            term.writeln(`\x1b[1;32m👁️  Rendered Lines: ${stats.renderedLines}\x1b[0m`);
+            term.writeln(`\x1b[1;32m📈 Render Efficiency: ${(stats.renderEfficiency * 100).toFixed(1)}%\x1b[0m`);
+            term.writeln(`\x1b[1;32m🎯 Buffer Utilization: ${(stats.bufferUtilization * 100).toFixed(1)}%\x1b[0m`);
+            term.writeln(`\x1b[1;32m⏱️  Last Render Time: ${stats.lastRenderTime.toFixed(2)}ms\x1b[0m`);
+            term.writeln(`\x1b[1;32m🖱️  Scroll Events: ${stats.scrollEvents}\x1b[0m`);
+
+            if (stats.visibleRange) {
+                term.writeln(`\x1b[1;33m👁️  Visible Range: ${stats.visibleRange.start}-${stats.visibleRange.end} of ${stats.visibleRange.total}\x1b[0m`);
+            }
+
+            term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+        } else {
+            term.writeln('\x1b[1;33m⚠️ Virtual scrolling not active\x1b[0m');
+        }
+    } else {
+        term.writeln('\x1b[1;31m❌ Virtual scrolling not available\x1b[0m');
+    }
+}
+
+// Font atlas control functions
+function generateFontAtlas() {
+    if (!term) return;
+
+    if (window.OptimizedFontAtlas) {
+        term.writeln('\x1b[1;33m🎨 Generating optimized font atlas...\x1b[0m');
+
+        try {
+            const fontAtlas = new window.OptimizedFontAtlas({
+                fontFamily: 'monospace',
+                fontSize: 16,
+                atlasSize: 2048
+            });
+
+            fontAtlas.generateAtlas('ascii').then(() => {
+                const stats = fontAtlas.getStats();
+                term.writeln('\x1b[1;32m✅ Font atlas generated successfully\x1b[0m');
+                term.writeln(`\x1b[1;33m📊 Generated ${stats.glyphsGenerated} glyphs in ${stats.generationTime.toFixed(2)}ms\x1b[0m`);
+                term.writeln(`\x1b[1;33m📈 Atlas utilization: ${(stats.atlasUtilization * 100).toFixed(1)}%\x1b[0m`);
+
+                // Store globally for use
+                window.globalFontAtlas = fontAtlas;
+            }).catch(e => {
+                term.writeln('\x1b[1;31m❌ Font atlas generation failed\x1b[0m');
+                console.error('Font atlas error:', e);
+            });
+        } catch (e) {
+            term.writeln('\x1b[1;31m❌ Failed to create font atlas\x1b[0m');
+            console.error('Font atlas error:', e);
+        }
+    } else {
+        term.writeln('\x1b[1;31m❌ Font atlas optimization not available\x1b[0m');
+    }
+}
+
+function displayFontAtlasStats() {
+    if (!term) return;
+
+    if (window.globalFontAtlas) {
+        const stats = window.globalFontAtlas.getStats();
+
+        term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+        term.writeln('\x1b[1;36m🎨 Font Atlas Statistics\x1b[0m');
+        term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+
+        term.writeln(`\x1b[1;32m📊 Glyphs Generated: ${stats.glyphsGenerated}\x1b[0m`);
+        term.writeln(`\x1b[1;32m💾 Cache Size: ${stats.cacheSize}\x1b[0m`);
+        term.writeln(`\x1b[1;32m🎯 Cache Hit Rate: ${(stats.hitRate * 100).toFixed(1)}%\x1b[0m`);
+        term.writeln(`\x1b[1;32m📈 Atlas Utilization: ${(stats.atlasUtilization * 100).toFixed(1)}%\x1b[0m`);
+        term.writeln(`\x1b[1;32m⏱️  Generation Time: ${stats.generationTime.toFixed(2)}ms\x1b[0m`);
+        term.writeln(`\x1b[1;32m📏 Atlas Size: ${stats.atlasSize}x${stats.atlasSize}px\x1b[0m`);
+
+        if (stats.charDimensions) {
+            term.writeln(`\x1b[1;33m📐 Character Size: ${stats.charDimensions.width}x${stats.charDimensions.height}px\x1b[0m`);
+        }
+
+        term.writeln('\x1b[1;36m' + '='.repeat(60) + '\x1b[0m');
+    } else {
+        term.writeln('\x1b[1;33m⚠️ Font atlas not generated yet\x1b[0m');
+        term.writeln('\x1b[1;32m💡 Use "font-atlas-generate" to create one\x1b[0m');
+    }
+}
+
+// Display comprehensive optimization status
+function displayOptimizationStatus() {
+    if (!term) return;
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+    term.writeln('\x1b[1;36m⚡ Performance Optimization Status\x1b[0m');
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+
+    // WebGL Status
+    const webglStatus = rendererType === 'webgl' ? '✅ Active' : '❌ Inactive';
+    term.writeln(`\x1b[1;35m🎮 WebGL GPU Acceleration: ${webglStatus}\x1b[0m`);
+
+    // Object Pooling Status
+    const poolingStatus = window.terminalLinePool ? '✅ Active' : '❌ Inactive';
+    term.writeln(`\x1b[1;35m📦 Object Pooling: ${poolingStatus}\x1b[0m`);
+
+    // Binary Protocol Status
+    const binaryStatus = window.BinaryProtocol ? '✅ Available' : '❌ Unavailable';
+    term.writeln(`\x1b[1;35m📡 Binary Protocol: ${binaryStatus}\x1b[0m`);
+
+    // Virtual Scrolling Status
+    const virtualStatus = window.terminalBuffer && window.terminalBuffer.isVirtualScrollingEnabled ? '✅ Active' : '❌ Inactive';
+    term.writeln(`\x1b[1;35m📜 Virtual Scrolling: ${virtualStatus}\x1b[0m`);
+
+    // Font Atlas Status
+    const fontAtlasStatus = window.globalFontAtlas ? '✅ Generated' : '❌ Not Generated';
+    term.writeln(`\x1b[1;35m🎨 Font Atlas: ${fontAtlasStatus}\x1b[0m`);
+
+    // Live Dashboard Status
+    const dashboardStatus = window.liveDashboard ? '✅ Active' : '❌ Inactive';
+    term.writeln(`\x1b[1;35m📊 Live Dashboard: ${dashboardStatus}\x1b[0m`);
+
+    term.writeln('\x1b[1;36m' + '='.repeat(70) + '\x1b[0m');
+    term.writeln('\x1b[1;32m💡 Available Commands:\x1b[0m');
+    term.writeln('   virtual-scroll-enable/disable - Control virtual scrolling');
+    term.writeln('   font-atlas-generate - Generate optimized font atlas');
+    term.writeln('   perf-stats - Show performance statistics');
+    term.writeln('   optimization-status - Show this status');
 };
 
 // Update GPU status indicator in the UI
@@ -840,7 +1116,15 @@ function initTerminal() {
     term.loadAddon(webLinksAddon);
     
     // Open terminal
-    term.open(document.getElementById('terminal'));
+    const terminalElement = document.getElementById('terminal');
+    if (!terminalElement) {
+        console.error('❌ Terminal element not found!');
+        return;
+    }
+
+    console.log('🔧 Opening terminal...');
+    term.open(terminalElement);
+    console.log('✅ Terminal opened successfully');
 
     // Load WebGL addon AFTER terminal is opened (correct pattern from examples)
     if (optimalRenderer === 'webgl') {
@@ -969,8 +1253,20 @@ function initTerminal() {
         }
         term.writeln('\x1b[1;32mWelcome to IPAM Terminal\x1b[0m');
         term.writeln(`Terminal initialized with ${optimalRenderer.toUpperCase()} renderer`);
-        // Initialize optimized terminal buffer
-        if (window.OptimizedTerminalBuffer) {
+        // Initialize optimized terminal buffer with virtual scrolling support
+        if (window.VirtualTerminalBuffer) {
+            try {
+                window.terminalBuffer = new window.VirtualTerminalBuffer(100000); // 100K lines
+                term.writeln('\x1b[1;32m📜 Virtual terminal buffer initialized (100K lines)\x1b[0m');
+
+                // Virtual scrolling available but not auto-enabled (can cause input issues)
+                term.writeln('\x1b[1;33m💡 Use "virtual-scroll-enable" to enable virtual scrolling\x1b[0m');
+
+            } catch (e) {
+                console.error('Failed to initialize virtual buffer:', e);
+                term.writeln('\x1b[1;31m⚠️ Failed to initialize virtual buffer, using default\x1b[0m');
+            }
+        } else if (window.OptimizedTerminalBuffer) {
             try {
                 window.terminalBuffer = new window.OptimizedTerminalBuffer(20000); // 20K lines
                 term.writeln('\x1b[1;32m📜 Optimized terminal buffer initialized (20K lines)\x1b[0m');
@@ -979,7 +1275,7 @@ function initTerminal() {
                 term.writeln('\x1b[1;31m⚠️ Failed to initialize optimized buffer, using default\x1b[0m');
             }
         } else {
-            term.writeln('\x1b[1;33m⚠️ Optimized buffer not available, using default\x1b[0m');
+            term.writeln('\x1b[1;33m⚠️ Advanced buffers not available, using default\x1b[0m');
         }
 
         if (optimalRenderer === 'webgl') {
@@ -1003,11 +1299,13 @@ function initTerminal() {
         if (window.terminalLinePool) optimizations.push('📦 Object pooling');
         if (window.BinaryProtocol) optimizations.push('📡 Binary protocol');
         if (window.performanceMonitor) optimizations.push('📊 Performance monitoring');
-        if (window.OptimizedTerminalBuffer) optimizations.push('💾 Optimized buffers');
+        if (window.VirtualTerminalBuffer) optimizations.push('📜 Virtual scrolling');
+        if (window.OptimizedFontAtlas) optimizations.push('🎨 Font atlas optimization');
+        if (window.liveDashboard) optimizations.push('📊 Live dashboard');
 
         if (optimizations.length > 0) {
             optimizations.forEach(opt => term.writeln(`   ${opt} enabled`));
-            term.writeln('\x1b[1;32m💡 Performance Commands: perf-stats, memory-stats, pool-stats\x1b[0m');
+            term.writeln('\x1b[1;32m💡 Commands: perf-stats, optimization-status, virtual-scroll-enable\x1b[0m');
         } else {
             term.writeln('\x1b[1;33m⚠️ Performance modules not loaded properly\x1b[0m');
         }
